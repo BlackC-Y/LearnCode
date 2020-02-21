@@ -1,6 +1,5 @@
 from PySide2 import QtCore, QtGui, QtWidgets
-import maya.cmds as cmds
-import maya.mel as mm
+from maya import cmds, mel
 import maya.OpenMayaUI as Omui
 import shiboken2
 
@@ -86,7 +85,7 @@ password()
 '''
 
 ui_variable = {}
-
+_pTCIKVerision = 'v2.2'
 
 class Ui_ApplePieA(object):
 
@@ -371,7 +370,7 @@ class Showwindow(Ui_ApplePieA, QtWidgets.QWidget):
         self.setParent(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
         # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
-        self.setWindowTitle('v2.1')
+        self.setWindowTitle(_pTCIKVerision)
         self.show()
 
 
@@ -407,16 +406,17 @@ class ApplePieA_pTCIK(object):
 				******
 		'''
         cmds.undoInfo(ock=1)
-        if cmds.confirmDialog(title='Confirm', message='尝试居中对齐?', button=['Yes', 'No'], defaultButton='Yes', cancelButton='No', dismissString='No') == 'Yes':
+        if cmds.confirmDialog(title='Confirm', message='尝试居中对齐?', button=['Yes', 'No'], defaultButton='Yes',
+                                cancelButton='No', dismissString='No') == 'Yes':
             cmds.polyToCurve(ch=0, form=2, degree=3, n='__temp_cur')
             cmds.select(polyEdgeN, r=1)
-            mm.eval("PolySelectConvert 3;")
+            mel.eval("PolySelectConvert 3;")
             selv = cmds.ls(sl=1, fl=1)
             for v in range(len(selv)):
                 cmds.select(selv[v], r=1)
-                mm.eval("PolySelectConvert 2;")
+                mel.eval("PolySelectConvert 2;")
                 cmds.select(polyEdgeN, d=1)
-                mm.eval("performSelContiguousEdges 0;")
+                mel.eval("performSelContiguousEdges 0;")
                 cmds.cluster(n='__temp_clu')
             cl = cmds.ls('__temp_clu*Handle')
             node_p = {}
@@ -443,7 +443,7 @@ class ApplePieA_pTCIK(object):
             cmds.rename(reshape, self.Curvename + 'Shape')
             cmds.delete('__temp_*')
         else:
-            cmds.select(polyEdgeN, r=True)
+            cmds.select(polyEdgeN, r=1)
             pTCname = cmds.polyToCurve(ch=0, form=2, degree=3)
             cmds.rename(pTCname[0], self.Curvename)
         cmds.rebuildCurve(self.Curvename, ch=0, rpo=1, rt=0, end=1, kr=0, kcp=0, kep=1, kt=0, s=int(ReBNum), d=3, tol=0.01)
@@ -482,22 +482,17 @@ class ApplePieA_pTCIK(object):
             cmds.addAttr('tempCurveName', ln='CurName', dt='string')
             cmds.setAttr('tempCurveName.CurName', '', type='string')
         for i in getlist:
-            cmds.setAttr(i+".dispCV", 0)
-            cmds.select(i, r=1)
-            cmds.DeleteHistory()
-            curve = cmds.listRelatives(s=1, type="nurbsCurve")[0]
+            cmds.setAttr(i + ".dispCV", 0)
+            cmds.DeleteHistory(i)
+            curve = cmds.listRelatives(i, s=1, type="nurbsCurve")[0]
             numCVs = cmds.getAttr(i + ".controlPoints", size=1)
             for nu in range(numCVs):
                 createClu = cmds.cluster(curve + ".cv[" + str(nu) + "]", n=i + "_clu", rel=1)[1]
                 createCur = cmds.circle(ch=0, n=createClu + "_Ctrl")[0]
-                SDKgroup = cmds.group(n=createCur+"_SDK")
+                cmds.group(n=createCur+"_SDK")
                 ctrlgroup = cmds.group(n=createCur+"_grp")
-                cmds.connectAttr(createClu+"Shape"+".originX", ctrlgroup+".tx", f=1)
-                cmds.connectAttr(createClu+"Shape"+".originY", ctrlgroup+".ty", f=1)
-                cmds.connectAttr(createClu+"Shape"+".originZ", ctrlgroup+".tz", f=1)
-                cmds.disconnectAttr(createClu+"Shape" + ".originX", ctrlgroup+".tx")
-                cmds.disconnectAttr(createClu+"Shape" + ".originY", ctrlgroup+".ty")
-                cmds.disconnectAttr(createClu+"Shape" + ".originZ", ctrlgroup+".tz")
+                cmds.connectAttr(createClu+"Shape"+".origin", ctrlgroup+".translate", f=1)
+                cmds.disconnectAttr(createClu+"Shape" + ".origin", ctrlgroup+".translate")
                 cmds.select(cl=1)
             cmds.setAttr('tempCurveName.CurName', cmds.getAttr('tempCurveName.CurName') + i + '_clu*Handle_Ctrl,', type='string')
         cmds.select(getlist, r=1)
@@ -510,7 +505,7 @@ class ApplePieA_pTCIK(object):
         if ui_variable['IKjointbox'].isChecked():
             if ui_variable['FXCurvebox'].isChecked():
                 for i in getlist:
-                    self.CurveToIK(i + '_OutFX')
+                    self.CurveToIK(i + '_Blend')
             else:
                 for i in getlist:
                     self.CurveToIK(i)
@@ -591,13 +586,13 @@ class ApplePieA_pTCIK(object):
             cmds.select(c + ".controlPoints[*]", add=1)
         if mode == 'RX':
             cmds.rotate(90, 0, 0, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        if mode == 'RY':
+        elif mode == 'RY':
             cmds.rotate(0, 90, 0, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        if mode == 'RZ':
+        elif mode == 'RZ':
             cmds.rotate(0, 0, 90, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        if mode == 'SA':
+        elif mode == 'SA':
             cmds.scale(1.2, 1.2, 1.2, r=1)
-        if mode == 'SS':
+        elif mode == 'SS':
             cmds.scale(.8, .8, .8, r=1)
         cmds.select(getlist, r=1)
         cmds.undoInfo(cck=1)
@@ -610,74 +605,62 @@ class ApplePieA_pTCIK(object):
         cmds.undoInfo(ock=1)
         for n in range(len(selCurve)):
             CurShape = cmds.listRelatives(selCurve[n], c=1, s=1)
-            cmds.setAttr(CurShape[0]+".overrideEnabled", 1)
+            cmds.setAttr(CurShape[0] + ".overrideEnabled", 1)
             cmds.setAttr(CurShape[0] + ".overrideColor", ColorNum)
         cmds.undoInfo(cck=1)
 
     def CurveToIK(self, curveN):  # 来自张老师
         JointNum = int(ui_variable['JointInt'].text())
         #JointNum = cmds.intFieldGrp('IKJointIntFieldGrp',q=True,v1=True)
-        Atype = 0
-        sel = [0 for y in range(2)]
-        sel[0] = curveN
-        sel[1] = cmds.listRelatives(curveN, s=1)[0]
-        if sel == 1:
-            Atype = 3
-        else:
-            Atype = 2
+        Atype = 3
+        sel = curveN
+        #if sel == 1:
+        #    Atype = 3
+        #else:
+        #    Atype = 2
         j = int(JointNum)+1
-        qw = sel[0]
-        cmds.duplicate(sel[0], rr=1, n=curveN+"_dupCurve")
-        startTime = cmds.timerX()
         mz_dd = []
         mz_Loc = []
         for i in range(0, j, 1):
-            A = cmds.createNode('motionPath', n=curveN+"_MP"+str(i))
-            cmds.setAttr(A+".fractionMode", 1)
-            cmds.setAttr(A+".follow", 1)
-            cmds.setAttr(A+".frontAxis", 0)
-            cmds.setAttr(A+".upAxis", 1)
-            cmds.setAttr(A+".worldUpType", Atype)
-            B = cmds.spaceLocator(p=(0, 0, 0), n=curveN+"_Loc"+str(i))
-            qwe = cmds.pickWalk(qw, d='down')
-            cmds.connectAttr(qwe[0]+".worldSpace[0]", A+".geometryPath", f=1)
-            if cmds.objExists(sel[0]+".V"+str(i)) == 0:
-                cmds.addAttr(sel[0], ln="V"+str(i), at='double', min=0, max=1, dv=0)
-                cmds.setAttr(sel[0]+".V"+str(i), e=1, keyable=True)
-            cmds.connectAttr(sel[0]+".V"+str(i), A+".uValue", f=1)
-            cmds.connectAttr(A+".allCoordinates", B[0]+".translate", f=1)
-            cmds.connectAttr(A+".rotate", B[0]+".rotate", f=1)
+            NodemP = cmds.createNode('motionPath', n=curveN + "_MP" + str(i))
+            cmds.setAttr(NodemP + ".fractionMode", 1)
+            cmds.setAttr(NodemP + ".follow", 1)
+            cmds.setAttr(NodemP + ".frontAxis", 0)
+            cmds.setAttr(NodemP + ".upAxis", 1)
+            cmds.setAttr(NodemP + ".worldUpType", Atype)
+            B = cmds.spaceLocator(p=(0, 0, 0), n=curveN + "_Loc" + str(i))
+            cmds.connectAttr(cmds.listRelatives(curveN, s=1)[0] + ".worldSpace[0]", NodemP + ".geometryPath", f=1)
+            #if cmds.objExists(sel + ".V" + str(i)) == 0:
+            #    cmds.addAttr(sel, ln="V" + str(i), at='double', min=0, max=1, dv=0)
+            #    cmds.setAttr(sel + ".V" + str(i), e=1, keyable=True)
+            #cmds.connectAttr(sel + ".V" + str(i), NodemP + ".uValue", f=1)
+            cmds.setAttr(NodemP + ".uValue", 1.0*(i)/int(JointNum))
+            cmds.connectAttr(NodemP + ".allCoordinates", B[0]+".translate", f=1)
+            cmds.connectAttr(NodemP + ".rotate", B[0] + ".rotate", f=1)
             if Atype == 2:
-                cmds.pathAnimation(A, e=1, wuo=sel[1])
-            q = 1.0*(i)/int(JointNum)
-            cmds.setAttr(sel[0]+".V"+str(i), q)
-            mz_dd.append(A)
+                cmds.pathAnimation(NodemP, e=1, wuo=cmds.listRelatives(curveN, s=1)[0])
+            mz_dd.append(NodemP)
             mz_Loc.append(B[0])
-        totalTime = cmds.timerX(startTime=startTime)
         cmds.select(cl=1)
         Qv = cmds.xform(mz_Loc[0], q=1, ws=1, t=1)
         yt = cmds.joint(p=(Qv[0], Qv[1], Qv[2]), n=curveN+"_Jot0")
         mz_jot = []
         mz_jot.append(yt)
-        startTime1 = cmds.timerX()
         for i in range(1, len(mz_Loc), 1):
             Qv = cmds.xform(mz_Loc[i], q=1, ws=1, t=1)
             yt = cmds.joint(p=(Qv[0], Qv[1], Qv[2]), n=curveN+"_Jot"+str(i))
-            io = i-1
-            cmds.joint(curveN+"_Jot"+str(io), e=1, zso=1, oj='xyz')
+            cmds.joint(curveN+"_Jot"+str(i-1), e=1, zso=1, oj='xyz')
             mz_jot.append(yt)
         cmds.select(cl=1)
-        cmds.setAttr(mz_jot[len(mz_jot)-1]+".jointOrientX", 0)
-        cmds.setAttr(mz_jot[len(mz_jot)-1]+".jointOrientY", 0)
-        cmds.setAttr(mz_jot[len(mz_jot)-1]+".jointOrientY", 0)
-        totalTime1 = cmds.timerX(startTime=startTime1)
-        if cmds.objExists(sel[0]+".AutoLe") == 0:
-            cmds.addAttr(sel[0], ln="AutoLe", at='double', min=0, max=1, dv=0)
-            cmds.setAttr(sel[0]+".AutoLe", e=1, keyable=1)
-        if cmds.objExists(sel[0]+".scaleAttr") == 0:
-            cmds.addAttr(sel[0], ln="scaleAttr", at='double', dv=1)
-            cmds.setAttr(sel[0]+".scaleAttr", e=1, keyable=1)
-        startTime2 = cmds.timerX()
+        cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientX", 0)
+        cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientY", 0)
+        cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientY", 0)
+        if cmds.objExists(sel + ".AutoLe") == 0:
+            cmds.addAttr(sel, ln="AutoLe", at='double', min=0, max=1, dv=0)
+            cmds.setAttr(sel + ".AutoLe", e=1, keyable=1)
+        if cmds.objExists(sel + ".scaleAttr") == 0:
+            cmds.addAttr(sel, ln="scaleAttr", at='double', dv=1)
+        #    cmds.setAttr(sel + ".scaleAttr", e=1, keyable=1)
         for i in range(1, len(mz_dd), 1):
             mz_dB = cmds.createNode('distanceBetween', n=mz_dd[i]+"_dB")
             cmds.connectAttr(mz_dd[i-1]+".allCoordinates", mz_dd[i]+"_dB.point1", f=1)
@@ -685,16 +668,16 @@ class ApplePieA_pTCIK(object):
             gh = cmds.getAttr(mz_dd[i]+"_dB.distance")
             cmds.createNode('multiplyDivide', n=mz_dd[i]+"_dB_MPA")
             cmds.connectAttr(mz_dd[i]+"_dB.distance", mz_dd[i]+"_dB_MPA.input1X", f=1)
-            cmds.connectAttr(sel[0]+".scaleAttr", mz_dd[i]+"_dB_MPA.input2X", f=1)
+            cmds.connectAttr(sel+".scaleAttr", mz_dd[i]+"_dB_MPA.input2X", f=1)
             cmds.setAttr(mz_dd[i]+"_dB_MPA.operation", 2)
             cmds.createNode('blendColors', n=mz_dd[i]+"_blendC")
-            cmds.connectAttr(sel[0]+".AutoLe", mz_dd[i]+"_blendC.blender", f=1)
+            cmds.connectAttr(sel+".AutoLe", mz_dd[i]+"_blendC.blender", f=1)
             cmds.connectAttr(mz_dd[i]+"_dB_MPA.outputX", mz_dd[i]+"_blendC.color1R", f=1)
             cmds.setAttr(mz_dd[i]+"_blendC.color2R", gh)
             cmds.connectAttr(mz_dd[i]+"_blendC.outputR", mz_jot[i]+".translateX", f=1)
-        totalTime2 = cmds.timerX(startTime=startTime2)
-        cmds.ikHandle(sol='ikSplineSolver', ccv=0, startJoint=mz_jot[0], endEffector=mz_jot[len(mz_jot)-1], curve=sel[0], n=curveN+"_SplineIkHandle")
-        cmds.select(sel[0])
+        cmds.ikHandle(sol='ikSplineSolver', ccv=0, startJoint=mz_jot[0], endEffector=mz_jot[len(mz_jot)-1], 
+                        curve=sel, n=curveN+"_SplineIkHandle")
+        cmds.select(sel)
         cmds.delete(mz_Loc)
         self.doFinish(curveN)
 
@@ -703,19 +686,24 @@ class ApplePieA_pTCIK(object):
             cluHandleCtrlgrp = '_cluHandle_Ctrl_grp'
         else:
             cluHandleCtrlgrp = '_clu*Handle_Ctrl_grp'
-        if '_OutFX' in curveN:
+        if '_Blend' in curveN:
             editname = curveN.rsplit('_', 1)[0]
             cmds.group(editname, editname + '_clu*Handle', editname + cluHandleCtrlgrp,
-                       editname + '_toFX', curveN, curveN + '_dupCurve', curveN + '_Jot0', curveN + '_SplineIkHandle', n=editname + '_grp')
-            cmds.hide(editname + '_clu*Handle', curveN + '_dupCurve', curveN + '_SplineIkHandle')
+                        editname + '_toFX', editname + '_OutFX', editname + '_onlyCtrl', 
+                        curveN, curveN + '_Jot0', curveN + '_SplineIkHandle', n=editname + '_grp')
+            cmds.hide(editname, editname + '_clu*Handle', editname + '_toFX', editname + '_OutFX', editname + '_onlyCtrl',
+                        curveN + '_SplineIkHandle')
             cmds.setAttr(curveN + '.inheritsTransform', 0)
             if cmds.ls('buildPose') and cmds.ls('DeformationSystem'):
-                cmds.setAttr('buildPose.udAttr', cmds.getAttr('buildPose.udAttr')+'/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"'+editname+'_clu*Handle_Ctrl\";', type='string')
+                cmds.setAttr('buildPose.udAttr', cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' +
+                                editname + '_clu*Handle_Ctrl\";', type='string')
         else:
-            cmds.group(curveN, curveN + '_clu*Handle', curveN + cluHandleCtrlgrp, curveN + '_dupCurve', curveN + '_Jot0', curveN + '_SplineIkHandle', n=curveN + '_grp')
-            cmds.hide(curveN + '_clu*Handle', curveN + '_dupCurve', curveN + '_SplineIkHandle')
+            cmds.group(curveN, curveN + '_clu*Handle', curveN + cluHandleCtrlgrp,
+                        curveN + '_Jot0', curveN + '_SplineIkHandle', n=curveN + '_grp')
+            cmds.hide(curveN + '_clu*Handle', curveN + '_SplineIkHandle')
             if cmds.ls('buildPose') and cmds.ls('DeformationSystem'):
-                cmds.setAttr('buildPose.udAttr', cmds.getAttr('buildPose.udAttr')+'/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"'+curveN+'_clu*Handle_Ctrl\";', type='string')
+                cmds.setAttr('buildPose.udAttr', cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' +
+                                curveN + '_clu*Handle_Ctrl\";', type='string')
 
 
 class ApplePieA_Dynamic(object):
@@ -734,8 +722,7 @@ class ApplePieA_Dynamic(object):
             #   for i in MenuItem:
             #        cmds.deleteUI(i)
             # cmds.menuItem(parent=(pTCIK.HairSystemMenu+'|OptionMenu'),label='CreateNew')
-            hairsystemitem = cmds.listRelatives(
-                cmds.ls(type='hairSystem'), p=1)
+            hairsystemitem = cmds.listRelatives(cmds.ls(type='hairSystem'), p=1)
             if hairsystemitem:
                 for i in hairsystemitem:
                     ui_variable['SelectHairSystem'].addItem(i)
@@ -764,10 +751,24 @@ class ApplePieA_Dynamic(object):
             cmds.setAttr(qComboBox[1] + ".clumpWidth", 0)
             cmds.parent(cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0])
         if not cmds.connectionInfo(qComboBox[1]+".nextState", sfd=1):
-            mm.eval("addActiveToNSystem(\"" + cmds.listRelatives(qComboBox[1], p=1)[0] + "\",\"" + qComboBox[0]+"\");")
+            mel.eval("addActiveToNSystem(\"" + cmds.listRelatives(qComboBox[1], p=1)[0] + "\",\"" + qComboBox[0]+"\");")
             cmds.connectAttr( 'time1.outTime', qComboBox[1] + '.currentTime', f=1)
             cmds.connectAttr(qComboBox[0] + '.startFrame', qComboBox[1] + '.startFrame', f=1)
             qComboBox[1] = cmds.listRelatives(qComboBox[1], p=1)[0]
+        if mel.eval("attributeExists(\"" + qComboBox[1] + "\",\"ctrlMode\");"):
+            if not cmds.listConnections(qComboBox[1], c=1, t='reverse'):
+                self.reNode = cmds.createNode("reverse")
+                cmds.connectAttr(qComboBox[1] + ".ctrlMode", self.reNode+".inputX")
+        else:
+            cmds.addAttr(qComboBox[1], ln="ctrlMode", at="enum", en="onlyCtrl:FX:")
+            cmds.setAttr(qComboBox[1] + ".ctrlMode", e=1, keyable=1)
+            modeNode = cmds.createNode("multiplyDivide")
+            cmds.setAttr(modeNode+".input2X", 4)
+            cmds.connectAttr(qComboBox[1] + ".ctrlMode", modeNode + ".input1X", f=1)
+            cmds.connectAttr(modeNode + ".outputX", qComboBox[1] + ".simulationMethod", f=1)
+            cmds.setAttr(qComboBox[1]+".ctrlMode", 1)
+            self.reNode = cmds.createNode("reverse")
+            cmds.connectAttr(qComboBox[1] + ".ctrlMode", self.reNode+".inputX")
         return qComboBox
 
     def FXCurve(self, curve):
@@ -798,12 +799,19 @@ class ApplePieA_Dynamic(object):
             else:
                 cmds.connectAttr(qComboBox[1]+'.outputHair['+str(len(hairNum))+']', hairfollicle+'.currentPosition', f=1)
                 cmds.connectAttr(hairfollicle+'.outHair', qComboBox[1]+'.inputHair['+str(len(hairNum))+']', f=1)
-            cmds.rename(cmds.rebuildCurve(c, ch=1, rpo=0, rt=0, end=1, kr=0, kcp=0, kep=1, kt=0, s=cmds.getAttr(c+".controlPoints", size=1)+5, d=3, tol=0.01)[0], c + '_toFX')
+            cmds.rename(cmds.rebuildCurve(c, ch=1, rpo=0, rt=0, end=1, kr=0, kcp=0, kep=1, kt=0, 
+                        s=cmds.getAttr(c + ".controlPoints", size=1) + 5, d=3, tol=0.01)[0], c + '_toFX')
+            cmds.duplicate(c, rr=1, n=c + '_onlyCtrl')
+            cmds.duplicate(c + '_toFX', rr=1, n=c + '_Blend')
+            cmds.connectAttr(cmds.listRelatives(c + '_toFX', s=1)[0] + '.worldSpace[0]', 
+                            cmds.listRelatives(c + '_onlyCtrl',s=1)[0] + '.create', f=1)
             cmds.parent(c + '_toFX', cmds.listRelatives(hairfollicle, p=1))
-            cmds.connectAttr(cmds.listRelatives(c + '_toFX', s=1, type='nurbsCurve')[0]+'.local', hairfollicle+'.startPosition', f=1)
+            cmds.connectAttr(cmds.listRelatives(c + '_toFX', s=1, type='nurbsCurve')[0] + '.local', hairfollicle + '.startPosition', f=1)
             cmds.connectAttr(c + '_toFX.worldMatrix[0]', hairfollicle+'.startPositionMatrix', f=1)
-            cmds.circle(n=c + '_OutFX')
-            cmds.connectAttr(hairfollicle + '.outCurve', c + '_OutFXShape.create', f=1)
+            cmds.connectAttr(hairfollicle + '.outCurve', cmds.duplicate(c, rr=1, n=c + '_OutFX')[0] + 'Shape.create', f=1)
+            cmds.blendShape(c + '_OutFX', c + '_onlyCtrl', c + '_Blend', n=c + '_curveBS')
+            cmds.connectAttr(qComboBox[1] + '.ctrlMode', c + '_curveBS.' + c + '_OutFX')
+            cmds.connectAttr(self.reNode + ".outputX", c + '_curveBS.' + c + '_onlyCtrl')
         ApplePieA_Dynamic().Ready_GetNode('HairSystem')
         ApplePieA_Dynamic().Ready_GetNode('Nucleus')
         cmds.undoInfo(cck=1)
@@ -823,7 +831,7 @@ class poseEdit(object):
             cmds.deleteUI(uiPose)
         except:
             pass
-        cmds.window(uiPose, t=('List'))
+        cmds.window(uiPose, t='List')
         cmds.columnLayout(rowSpacing=5)
         cmds.textScrollList('textList', numberOfRows=20, showIndexedItem=4)
         cmds.button('Add', l="Add", h=28, w=100, c=lambda*args: self.PoseEdit('add'))
@@ -842,18 +850,21 @@ class poseEdit(object):
 
     def PoseEdit(self, mode):
         if mode == 'delete':
-            poseSplit = self.buildposeText.split('/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 ' + cmds.textScrollList('textList', q=1, selectItem=1)[0].split(';')[0] + ';')
+            poseSplit = self.buildposeText.split('/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 ' + 
+                cmds.textScrollList('textList', q=1, selectItem=1)[0].split(';')[0] + ';')
             cmds.setAttr('buildPose.udAttr', poseSplit[0] + poseSplit[1], type='string')
             cmds.textScrollList('textList', e=1, rii=cmds.textScrollList('textList', q=1, sii=1)[0])
         elif mode == 'add':
-            if cmds.promptDialog(title='addPose', button=['OK', 'Cancel'], defaultButton='OK', cancelButton='Cancel', dismissString='Cancel') == 'OK':
+            if cmds.promptDialog(title='addPose', button=['OK', 'Cancel'],
+                                    defaultButton='OK', cancelButton='Cancel', dismissString='Cancel') == 'OK':
                 inputText = cmds.promptDialog(query=True, text=True)
                 lsinput = cmds.ls(inputText)
                 if not lsinput:
                     cmds.error('无此物体')
                 elif len(lsinput) >= 2:
                     cmds.error('有重复物体')
-                cmds.setAttr('buildPose.udAttr', cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' + inputText + '\";', type='string')
+                cmds.setAttr('buildPose.udAttr', 
+                    cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' + inputText + '\";', type='string')
                 cmds.textScrollList('textList', e=1, append='\"' + inputText + '\";')
 
 

@@ -24,7 +24,7 @@ class BoxUi(object):
         self.detail = QtWidgets.QLabel(BoxUi)
         self.detail.setGeometry(QtCore.QRect(10, 320, 280, 120))
         self.detail.setWordWrap(True)
-        self.detail.setFont(QtGui.QFont('Courier New', 10, QtGui.QFont.Bold))
+        self.detail.setFont(QtGui.QFont('宋体', 10))
         self.detail.setObjectName("detailText")
         self.runJio = QtWidgets.QPushButton(BoxUi)
         self.runJio.setGeometry(QtCore.QRect(10, 460, 280, 28))
@@ -47,7 +47,8 @@ class BoxUi(object):
     def finditem(self):
         self.listView.clear()
         for i in Showwindow.Jio:
-            if self.searchEdit.text() in i or self.searchEdit.text() in Showwindow.Jio[i]:
+            if (self.searchEdit.text().lower() in i.lower() or 
+                self.searchEdit.text().lower() in Showwindow.Jio[i].lower()):
                 self.listView.addItem(i)
 
 
@@ -56,12 +57,13 @@ class Showwindow(BoxUi, QtWidgets.QWidget):
     Jio = {
         'createloc': u'在选择物体的位置创建Locator',
         'polytoCurve': u'批量提取曲线__仅适用于单片模型',
-        'movevtxUI': u'修型时传递点 \n选择要传递的点 填写被传递的模型',
-        'samevtxUI': u'移动点达到对称修形 \n选择原模型上要对称的点 分别填写模型',
+        'movevtx_UI': u'修型时传递点 \n选择要传递的点 填写被传递的模型',
+        'samevtx_UI': u'移动点达到对称修形 \n选择原模型上要对称的点 分别填写模型',
         'xiuxingJoint': u'创建修型骨骼(高自定义) \n选择要修型的骨骼',
-        'xiuxingJointWang': u'创建修型骨骼(乖孙版) \n选择要修型的骨骼',
+        #'xiuxingJointWang': u'创建修型骨骼(乖孙版) \n选择要修型的骨骼',
         'TransferUV': u'传递UV \n选择UV模型+要传递的模型',
-    }
+        'createFollicleOnface_UI': u'在平面上创建毛囊和骨骼',
+            }
 
     def __init__(self):
         super(Showwindow, self).__init__()
@@ -113,8 +115,9 @@ class ToolsBox(object):
             pass
         cmds.window(ui, t='movevtx')
         cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('objTextFieldGrp', h=28, cw2=(30, 50))
-        cmds.button('RunButton', l="Run", h=28, w=100, c=lambda*args: self.movevtx(cmds.textFieldGrp('objTextFieldGrp', q=1, tx=1)))
+        cmds.textFieldGrp('UI1objTextFieldGrp', l='模型', h=28, cw2=(30, 130))
+        cmds.button('UI1RunButton', l="Run", h=28, w=100, c=lambda*args: self.movevtx(cmds.textFieldGrp('UI1objTextFieldGrp', q=1, tx=1)))
+        cmds.window(ui, e=True, wh=(180, 100))
         cmds.showWindow(ui)
 
     def movevtx(self, obj=''):
@@ -146,10 +149,11 @@ class ToolsBox(object):
             pass
         cmds.window(ui, t='samevtx')
         cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('obj1TextFieldGrp',l='已修形模型', h=28, cw2=(30, 50))
-        cmds.textFieldGrp('obj2TextFieldGrp',l='要对称模型', h=28, cw2=(30, 50))
+        cmds.textFieldGrp('UI2obj1TextFieldGrp',l='已修形模型', h=28, cw2=(60, 150))
+        cmds.textFieldGrp('UI2obj2TextFieldGrp',l='要对称模型', h=28, cw2=(60, 150))
         cmds.button('RunButton', l="Run", h=28, w=100, c=lambda *args:
-                    self.samevtx(cmds.textFieldGrp('obj1TextFieldGrp', q=1, tx=1), cmds.textFieldGrp('obj2TextFieldGrp', q=1, tx=1)))
+                    self.samevtx(cmds.textFieldGrp('UI2obj1TextFieldGrp', q=1, tx=1), cmds.textFieldGrp('UI2obj2TextFieldGrp', q=1, tx=1)))
+        cmds.window(ui, e=True, wh=(220, 100))
         cmds.showWindow(ui)
 
     def samevtx(self, obj1='', obj2=''):
@@ -165,8 +169,10 @@ class ToolsBox(object):
         mm.eval("reflectionSetMode none;")
 
     def xiuxingJoint(self):
+        Raxial = 'Y'     #Z
+        Taxial = 'z'     #y
         cmds.undoInfo(ock=1)
-        joint = cmds.ls(sl=1, type="joint")
+        joint = cmds.ls(sl=1, type="joint")[0]
         cmds.select(cl=1)
         blendJoint = cmds.joint(n=joint+"_BlendJoint")
         cmds.delete(cmds.parentConstraint(joint, blendJoint, w=1))
@@ -197,10 +203,10 @@ class ToolsBox(object):
         cmds.connectAttr(blendJointEnd+".BlendJointScale", floatMathA+".floatB", f=1)
         cmds.connectAttr(blendJointEnd+".vectorV", floatMathA+".floatA", f=1)
         cmds.setAttr(floatMathC+".floatB", 0.2)
-        cmds.connectAttr(floatMathA+".outFloat", floatMathB+".floatB", f=1)
-        cmds.connectAttr(floatMathB+".outFloat", floatMathC+".floatA", f=1)
-        cmds.connectAttr(floatMathC+".outFloat", blendJointEnd+".ty", f=1)
-        cmds.connectAttr(joint+".rotateZ", floatMathB+".floatA", f=1)
+        cmds.connectAttr(floatMathA + ".outFloat", floatMathB + ".floatB", f=1)
+        cmds.connectAttr(floatMathB + ".outFloat", floatMathC + ".floatA", f=1)
+        cmds.connectAttr(floatMathC + ".outFloat", blendJointEnd + ".t" + Taxial, f=1)
+        cmds.connectAttr(joint + ".rotate" + Raxial, floatMathB + ".floatA", f=1)
         cmds.undoInfo(cck=1)
 
     def xiuxingJointWang(self):
@@ -271,6 +277,55 @@ class ToolsBox(object):
             cmds.polyTransfer(dobj[1], uv=1, ao=dobj[0])
         cmds.undoInfo(cck=1)
 
+    def createFollicleOnface_UI(self):
+        ui = 'ToolsBoxUI3'
+        try:
+            cmds.deleteUI(ui)
+        except:
+            pass
+        cmds.window(ui, t='createFollicleOnface')
+        cmds.columnLayout(cat=("both", 2), columnWidth=180, rowSpacing=3)
+        cmds.textFieldGrp('UI3nameTextFieldGrp', l='名称', h=28, cw2=(50, 100))
+        cmds.intFieldGrp('UI3numIntFieldGrp', l='数量', h=28, cw2=(50, 100))
+        cmds.flowLayout(columnSpacing=5)
+        cmds.checkBox('UI3JointcheckBox', l='创建骨骼', w=80)
+        cmds.button('UI3RunButton', l="Run", h=28, w=80, c=lambda *args: self.createFollicleOnface(
+                    cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1), 
+                    cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1), 
+                    cmds.checkBox('UI3JointcheckBox', q=1, v=1)))
+        cmds.setParent('..')
+        cmds.showWindow(ui)
+
+    def createFollicleOnface(self, name = '', num = '', joint = 0):
+        #UI
+        shape = cmds.listRelatives(cmds.ls(sl=1)[0],s=1,type='nurbsSurface')
+        if not shape:
+            cmds.error()
+        Follicle_Grp = name + "_foll_grp"
+        Joint_Grp = name + "_Joint_grp"
+        if cmds.ls(Follicle_Grp,typ='transform') or cmds.ls(Joint_Grp,typ='transform'):
+            cmds.error()
+        cmds.group(em=1, n=Follicle_Grp)
+        if joint:
+            cmds.group(em=1, n=Joint_Grp)
+        for i in range(num):
+            if i == num:
+                break
+            follicT = cmds.rename(cmds.listRelatives(cmds.createNode('follicle'),p=1), name+'_foll')
+            follicS = cmds.rename(cmds.listRelatives(follicT,s=1),name+'_follShape')
+            cmds.connectAttr(shape+".worldSpace[0]", follicS+".inputSurface", f=1)
+            cmds.connectAttr(shape+".worldMatrix[0]", follicS+".inputWorldMatrix", f=1)
+            cmds.connectAttr(follicS+".outTranslate", follicT+".translate", f=1)
+            cmds.connectAttr(follicS+".outRotate", follicT+".rotate", f=1)
+            cmds.setAttr(follicS+".parameterV", .5)
+            cmds.setAttr(follicS+".parameterU", i*1.0/(num-1))
+            cmds.parent(follicT,Follicle_Grp)
+            if cmds.checkBox('UI3JointcheckBox',q=1,v=1):
+                cmds.select(cl=1)
+                jointN = cmds.joint(n=name+i+'Joint')
+                cmds.parentConstraint(follicT,jointN,weight=1)
+                cmds.parent(jointN,Joint_Grp)
+    
 
 Boxui = Showwindow()
 Boxui.show()

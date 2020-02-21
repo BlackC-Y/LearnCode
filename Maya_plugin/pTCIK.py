@@ -154,6 +154,10 @@ class Ui_ApplePieA(object):
         self.lineA.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.lineA.setObjectName("line")
         self.verticalLayoutA.addWidget(self.lineA)
+        self.CreateCtrl = QtWidgets.QPushButton(self.verticalLayoutAWidget)
+        self.CreateCtrl.setObjectName("CreateCtrl")
+        self.CreateCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
+        self.verticalLayoutA.addWidget(self.CreateCtrl)
         self.horizontalLayout0 = QtWidgets.QHBoxLayout()
         self.horizontalLayout0.setObjectName("horizontalLayout")
         ui_variable['selectboxA'] = self.selectboxA = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
@@ -169,22 +173,18 @@ class Ui_ApplePieA(object):
         self.selectboxGrp = QtWidgets.QButtonGroup(self.verticalLayoutAWidget)
         self.selectboxGrp.addButton(self.selectboxA,11)
         self.selectboxGrp.addButton(self.selectboxB,12)
-        self.CreateCtrl = QtWidgets.QPushButton(self.verticalLayoutAWidget)
-        self.CreateCtrl.setObjectName("CreateCtrl")
-        self.CreateCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
-        self.verticalLayoutA.addWidget(self.CreateCtrl)
-        self.parentCon = QtWidgets.QPushButton(self.verticalLayoutAWidget)
-        self.parentCon.setObjectName("parentCon")
-        self.parentCon.clicked.connect(lambda *args: ApplePieA_pTCIK().parentConstraintCurve())
-        self.verticalLayoutA.addWidget(self.parentCon)
-        self.CtrlParent = QtWidgets.QPushButton(self.verticalLayoutAWidget)
-        self.CtrlParent.setObjectName("CtrlParent")
-        self.CtrlParent.clicked.connect(lambda *args: ApplePieA_pTCIK().CurveParent(''))
-        self.verticalLayoutA.addWidget(self.CtrlParent)
-        self.CtrlReParent = QtWidgets.QPushButton(self.verticalLayoutAWidget)
-        self.CtrlReParent.setObjectName("CtrlReParent")
-        self.CtrlReParent.clicked.connect(lambda *args: ApplePieA_pTCIK().CurveParent('reverse'))
-        self.verticalLayoutA.addWidget(self.CtrlReParent)
+        #self.parentCon = QtWidgets.QPushButton(self.verticalLayoutAWidget)
+        #self.parentCon.setObjectName("parentCon")
+        #self.parentCon.clicked.connect(lambda *args: ApplePieA_pTCIK().parentConstraintCurve())
+        #self.verticalLayoutA.addWidget(self.parentCon)
+        #self.CtrlParent = QtWidgets.QPushButton(self.verticalLayoutAWidget)
+        #self.CtrlParent.setObjectName("CtrlParent")
+        #self.CtrlParent.clicked.connect(lambda *args: ApplePieA_pTCIK().CurveParent(''))
+        #self.verticalLayoutA.addWidget(self.CtrlParent)
+        #self.CtrlReParent = QtWidgets.QPushButton(self.verticalLayoutAWidget)
+        #self.CtrlReParent.setObjectName("CtrlReParent")
+        #self.CtrlReParent.clicked.connect(lambda *args: ApplePieA_pTCIK().CurveParent('reverse'))
+        #self.verticalLayoutA.addWidget(self.CtrlReParent)
         self.horizontalLayoutD = QtWidgets.QHBoxLayout()
         self.horizontalLayoutD.setObjectName("horizontalLayout")
         self.JointIntText = QtWidgets.QLabel(self.verticalLayoutAWidget)
@@ -216,22 +216,22 @@ class Ui_ApplePieA(object):
         self.verticalLayoutB.setSpacing(5)
         self.verticalLayoutB.setContentsMargins(0, 0, 0, 0)
         self.verticalLayoutB.setObjectName("verticalLayout")
-        self.horizontalLayoutE = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutE.setObjectName("horizontalLayout")
-        self.horizontalLayoutE.setSpacing(3)
+        #self.horizontalLayoutE = QtWidgets.QHBoxLayout()
+        #self.horizontalLayoutE.setObjectName("horizontalLayout")
+        #self.horizontalLayoutE.setSpacing(3)
         self.CShape = QtWidgets.QPushButton(self.verticalLayoutBWidget)
         self.CShape.setObjectName("CShape")
         self.CShape.clicked.connect(lambda *args: ApplePieA_pTCIK().cShape())
-        self.horizontalLayoutE.addWidget(self.CShape)
-        self.Tangent = QtWidgets.QPushButton(self.verticalLayoutBWidget)
-        self.Tangent.setObjectName("Tangent")
-        self.Tangent.clicked.connect(lambda *args: ApplePieA_pTCIK().Tangent())
-        self.horizontalLayoutE.addWidget(self.Tangent)
-        self.verticalLayoutB.addLayout(self.horizontalLayoutE)
-        self.SelCurveCtel = QtWidgets.QPushButton(self.verticalLayoutBWidget)
-        self.SelCurveCtel.setObjectName("SelCurveCtel")
-        self.SelCurveCtel.clicked.connect(lambda *args: ApplePieA_pTCIK().SelCurve())
-        self.verticalLayoutB.addWidget(self.SelCurveCtel)
+        self.verticalLayoutB.addWidget(self.CShape)
+        #self.Tangent = QtWidgets.QPushButton(self.verticalLayoutBWidget)
+        #self.Tangent.setObjectName("Tangent")
+        #self.Tangent.clicked.connect(lambda *args: ApplePieA_pTCIK().Tangent())
+        #self.horizontalLayoutE.addWidget(self.Tangent)
+        #self.verticalLayoutB.addLayout(self.horizontalLayoutE)
+        #self.SelCurveCtel = QtWidgets.QPushButton(self.verticalLayoutBWidget)
+        #self.SelCurveCtel.setObjectName("SelCurveCtel")
+        #self.SelCurveCtel.clicked.connect(lambda *args: ApplePieA_pTCIK().SelCurve())
+        #self.verticalLayoutB.addWidget(self.SelCurveCtel)
         self.horizontalLayoutF = QtWidgets.QHBoxLayout()
         self.horizontalLayoutF.setObjectName("horizontalLayout")
         self.horizontalLayoutF.setSpacing(3)
@@ -341,8 +341,6 @@ class Ui_ApplePieA(object):
 
     def retranslateUi(self, ApplePieA):
         ApplePieA.setWindowTitle(u"ApplePieA")
-        self.selectboxA.setText(u"单个模式")
-        self.selectboxB.setText(u"批量模式")
         self.RebuildIntText.setText(u"重建段数")
         self.RebuildInt.setPlaceholderText(u"重建段数")
         self.CurveNameText.setText(u"曲线名")
@@ -350,17 +348,19 @@ class Ui_ApplePieA(object):
         self.SelectPolyCurve.setText(u"选模型的线")
         self.reverseCurve.setText(u"反转曲线")
         self.CreateCtrl.setText(u"创建控制")
-        self.parentCon.setText(u"约束控制")
-        self.CtrlParent.setText(u"控制器层级化")
-        self.CtrlReParent.setText(u"解层级化")
+        self.selectboxA.setText(u"层级化控制器")
+        self.selectboxB.setText(u"解层级化")
+        #self.parentCon.setText(u"约束控制")
+        #self.CtrlParent.setText(u"控制器层级化")
+        #self.CtrlReParent.setText(u"解层级化")
         self.JointIntText.setText(u"骨骼段数")
         self.BuildIK.setText(u"建立IK")
         self.PoseEdit.setText(u"PoseEdit")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.child1), u"本体")
 
         self.CShape.setText(u"换个形状")
-        self.Tangent.setText(u"切线约束")
-        self.SelCurveCtel.setText(u"选择当前曲线的控制器")
+        #self.Tangent.setText(u"切线约束")
+        #self.SelCurveCtel.setText(u"选择当前曲线的控制器")
         self.RotX.setText(u"RotX")
         self.RotY.setText(u"RotY")
         self.RotZ.setText(u"RotZ")
@@ -412,13 +412,14 @@ class Showwindow(Ui_ApplePieA, QtWidgets.QWidget):
         #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
         self.setWindowTitle('v1.99')
         self.show()
-        ui_variable['Statusbar'].showMessage(u"插件所有操作都不能撤回.出错删掉重做")
+        #ui_variable['Statusbar'].showMessage(u"插件所有操作都不能撤回.出错删掉重做")
 
 class ApplePieA_pTCIK(object):
 
-    curvrShape = 0
+    curveShape = 0
 
     def __init__(self):
+        self.Curvename = ui_variable['CurveName'].text()
         self.curSample = [
                 [((-.5 ,.5 ,.5 ),(-.5 ,.5 ,-.5 ),(.5 ,.5 ,-.5 ),(.5 ,.5 ,.5 ),(-.5 ,.5 ,.5 ),(-.5 ,-.5 ,.5 ),(-.5 ,-.5 ,-.5 ),(-.5 ,.5 ,-.5 ),(-.5 ,.5 ,.5 ),(-.5 ,-.5 ,.5 ),(.5 ,-.5 ,.5 ),(.5 ,.5 ,.5 ),(.5 ,.5 ,-.5 ),(.5 ,-.5 ,-.5 ),(.5 ,-.5 ,.5 ),(.5 ,-.5 ,-.5 ),(-.5 ,-.5 ,-.5)),(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)],
                 [((0,1,0),(0,0.92388,0.382683),(0,0.707107,0.707107),(0,0.382683,0.92388),(0,0,1),(0,-0.382683,0.92388),(0,-0.707107,0.707107),(0,-0.92388,0.382683),(0,-1,0),(0,-0.92388,-0.382683),(0,-0.707107,-0.707107),(0,-0.382683,-0.92388),(0,0,-1),(0,0.382683,-0.92388),(0,0.707107,-0.707107),(0,0.92388,-0.382683),(0,1,0),(0.382683,0.92388,0),(0.707107,0.707107,0),(0.92388,0.382683,0),(1,0,0),(0.92388,-0.382683,0),(0.707107,-0.707107,0),(0.382683,-0.92388,0),(0,-1,0),(-0.382683,-0.92388,0),(-0.707107,-0.707107,0),(-0.92388,-0.382683,0),(-1,0,0),(-0.92388,0.382683,0),(-0.707107,0.707107,0),(-0.382683,0.92388,0),(0,1,0),(0,0.92388,-0.382683),(0,0.707107,-0.707107),(0,0.382683,-0.92388),(0,0,-1),(-0.382683,0,-0.92388),(-0.707107,0,-0.707107),(-0.92388,0,-0.382683),(-1,0,0),(-0.92388,0,0.382683),(-0.707107,0,0.707107),(-0.382683,0,0.92388),(0,0,1),(0.382683,0,0.92388),(0.707107,0,0.707107),(0.92388,0,0.382683),(1,0,0),(0.92388,0,-0.382683),(0.707107,0,-0.707107),(0.382683,0,-0.92388),(0,0,-1)),(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52)],
@@ -434,6 +435,10 @@ class ApplePieA_pTCIK(object):
         if not ReBNum:
             ui_variable['Statusbar'].showMessage(u"//没填重建段数")
             cmds.error()
+        if not self.Curvename:
+            ui_variable['Statusbar'].showMessage(u"//没填曲线名")
+            cmds.error()
+
         #ReBNum = cmds.intFieldGrp('RebuildIntFieldGrp', q=True, v1=True)
         polyEdgeN = cmds.ls(sl=True)
         Namelist = cmds.ls()
@@ -508,21 +513,19 @@ class ApplePieA_pTCIK(object):
         cmds.undoInfo(cck=1)
         
     def createCtrl(self):
-        if ui_variable['selectboxA'].isChecked():
-            self.Curvename = ui_variable['CurveName'].text()
-            if not self.Curvename:
-                ui_variable['Statusbar'].showMessage(u"//没填曲线名")
-                cmds.error()
         cmds.undoInfo(ock=1)
-        if ui_variable['selectboxA'].isChecked():
-            cmds.setAttr(self.Curvename+".dispCV", 0)
-            cmds.select(self.Curvename, r=1)
+        getlist = self.checkCurve()
+        for i in getlist:
+            cmds.setAttr(i+".dispCV", 0)
+            cmds.select(i, r=1)
             cmds.DeleteHistory()
             curve = cmds.listRelatives(s=1, type="nurbsCurve")[0]
-            numCVs = cmds.getAttr(curve+".controlPoints", size=1)
-            for i in range(numCVs):
-                createClu = cmds.cluster((curve+".cv["+str(i)+"]"), n=(self.Curvename+"_clu"), rel=1)
-                createCur = cmds.circle(ch=0, n=(createClu[1]+"_Ctrl"))
+            numCVs = cmds.getAttr((curve+".controlPoints"), size=1)
+            for nu in range(numCVs):
+                createClu = cmds.cluster((curve + ".cv[" + str(nu) + "]"), n=(i + "_clu"), rel=1)
+                print (createClu)
+                createCur = cmds.circle(ch=0, n=(createClu[1] + "_Ctrl"))
+                print (createCur)
                 SDKgroup = cmds.group(n=(createCur[0]+"_SDK"))
                 ctrlgroup = cmds.group(n=(createCur[0]+"_grp"))
                 cmds.connectAttr((createClu[1]+"Shape"+".originX"), (ctrlgroup+".tx"), f=1)
@@ -532,41 +535,59 @@ class ApplePieA_pTCIK(object):
                 cmds.disconnectAttr((createClu[1]+"Shape"+".originY"), (ctrlgroup+".ty"))
                 cmds.disconnectAttr((createClu[1]+"Shape"+".originZ"), (ctrlgroup+".tz"))
                 cmds.select(cl=1)
-        else:
-            getlist = self.checkCurve()
-            for i in getlist:
-                cmds.setAttr(i+".dispCV", 0)
-                cmds.select(i, r=1)
-                cmds.DeleteHistory()
-                curve = cmds.listRelatives(s=1, type="nurbsCurve")[0]
-                numCVs = cmds.getAttr((curve+".controlPoints"), size=1)
-                for i in range(numCVs):
-                    createClu = cmds.cluster((curve+".cv["+str(i)+"]"), n=(self.Curvename+"_clu"), rel=1)
-                    createCur = cmds.circle(ch=0, n=(createClu[1]+"_Ctrl"))
-                    SDKgroup = cmds.group(n=(createCur[0]+"_SDK"))
-                    ctrlgroup = cmds.group(n=(createCur[0]+"_grp"))
-                    cmds.connectAttr((createClu[1]+"Shape"+".originX"), (ctrlgroup+".tx"), f=1)
-                    cmds.connectAttr((createClu[1]+"Shape"+".originY"), (ctrlgroup+".ty"), f=1)
-                    cmds.connectAttr((createClu[1]+"Shape"+".originZ"), (ctrlgroup+".tz"), f=1)
-                    cmds.disconnectAttr((createClu[1]+"Shape"+".originX"), (ctrlgroup+".tx"))
-                    cmds.disconnectAttr((createClu[1]+"Shape"+".originY"), (ctrlgroup+".ty"))
-                    cmds.disconnectAttr((createClu[1]+"Shape"+".originZ"), (ctrlgroup+".tz"))
-                    cmds.select(cl=1)
         cmds.undoInfo(cck=1)
     
+    def Tangent(self):
+        getlist = self.checkCurve()
+        for i in getlist:
+            cvSize = cmds.getAttr((i+".controlPoints"), size=1)  # 获取曲线控制点数量
+            Tangentgrp = ''
+            for r in range(cvSize,):
+                if r == 0:
+                    Tangentgrp = (i+"_cluHandle_Ctrl_grp")
+                else:
+                    Tangentgrp = (i+"_clu"+str(r)+"Handle_Ctrl_grp")
+                tangentName = cmds.tangentConstraint(i, Tangentgrp, weight=1, aimVector=(0, 0, 1), upVector=(0, 1, 0), worldUpType="scene")
+                cmds.delete(tangentName)
+
+    def parentConstraintCurve(self):
+        getlist = self.checkCurve()
+        for i in getlist:
+            cvSize = cmds.getAttr((i+".controlPoints"), size=1)
+            for r in range(cvSize):
+                if r == 0:
+                    cmds.parentConstraint(i+"_cluHandle_Ctrl",i+"_cluHandle",mo=1)
+                else:
+                    cmds.parentConstraint(i+"_clu"+str(r)+"Handle_Ctrl",i+"_clu"+str(r)+"Handle",mo=1)
+
+    def CurveParent(self,mode):
+        clun = cmds.ls(self.Curvename+'_clu*Handle')
+        if mode == 'reverse':
+            wot = cmds.listRelatives(self.Curvename+"_cluHandle_Ctrl_grp",p=1)
+            if wot == None:
+                cmds.parent (self.Curvename+"_clu*Handle_Ctrl_grp",w=1)
+            else:
+                cmds.parent (self.Curvename+"_clu*Handle_Ctrl_grp",wot)
+        else:
+            for p in range(1,len(clun),1):
+                if p == 1:
+                    cmds.parent((self.Curvename+"_clu1Handle_Ctrl_grp"),(self.Curvename+"_cluHandle_Ctrl"))
+                else:
+                    cmds.parent((self.Curvename+"_clu"+str(p)+"Handle_Ctrl_grp"),(self.Curvename+"_clu"+str(p-1)+"Handle_Ctrl"))
+
     def cShape(self):
-        if ApplePieA_pTCIK.curvrShape == 4:
-            ApplePieA_pTCIK.curvrShape = 0
+        if ApplePieA_pTCIK.curveShape == 4:
+            ApplePieA_pTCIK.curveShape = 0
         getlist = self.checkCurve()
         cmds.undoInfo(ock=1)
-        if ApplePieA_pTCIK.curvrShape == 3:
-            cmds.circle(n='__temp_Cur')
+        if ApplePieA_pTCIK.curveShape == 3:
+            cmds.circle(n='__temp_Shape')
         else:
-            cmds.curve(d=1, p=self.curSample[ApplePieA_pTCIK.curvrShape][0], k=self.curSample[ApplePieA_pTCIK.curvrShape][1], n='__temp_Cur')
+            cmds.curve(d=1, p=self.curSample[ApplePieA_pTCIK.curveShape][0], k=self.curSample[ApplePieA_pTCIK.curveShape][1], n='__temp_Shape')
         for i in getlist:
-            cmds.connectAttr('__temp_Cur.worldSpace[0]', cmds.listRelatives(i,s=1,type="nurbsCurve")[0] + '.create', f=1)
-        ApplePieA_pTCIK.curvrShape += 1
-        cmds.setAttr('__temp_Cur.visibility', 0)
+            cmds.connectAttr('__temp_Shape.worldSpace[0]', cmds.listRelatives(i,s=1,type="nurbsCurve")[0] + '.create', f=1)
+        ApplePieA_pTCIK.curveShape += 1
+        cmds.setAttr('__temp_Shape.visibility', 0)
         cmds.select(getlist,r=1)
         cmds.undoInfo(cck=1)
         
@@ -576,7 +597,7 @@ class ApplePieA_pTCIK(object):
         ColorIndex = [i*255 for i in cmds.colorIndex(ColorInt, q=1)]
         ui_variable['SColorview'].setStyleSheet('background-color:rgb(%s,%s,%s)'%(ColorIndex[0],ColorIndex[1],ColorIndex[2]))
         #cmds.canvas('CCanvas', e=1, rgbValue=(ColorIndex[0], ColorIndex[1], ColorIndex[2]))
-
+    '''
     def SelCurve(self):
         if ui_variable['selectboxA'].isChecked():
             Sel = cmds.ls(sl=1)
@@ -584,8 +605,8 @@ class ApplePieA_pTCIK(object):
                 self.Curvename = Sel[0]
             cmds.select(self.Curvename+"_clu*Handle_Ctrl")
         else:
-
-
+            pass
+    '''
     def RSCurve(self, mode):
         curves = cmds.listRelatives(s=1, type="nurbsCurve")  # 获取选择曲线
         if not curves:
@@ -619,41 +640,6 @@ class ApplePieA_pTCIK(object):
             CurShape = cmds.listRelatives(selCurve[n], children=1, s=1)  # 颜色需要给予Shape
             cmds.setAttr((CurShape[0]+".overrideEnabled"), 1)
             cmds.setAttr((CurShape[0]+".overrideColor"), ColorNum)  # 颜色滑条时需要($ColorNum-1)
-
-    def Tangent(self):
-        cvSize = cmds.getAttr((self.Curvename+".controlPoints"), size=1)  # 获取曲线控制点数量
-        Tangentgrp = ''
-        for r in range(0, cvSize, 1):
-            if r == 0:
-                Tangentgrp = (self.Curvename+"_cluHandle_Ctrl_grp")
-            else:
-                Tangentgrp = (self.Curvename+"_clu"+str(r)+"Handle_Ctrl_grp")
-            tangentName = cmds.tangentConstraint(self.Curvename, Tangentgrp, weight=1, aimVector=(0, 0, 1), upVector=(0, 1, 0), worldUpType="scene")
-            cmds.delete(tangentName)
-
-    def parentConstraintCurve(self):
-        clun = cmds.ls(self.Curvename+'_clu*Handle')
-        for p in range(len(clun)):
-            if p == 0:
-                cmds.parentConstraint(self.Curvename+"_cluHandle_Ctrl",self.Curvename+"_cluHandle",mo=1)
-            else:
-                cmds.parentConstraint(self.Curvename+"_clu"+str(p)+"Handle_Ctrl",self.Curvename+"_clu"+str(p)+"Handle",mo=1)
-
-    def CurveParent(self,mode):
-        clun = cmds.ls(self.Curvename+'_clu*Handle')
-        if mode == 'reverse':
-            wot = cmds.listRelatives(self.Curvename+"_cluHandle_Ctrl_grp",p=1)
-            if wot == None:
-                cmds.parent (self.Curvename+"_clu*Handle_Ctrl_grp",w=1)
-            else:
-                cmds.parent (self.Curvename+"_clu*Handle_Ctrl_grp",wot)
-        else:
-            for p in range(1,len(clun),1):
-                if p == 1:
-                    cmds.parent((self.Curvename+"_clu1Handle_Ctrl_grp"),(self.Curvename+"_cluHandle_Ctrl"))
-                else:
-                    cmds.parent((self.Curvename+"_clu"+str(p)+"Handle_Ctrl_grp"),(self.Curvename+"_clu"+str(p-1)+"Handle_Ctrl"))
-
 
     def CurveToIK(self):   #张老师哒 (╯‵□′)╯︵┻━┻
         JointNum = int(ui_variable['JointInt'].text())

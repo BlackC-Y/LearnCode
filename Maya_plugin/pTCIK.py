@@ -85,7 +85,7 @@ password()
 '''
 
 ui_variable = {}
-_pTCIKVerision = 'v2.2'
+_pTCIKVerision = 'v2.2.1'
 
 class Ui_ApplePieA(object):
 
@@ -217,7 +217,7 @@ class Ui_ApplePieA(object):
         self.BuildCtrl.setObjectName("BuildCtrl")
         self.verticalLayoutA.addWidget(self.BuildCtrl)
         self.PoseEdit = QtWidgets.QPushButton(self.child1)
-        self.PoseEdit.setGeometry(QtCore.QRect(180, 430, 80, 28))
+        self.PoseEdit.setGeometry(QtCore.QRect(160, 430, 100, 28))
         self.PoseEdit.setObjectName("PoseEdit")
         self.tabWidget.addTab(self.child1, "")
 
@@ -311,7 +311,7 @@ class Ui_ApplePieA(object):
         self.SelectNucleus.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
         self.BuildCtrl.setText(u"Build")
         self.BuildCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
-        self.PoseEdit.setText(u"PoseEdit")
+        self.PoseEdit.setText(u"PoseEdit_ADV")
         self.PoseEdit.clicked.connect(lambda *args: poseEdit().PoseCheck())
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.child1), u"±¾Ìå")
 
@@ -370,7 +370,8 @@ class Showwindow(Ui_ApplePieA, QtWidgets.QWidget):
         self.setParent(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
         # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #ÖÃ¶¥
-        self.setWindowTitle(_pTCIKVerision)
+        self.setWindowTitle('pTCIK by_Y')
+        ui_variable['Statusbar'].showMessage(_pTCIKVerision)
         self.show()
 
 

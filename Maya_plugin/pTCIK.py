@@ -1,6 +1,7 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 from maya import cmds, mel
 import maya.OpenMayaUI as Omui
+import maya.OpenMaya as Om
 import shiboken2
 
 '''
@@ -85,7 +86,7 @@ password()
 '''
 
 ui_variable = {}
-_pTCIKVerision = 'v2.2.1'
+_pTCIKVerision = 'v2.2.2'
 
 class Ui_ApplePieA(object):
 
@@ -374,14 +375,6 @@ class Showwindow(Ui_ApplePieA, QtWidgets.QWidget):
         ui_variable['Statusbar'].showMessage(_pTCIKVerision)
         self.show()
 
-
-class doError(object):
-
-    def __init__(self, message):
-        ui_variable['Statusbar'].showMessage(message)
-        cmds.error(message)
-
-
 class ApplePieA_pTCIK(object):
 
     curveShape = 0
@@ -392,15 +385,21 @@ class ApplePieA_pTCIK(object):
     def SelectPolyCurve(self):
         ReBNum = ui_variable['RebuildInt'].text()
         if not ReBNum:
-            doError(u"//没填重建段数")
+            ui_variable['Statusbar'].showMessage(u'//没填重建段数')
+            Om.MGlobal.displayError(u'//没填重建段数')
+            return
         if not self.Curvename:
-            doError(u"//没填曲线名")
+            ui_variable['Statusbar'].showMessage(u"//没填曲线名")
+            Om.MGlobal.displayError(u"//没填曲线名")
+            return
         #ReBNum = cmds.intFieldGrp('RebuildIntFieldGrp', q=True, v1=True)
         polyEdgeN = cmds.ls(sl=True)
         Namelist = cmds.ls()
         # bothName = cmp(Curvename,Namelist)  #对比名称
         if self.Curvename in Namelist:
-            doError(u"//名称冲突")
+            ui_variable['Statusbar'].showMessage(u"//名称冲突")
+            Om.MGlobal.displayError(u"//名称冲突")
+            return
         '''     #列表对比
 		for A in L1:
 			if A in L2:
@@ -457,10 +456,14 @@ class ApplePieA_pTCIK(object):
     def checkCurve(self):
         curlist = cmds.ls(sl=1)
         if not cmds.listRelatives(curlist, s=1, type='nurbsCurve'):
-            doError(u"//未选择曲线")
+            ui_variable['Statusbar'].showMessage(u"//未选择曲线")
+            Om.MGlobal.displayError(u"//未选择曲线")
+            return
         for i in curlist:
             if not cmds.listRelatives(i, s=1, type='nurbsCurve'):
-                doError(u'//有非曲线物体')
+                ui_variable['Statusbar'].showMessage(u'//有非曲线物体')
+                Om.MGlobal.displayError(u'//有非曲线物体')
+                return
         return curlist
 
     def reverseCurve(self):
@@ -774,7 +777,9 @@ class ApplePieA_Dynamic(object):
 
     def FXCurve(self, curve):
         if not curve:
-            doError(u"//未选取曲线")
+            ui_variable['Statusbar'].showMessage(u"//未选取曲线")
+            Om.MGlobal.displayError(u"//未选取曲线")
+            return
         cmds.undoInfo(ock=1)
         qComboBox = []
         if ui_variable['SelectNucleus'].currentText() != 'Create New' and not cmds.ls(type='nucleus'):
@@ -822,7 +827,9 @@ class poseEdit(object):
 
     def PoseCheck(self):
         if not cmds.ls('buildPose.udAttr'):
-            doError(u"//无Pose系统")
+            ui_variable['Statusbar'].showMessage(u"//无Pose系统")
+            Om.MGlobal.displayError(u"//无Pose系统")
+            return
         self.buildposeText = cmds.getAttr('buildPose.udAttr')
         splitbuild = self.buildposeText.split('/*addItem*/')
         del splitbuild[0]

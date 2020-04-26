@@ -19,107 +19,110 @@ class WeightTool():
         self.WeightToolUi = 'WeightTool'
         if cmds.window(self.WeightToolUi, q=1, ex=1):
             cmds.deleteUI(self.WeightToolUi)
-        cmds.window(self.WeightToolUi, t=self.WeightToolUi, mb=1, mxb=0, wh=(255, 500))
+        cmds.window(self.WeightToolUi, t=self.WeightToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='S/L', to=1)
         cmds.menuItem(l='Save', c=lambda *args: LTools().vtxSave())
         cmds.menuItem(l='Load', c=lambda *args: LTools().vtxLoad())
         cmds.menu(l='Select', to=1)
         cmds.menuItem(l='Save', c=lambda *args: LTools().createSelect())
         cmds.menuItem(l='Save', c=lambda *args: LTools().getSelect())
-        cmds.columnLayout('MaincL', cat=('both', 2), rs=2, cw=250, adj=1)
-        cmds.text('spJobchangeVtx', p='MaincL', vis=0)
+        cmds.columnLayout('FiristcL', cat=('both', 2), rs=2, cw=220, adj=1)
+        cmds.text('spJobchangeVtx', p='FiristcL', vis=0)
         cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobchangeVtx')
         cmds.rowLayout(nc=6, adj=2)
-        cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20,
-            onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
+        cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20, onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
         cmds.textField('searchText', h=22, cc='Wait', ec='Wait')
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
-        cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: 'pass')
-        cmds.menuItem('AImeunItem', l='Alphabetically', rb=0, c=lambda *args: 'pass')
-        cmds.menuItem('FImeunItem', l='Filter Zero', cb=1, c=lambda *args: 'pass')
-        cmds.iconTextButton(i='expandInfluenceList.png', w=20, h=20,
-            c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) + 20))
-        cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
-            c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) - 20))
-        #revealSelected.png
+        cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList('Y'))
+        cmds.menuItem('AImeunItem', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList('Y'))
+        cmds.menuItem('FImeunItem', l='Filter Zero', cb=1, c=lambda *args: self.refreshJointList('Y'))
+        #cmds.iconTextButton(i='expandInfluenceList.png', w=20, h=20,
+        #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) + 20))
+        #cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
+        #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) - 20))
         #invertSelection.png
+        cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=lambda *args: 'Wait')
         cmds.setParent('..')
-        cmds.treeView('JointTV', p='MaincL', nb=1,
-                    h=300, scc='pass', pc=(1, 'pass'))
+        cmds.setParent('..')
+        cmds.formLayout('JointTVLayout')
+        cmds.treeView('JointTV', nb=1, h=100, scc='pass', pc=(1, 'pass'))
         cmds.popupMenu()
-        cmds.rowLayout(nc=4, cw4=(60, 50, 50, 60))
-        cmds.floatField(v=0.05, w=62, h=26, pre=3, min=0, max=1, ec='wait')
-        cmds.button(w=50, h=26, l='Copy', c=lambda *args: mel.eval("artAttrSkinWeightCopy"))
-        cmds.button(w=55, h=26, l='Paste', c=lambda *args: mel.eval("artAttrSkinWeightPaste"))
-        cmds.button(w=70, h=26, l='PasteAll', c=lambda *args: mel.eval("polyConvertToShell;artAttrSkinWeightPaste;"))
+        cmds.menuItem(l='Lock All')
+        cmds.menuItem(l='Unlock All')
+        #cmds.menuItem(l='Select Vtx')
+        cmds.formLayout('JointTVLayout', e=1, af=[('JointTV', 'top', 0), ('JointTV', 'bottom', 0), ('JointTV', 'left', 3), ('JointTV', 'right', 3)])
         cmds.setParent('..')
-        cmds.rowLayout(nc=5, cw5=(47, 47, 47, 47, 47))
-        cmds.button(w=47, h=26, l='Loop', c=lambda *args: cmds.polySelectSp(loop=1))
-        cmds.button(w=47, h=26, l='Ring',
+        cmds.columnLayout('vtxToolcL', cat=('both', 2), rs=2, cw=225)
+        cmds.rowLayout(nc=4, cw4=(50, 50, 50, 50))
+        cmds.floatField(v=.05, w=52, h=26, pre=4, min=0, max=1, ec='wait')
+        cmds.button(w=50, h=26, l='Copy', c=lambda *args: self.copyVtxWeight())
+        cmds.button(w=50, h=26, l='Paste', c=lambda *args: self.pasteVtxWeight())
+        cmds.popupMenu()
+        cmds.menuItem(l='PasteAll', c=lambda *args: mel.eval("polyConvertToShell;artAttrSkinWeightPaste;"))
+        cmds.button(w=65, h=26, l='Hammer', c=lambda *args: mel.eval('weightHammerVerts'))
+        cmds.setParent('..')
+        cmds.rowLayout(nc=5, cw5=(43, 43, 43, 43, 43))
+        cmds.button(w=43, h=26, l='Loop', c=lambda *args: cmds.polySelectSp(loop=1))
+        cmds.button(w=43, h=26, l='Ring',
             c=lambda *args: mel.eval("PolySelectConvert 2;PolySelectTraverse 2;polySelectEdges edgeRing;PolySelectConvert 3;"))
-        cmds.button(w=47, h=26, l='Shell', c=lambda *args: mel.eval("polyConvertToShell"))
-        cmds.button(w=47, h=26, l='Shrink', c=lambda *args: cmds.polySelectConstraint(pp=2))
-        cmds.button(w=47, h=26, l='Grow', c=lambda *args: cmds.polySelectConstraint(pp=1))
+        cmds.button(w=43, h=26, l='Shell', c=lambda *args: mel.eval("polyConvertToShell"))
+        cmds.button(w=43, h=26, l='Shrink', c=lambda *args: cmds.polySelectConstraint(pp=2))
+        cmds.button(w=43, h=26, l='Grow', c=lambda *args: cmds.polySelectConstraint(pp=1))
         cmds.setParent('..')
-        cmds.rowLayout(nc=7, cw=[(1, 33), (2, 33), (3, 33), (4, 33), (5, 33), (6, 33), (7, 33)])
-        cmds.button(w=33, h=26, l='0', c='Wait')
-        cmds.button(w=33, h=26, l='.1', c='Wait')
-        cmds.button(w=33, h=26, l='.25', c='Wait')
-        cmds.button(w=33, h=26, l='.5', c='Wait')
-        cmds.button(w=33, h=26, l='.75', c='Wait')
-        cmds.button(w=33, h=26, l='.9', c='Wait')
-        cmds.button(w=33, h=26, l='1', c='Wait')
+        cmds.rowLayout(nc=7, cw=[(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30), (7, 30)])
+        cmds.button(w=30, h=26, l='0', c='Wait')
+        cmds.button(w=30, h=26, l='.1', c='Wait')
+        cmds.button(w=30, h=26, l='.25', c='Wait')
+        cmds.button(w=30, h=26, l='.5', c='Wait')
+        cmds.button(w=30, h=26, l='.75', c='Wait')
+        cmds.button(w=30, h=26, l='.9', c='Wait')
+        cmds.button(w=30, h=26, l='1', c='Wait')
         cmds.setParent('..')
-        cmds.rowLayout(nc=4, cw4=(101, 60, 38, 38))
-        cmds.text(l='A/S Weight', w=100)
+        cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
+        cmds.text(l='A/S Weight', w=80)
         cmds.floatField(v=0.05, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='+', c='Wait')
         cmds.button(w=38, h=26, l='-', c='Wait')
         cmds.setParent('..')
-        cmds.rowLayout(nc=4, cw4=(101, 60, 38, 38))
-        cmds.text(l='M/D Weight', w=100)
+        cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
+        cmds.text(l='M/D Weight', w=80)
         cmds.floatField(v=0.95, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='*', c='Wait')
         cmds.button(w=38, h=26, l='/', c='Wait')
         cmds.setParent('..')
 
-        #cmds.window(self.WeightToolUi, e=1, wh=(255, 500))
         cmds.showWindow(self.WeightToolUi)
 
     def spJobStart(self):
         if cmds.text('spJobVtxParent', q=1, ex=1):
             return
-        cmds.text('spJobVtxParent', p='MaincL', vis=0)
-        cmds.scriptJob(e=['Undo', '判断选择类型,加载谷歌列表'], p='spJobVtxParent')
-        cmds.scriptJob(e=['SelectionChanged', '判断选择类型,加载谷歌列表'], p='spJobVtxParent')
+        cmds.text('spJobVtxParent', p='FiristcL', vis=0)
+        cmds.scriptJob(e=['Undo', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
+        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
-        #cmds.scriptJob(uid=[self.Ui,'自毁']
+        cmds.scriptJob(uid=[self.WeightToolUi,'WeightTool().refreshBoxChange(9)'])
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
                 if(objectType($object) == "joint"){ \
                 string $selCmd = "python (\\\"SelectInfluence(\'" + $object + "\')\\\")"; \
                 menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
                 }else{ \
-                menuItem -l "Object Mode" -ec true -c "python (\\\"WeightTool().refreshBoxChange(9)\\\");maintainActiveChangeSelectMode QAQ 0" -rp "E" -p $parent;}}' )
+                menuItem -l "Object Mode" -ec true -c "python (\\\"WeightTool().refreshBoxChange(9)\\\");maintainActiveChangeSelectMode OvO 0" -rp "E" -p $parent;}}' )
 
     def refreshBoxChange(self, force):
-        if force == 9:
+        if force == 9 or not cmds.selectType(q=1, ocm=1, pv=1):
             if cmds.text('spJobVtxParent', q=1, ex=1):
                 cmds.deleteUI('spJobVtxParent', ctl=1)
             mel.eval('source "dagMenuProc.mel"')
             cmds.iconTextCheckBox('refresh', e=1, v=0)
             return
-        if not cmds.selectType(q=1, ocm=1, pv=1):
-            if cmds.text('spJobVtxParent', q=1, ex=1):
-                cmds.deleteUI('spJobVtxParent', ctl=1)
-            mel.eval('source "dagMenuProc.mel"')
-            cmds.iconTextCheckBox('refresh', e=1, v=0)
         else:
             self.spJobStart()
             cmds.iconTextCheckBox('refresh', e=1, v=1)
     
-    def refreshJointList(self):
+    def refreshJointList(self, FilterChange):
         if not cmds.selectType(q=1, ocm=1, pv=1):
+            self.refreshBoxChange(9)
             return
         sel = cmds.ls(sl=1, fl=1)
         if not sel:
@@ -127,9 +130,40 @@ class WeightTool():
             return
         selobj = cmds.ls(sl=1, o=1)[0]
         if cmds.menuItem('FImeunItem', q=1, cb=1):
-            cmds.skinCluster(selobj, q=1, wi=1)
+            jointList = cmds.skinCluster(selobj, q=1, wi=1)
         else:
-            cmds.skinCluster(selobj, q=1, inf=1)
+            jointList = cmds.skinCluster(selobj, q=1, inf=1)
+        oldJointList = cmds.treeView('JointTV', q=1, ch='')
+        jointList.sort()
+        if oldJointList:
+            oldJointList.sort()
+            if oldJointList == jointList and not FilterChange:
+                return
+            else:
+                cmds.treeView('JointTV', e=1, ra=1)
+        for i in jointList:
+            if cmds.menuItem('HImeunItem', q=1, rb=1):
+                self.addHItoList(i, jointList)
+            else:
+                if not cmds.treeView('JointTV', q=1, iex=i):
+                    cmds.treeView('JointTV', e=1, ai=[i, ''])
+
+    def addHItoList(self, i, jointList):
+        jointP = cmds.listRelatives(i, p=1)
+        if not jointP:
+            if not cmds.treeView('JointTV', q=1, iex=i):
+                cmds.treeView('JointTV', e=1, ai=[i, ''])
+        elif cmds.treeView('JointTV', q=1, iex=jointP[0]):
+            if not cmds.treeView('JointTV', q=1, iex=i):
+                cmds.treeView('JointTV', e=1, ai=[i, jointP[0]])
+        elif jointP[0] in jointList:
+            self.addHItoList(jointP[0], jointList)
+            if not cmds.treeView('JointTV', q=1, iex=i):
+                cmds.treeView('JointTV', e=1, ai=[i, jointP[0]])
+        else:
+            if not cmds.treeView('JointTV', q=1, iex=i):
+                cmds.treeView('JointTV', e=1, ai=[i, ''])
+
 
     # # # # # # # # # #
     def copyVtxWeight(self):
@@ -173,8 +207,8 @@ class WeightTool():
         for i in range(len(self.vtxWeightInfo[2])):
             tvList.append((self.vtxWeightInfo[2][i], self.vtxWeightInfo[3][i]))
         #print(tvList)
-        for i in selVtx:
-            exec('cmds.skinPercent("%s", "%s", nrm=0, zri=0, tv=%s)' %(clusterName, i, tvList))
+        #for i in selVtx:
+        exec('cmds.skinPercent("%s", "%s", nrm=0, zri=0, tv=%s)' %(clusterName, selVtx, tvList))
     # # # # # # # # # #
 
 
@@ -188,7 +222,7 @@ class DisplayYes():   #报绿
         widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
         cmds.select('time1', r=1)
         WeightTool().refreshBoxChange(9)
-        cmds.text('spJobReLine', p='MaincL', vis=0)
+        cmds.text('spJobReLine', p='FiristcL', vis=0)   # p = Layout
         cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine')
         Om.MGlobal.displayInfo(message)
 

@@ -8,18 +8,16 @@ except ImportError:
 from maya import cmds, mel
 import maya.OpenMaya as Om
 import maya.OpenMayaUI as Omui
+import decimal
 
 
 class WeightTool():
 
-    def __init__(self):
-        pass
-
-    def WeightToolUi(self):
-        self.WeightToolUi = 'WeightTool'
-        if cmds.window(self.WeightToolUi, q=1, ex=1):
-            cmds.deleteUI(self.WeightToolUi)
-        cmds.window(self.WeightToolUi, t=self.WeightToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
+    def ToolUi(self):
+        self.ToolUi = 'WeightTool'
+        if cmds.window(self.ToolUi, q=1, ex=1):
+            cmds.deleteUI(self.ToolUi)
+        cmds.window(self.ToolUi, t=self.ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='S/L', to=1)
         cmds.menuItem(l='Save', c=lambda *args: LTools().vtxSave())
         cmds.menuItem(l='Load', c=lambda *args: LTools().vtxLoad())
@@ -92,7 +90,7 @@ class WeightTool():
         cmds.button(w=38, h=26, l='/', c='Wait')
         cmds.setParent('..')
 
-        cmds.showWindow(self.WeightToolUi)
+        cmds.showWindow(self.ToolUi)
 
     def spJobStart(self):
         if cmds.text('spJobVtxParent', q=1, ex=1):
@@ -101,7 +99,7 @@ class WeightTool():
         cmds.scriptJob(e=['Undo', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
         cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
-        cmds.scriptJob(uid=[self.WeightToolUi,'WeightTool().refreshBoxChange(9)'])
+        cmds.scriptJob(uid=[self.ToolUi,'WeightTool().refreshBoxChange(9)'])
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
                 if(objectType($object) == "joint"){ \
                 string $selCmd = "python (\\\"SelectInfluence(\'" + $object + "\')\\\")"; \
@@ -176,15 +174,14 @@ class WeightTool():
         if not clusterName:
             Om.MGlobal.displayError('Select No Skin')
             return
-        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, v=1)
-        wiTransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000001, t=None)
-        TransList = cmds.skinPercent(clusterName, selVtx, q=1, t=None)
+        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000001, v=1)
+        TransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000001, t=None)
         '''   #倒序循环
         for i in range(len(ValueList)-1, -1, -1):
             if ValueList[i] < .0001:
                 del ValueList[i], TransList[i]
         '''
-        self.vtxWeightInfo = [clusterName, wiTransList, TransList, ValueList]
+        self.vtxWeightInfo = [clusterName, TransList, ValueList]
         #print(self.vtxWeightInfo)
 
     def pasteVtxWeight(self):
@@ -201,14 +198,14 @@ class WeightTool():
             jointList = cmds.skinCluster(selObj, q=1, inf=1)
             for j in self.vtxWeightInfo[1]:
                 if not j in jointList:
-                    Om.MGlobal.displayError('Joint are different')
+                    Om.MGlobal.displayError('Joint are different !!!')
                     return
         tvList = []
-        for i in range(len(self.vtxWeightInfo[2])):
-            tvList.append((self.vtxWeightInfo[2][i], self.vtxWeightInfo[3][i]))
+        for i in range(len(self.vtxWeightInfo[1])):
+            tvList.append((self.vtxWeightInfo[1][i], self.vtxWeightInfo[2][i]))
         #print(tvList)
-        #for i in selVtx:
-        exec('cmds.skinPercent("%s", "%s", nrm=0, zri=0, tv=%s)' %(clusterName, selVtx, tvList))
+        for i in selVtx:
+            exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' %(clusterName, i, tvList))
     # # # # # # # # # #
 
 
@@ -242,7 +239,7 @@ class LTools():
         selobj = cmds.ls(sl=1, o=1)[0]
         cluWs = cmds.getAttr(cmds.cluster(n='_tempClu_')[1] + 'Shape.origin')[0]
         Curname = cmds.circle(n='_selectCur_')[0]
-        cmds.setAttr(Curname + '.translate', cmds.polyEvaluate(selobj, b=1)[0][1] + 1, cluWs[1], cluws[2])
+        cmds.setAttr(Curname + '.translate', cmds.polyEvaluate(selobj, b=1)[0][1] + 1, cluWs[1], cluWs[2])
         cmds.addAttr(Curname, ln='vtxinfo', dt='string')
         cmds.setAttr(Curname + '.vtxinfo', '', type='string')
         for i in selvtx:
@@ -329,4 +326,95 @@ class LTools():
         DisplayYes().showMessage('Finish!')
 
 
-WeightTool().WeightToolUi()
+class WeightCheckTool():
+
+    def ToolUi(self):
+        ToolUi = 'WeightCheckTool'
+        if cmds.window(ToolUi, q=1, ex=1):
+            cmds.deleteUI(ToolUi)
+        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, wh=(500, 300))
+        cmds.menu(l='View', to=0)
+        cmds.menuItem('SNmenuItem', l='View Object Name', cb=0, c=lambda *args: self.Load())
+        cmds.formLayout('MainformLayout')
+        cmds.paneLayout('ListLayout', cn='vertical3', ps=(1, 1, 1))
+        cmds.textScrollList('vtxList', ams=1, sc=lambda *args: cmds.textScrollList('weightList', e=1, da=1, sii=lambda *args:
+                                cmds.textScrollList('vtxList', q=1, sii=1)))
+        cmds.textScrollList('weightList', ams=1, sc=lambda *args: cmds.textScrollList('vtxList', e=1, da=1, sii=lambda *args:
+                                cmds.textScrollList('weightList', q=1, sii=1)))
+        cmds.setParent('..')
+        cmds.columnLayout('cLayout', cat=('right', 5), cw=120)
+        cmds.text(l='', h=3)
+        cmds.button(l='Load', w=80, h=26, c=lambda *args: self.Load(None))
+        cmds.button(l='Clean', w=80, h=26, c=lambda *args: self.Load('Clean'))
+        cmds.button(l='Remove Min', w=80, h=26, c=lambda *args: self.Load('RemoveMin'))
+        cmds.button(l='Select', w=80, h=26, c=lambda *args: self.Load(None))
+        cmds.text(l='Decimal', h=20)
+        cmds.intField('DecimalInt', v=3)
+        cmds.text(l='Influence', h=20)
+        cmds.intField('InfluenceInt', v=3)
+        cmds.text('ViewNum', vis=0, h=20)
+        
+        cmds.formLayout('MainformLayout', e=1, af=[('ListLayout', 'top', 0), ('ListLayout', 'bottom', 0), ('ListLayout', 'left', 3), ('cLayout', 'right', 3)])
+        cmds.formLayout('MainformLayout', e=1, ac=('ListLayout', 'right', 3, 'cLayout'))
+        cmds.showWindow(ToolUi)
+    
+    def Load(self, mode):
+        cmds.text(l='ViewNum', e=1, vis=0)
+        sel = cmds.ls(sl=1, fl=1)
+        if not sel:
+            Om.MGlobal.displayError('Select Nothing')
+            return
+        selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
+        selobj = cmds.ls(sl=1, o=1)[0]
+        if not selVtx:
+            if not selobj:
+                return
+            seltyp = cmds.objectType(cmds.listRelatives(selobj, s=1, f=1)[0])
+            if seltyp == 'mesh':
+                suf = '.vtx'
+            elif seltyp == 'nurbsCurve' or seltyp == 'nurbsSurface':
+                suf = '.cv'
+            elif seltyp == 'subdiv':
+                suf = '.smp'
+            elif seltyp == 'lattice':
+                suf = '.pt'
+            selVtx = cmds.ls(selobj + suf + '[*]', fl=1)
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
+        if not clusterName:
+            Om.MGlobal.displayError('Select No Skin')
+            return
+        cmds.textScrollList('vtxList', e=1, ra=1)
+        cmds.textScrollList('weightList', e=1, ra=1)
+        Number = 0
+        for i in selVtx:
+            valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
+            transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+            tvStr = ''
+            if len(valueList) > cmds.intField('InfluenceInt', q=1, v=1):
+                Number += 1
+            for u in range(len(valueList)):
+                if mode == 'Clean':
+                    #tempCode = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
+                    #Value = tempCode %ValueList[a]
+                    decimal.getcontext().rounding = 'ROUND_HALF_UP'
+                    Value = str(decimal.Decimal(str(valueList[u])).quantize(
+                                decimal.Decimal('%.5f' % cmds.intField('DecimalInt', q=1, v=1)))).rstrip('0').rstrip('.')
+                    if Value == 0:
+                        continue
+                elif mode == 'RemoveMin':
+                    decimal.getcontext().rounding = 'ROUND_HALF_UP'
+                    Value = str(decimal.Decimal(str(valueList[u])).quantize(
+                                decimal.Decimal('%.5f' % cmds.intField('DecimalInt', q=1, v=1)))).rstrip('0').rstrip('.')
+                    if Value == 0:
+                        continue
+                else:
+                    Value = str(valueList[u]).rstrip('0').rstrip('.')
+                tvStr += '%s ~ %s @' % (transList[u], Value)
+            if not cmds.menuItem('SNmenuItem', q=1, cb=1):
+                i = i.split('.')[1]
+            cmds.textScrollList('vtxList', e=1, a=i)
+            cmds.textScrollList('weightList', e=1, a=tvStr)
+        if Number:
+            cmds.text('ViewNum', e=1, vis=1, l='Number: ' + str(Number))
+            
+WeightTool().ToolUi()

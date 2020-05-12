@@ -81,14 +81,6 @@ def pTCIK():
     cmds.tabLayout( tabs, edit=True, tabLabel=((child1,'本体'),(child2,'曲线DLC'),(child3,'动力学曲线')))
     cmds.window(uiA, e=True, wh=(260, 500))  # 窗口后定值
     cmds.showWindow(uiA)
-def password():
-    import time
-    if cmds.promptDialog(title='password', button=['OK', 'Cancel'], defaultButton='OK', cancelButton='Cancel', dismissString='Cancel') == 'OK':
-        if not cmds.promptDialog(query=True, text=True) == str(time.localtime()[1])+str(time.localtime()[2])+str(time.localtime()[3])+str(time.localtime()[4]):
-            cmds.error('')
-    else:
-        cmds.error('')
-password()
 '''
 
 ui_variable = {}

@@ -27,11 +27,11 @@ class setProjectTool():
                 newPath = cmds.promptDialog(q=1, t=1)
                 if not newPath:
                     return
-                elif '\\' in newPath:
-                    Om.MGlobal.displayError('The "\\" is wrong!')
-                    return
                 elif not os.path.exists(newPath):
                     Om.MGlobal.displayError('Path not exist!')
+                    return
+                elif ':\\' in newPath:
+                    Om.MGlobal.displayError('Path is wrong!')
                     return
                 elif not re.match('.:/\S', newPath) and not re.match('\\\\\S', newPath):
                     Om.MGlobal.displayError('Path is wrong!')

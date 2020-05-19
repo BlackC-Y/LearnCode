@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
@@ -342,12 +343,12 @@ class WeightCheckTool():
         cmds.textScrollList('weightList', ams=1, sc=lambda *args: cmds.textScrollList('vtxList', e=1, da=1, sii=lambda *args:
                                 cmds.textScrollList('weightList', q=1, sii=1)))
         cmds.setParent('..')
-        cmds.columnLayout('cLayout', cat=('right', 5), cw=120)
+        cmds.columnLayout('cLayout', cat=('right', 5), cw=100)
         cmds.text(l='', h=3)
-        cmds.button(l='Load', w=80, h=26, c=lambda *args: self.Load(None))
-        cmds.button(l='Clean', w=80, h=26, c=lambda *args: self.Load('Clean'))
-        cmds.button(l='Remove Min', w=80, h=26, c=lambda *args: self.Load('RemoveMin'))
-        cmds.button(l='Select', w=80, h=26, c=lambda *args: self.Load(None))
+        cmds.button(l='Load', w=80, h=26, c=lambda *args: self.Load())
+        cmds.button(l='Clean', w=80, h=26, c=lambda *args: self.Clean())
+        cmds.button(l='Remove Min', w=80, h=26, c=lambda *args: self.RemoveMin())
+        cmds.button(l='Select', w=80, h=26, c=lambda *args: cmds.select(self.Number, r=1))
         cmds.text(l='Decimal', h=20)
         cmds.intField('DecimalInt', v=3)
         cmds.text(l='Influence', h=20)
@@ -358,8 +359,7 @@ class WeightCheckTool():
         cmds.formLayout('MainformLayout', e=1, ac=('ListLayout', 'right', 3, 'cLayout'))
         cmds.showWindow(ToolUi)
     
-    def Load(self, mode):
-        cmds.text(l='ViewNum', e=1, vis=0)
+    def getSel(self):
         sel = cmds.ls(sl=1, fl=1)
         if not sel:
             Om.MGlobal.displayError('Select Nothing')
@@ -383,38 +383,82 @@ class WeightCheckTool():
         if not clusterName:
             Om.MGlobal.displayError('Select No Skin')
             return
+        return selVtx, clusterName
+
+    def Load(self):
+        cmds.text('ViewNum', e=1, vis=0)
+        selVtx, clusterName = self.getSel()
         cmds.textScrollList('vtxList', e=1, ra=1)
         cmds.textScrollList('weightList', e=1, ra=1)
-        Number = 0
+        self.Number = []
         for i in selVtx:
             valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
             transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
             tvStr = ''
             if len(valueList) > cmds.intField('InfluenceInt', q=1, v=1):
-                Number += 1
-            for u in range(len(valueList)):
-                if mode == 'Clean':
-                    #tempCode = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
-                    #Value = tempCode %ValueList[a]
-                    decimal.getcontext().rounding = 'ROUND_HALF_UP'
-                    Value = str(decimal.Decimal(str(valueList[u])).quantize(
-                                decimal.Decimal('%.5f' % cmds.intField('DecimalInt', q=1, v=1)))).rstrip('0').rstrip('.')
-                    if Value == 0:
-                        continue
-                elif mode == 'RemoveMin':
-                    decimal.getcontext().rounding = 'ROUND_HALF_UP'
-                    Value = str(decimal.Decimal(str(valueList[u])).quantize(
-                                decimal.Decimal('%.5f' % cmds.intField('DecimalInt', q=1, v=1)))).rstrip('0').rstrip('.')
-                    if Value == 0:
-                        continue
-                else:
-                    Value = str(valueList[u]).rstrip('0').rstrip('.')
-                tvStr += '%s ~ %s @' % (transList[u], Value)
+                self.Number.append(i)
+            for w, j in zip(valueList, transList):
+                Value = str(w).rstrip('0').rstrip('.')
+                tvStr += '%s ~ %s @' % (j, Value)
             if not cmds.menuItem('SNmenuItem', q=1, cb=1):
                 i = i.split('.')[1]
             cmds.textScrollList('vtxList', e=1, a=i)
             cmds.textScrollList('weightList', e=1, a=tvStr)
-        if Number:
-            cmds.text('ViewNum', e=1, vis=1, l='Number: ' + str(Number))
+        if self.Number:
+            cmds.text('ViewNum', e=1, vis=1, l='Number: ' + str(len(self.Number)))
+            if not cmds.menuItem('SNmenuItem', q=1, cb=1):
+                for i in self.Number:
+                    i = i.split('.')[1]
+                    cmds.textScrollList('vtxList', e=1, si=i)
+            else:
+                cmds.textScrollList('vtxList', e=1, si=self.Number)
+            cmds.textScrollList('weightList', e=1, sii=cmds.textScrollList('vtxList', q=1, sii=1))
             
-WeightTool().ToolUi()
+    def Clean(self):
+        selVtx, clusterName = self.getSel()
+        jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
+        jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
+        for i in selVtx:
+            transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+            tempCode = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
+            for j in transList:
+                cmds.setAttr(j + '.liw', 0)
+            for j in transList:
+                #Value = mel.eval('countNew(%s, %s)'
+                #            %(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
+                decimal.getcontext().rounding = 'ROUND_HALF_UP'
+                Value = float(str(decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j))).
+                            quantize(decimal.Decimal(tempCode %1))).rstrip('0').rstrip('.'))
+                if Value == 0:
+                    continue
+                #print (clusterName, i, [j, Value])
+                exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' % (clusterName, i, [j, Value]))
+                cmds.setAttr(j + '.liw', 1)
+        for j, l in zip(jntList, jntLock):
+            cmds.setAttr(j + '.liw', l)
+        self.Load()
+    
+    def RemoveMin(self):
+        obj = cmds.ls(self.Number[0], o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
+        if not clusterName:
+            Om.MGlobal.displayError('Select No Skin')
+            return
+        tvdic = {}
+        for v in self.Number:
+            valueList = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, v=1)
+            transList = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=None)
+            for w, j in zip(valueList, transList):
+                tvdic[j] = w
+            tvList = sorted(tvdic.items(), key=lambda item: item[1])
+            jntLock = []
+            for j in transList:
+                jntLock.append(cmds.getAttr(j + '.liw'))
+                cmds.setAttr(j + '.liw', 0)
+            exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' % (clusterName, v, [tvList[0][0], 0]))
+            for j, l in zip(transList, jntLock):
+                cmds.setAttr(j + '.liw', l)
+        self.Load()
+
+#WeightTool().ToolUi()
+WeightCheckTool().ToolUi()

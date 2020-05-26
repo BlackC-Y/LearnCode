@@ -1,5 +1,5 @@
+# -*- coding: GBK -*-
 #encoding:GBK
-#张老师的~
 from maya import cmds, mel
 #import maya.api.OpenMaya as om
 import re,math,random

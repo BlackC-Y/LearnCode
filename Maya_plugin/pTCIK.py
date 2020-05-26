@@ -1,7 +1,8 @@
+# -*- coding: GBK -*-
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
-except ImportError:   #316行兼容问题
+except ImportError:   #有兼容性问题
     from PySide import QtGui as QtWidgets
     from PySide import QtCore
     import shiboken as shiboken2
@@ -427,10 +428,7 @@ class ApplePieA_pTCIK(object):
             node_p_list = sorted(node_p.items(), key=lambda item: item[1]) # 字典排序
             tcws = [[0 for y in range(3)] for x in range(len(selv))]
             for v in range(len(selv)):
-                if node_p_list[v][0] == 0:
-                    c = ''
-                else:
-                    c = node_p_list[v][0]
+                c = '' if node_p_list[v][0] == 0 else node_p_list[v][0]
                 tcws[v][0] = cmds.getAttr('__temp_clu%sHandleShape.originX' %str(c))
                 tcws[v][1] = cmds.getAttr('__temp_clu%sHandleShape.originY' %str(c))
                 tcws[v][2] = cmds.getAttr('__temp_clu%sHandleShape.originZ' %str(c))
@@ -520,12 +518,8 @@ class ApplePieA_pTCIK(object):
             return
         for i in getlist:
             cvSize = cmds.getAttr(i+".controlPoints", size=1)
-            Tangentgrp = ''
             for r in range(cvSize,):
-                if r == 0:
-                    Tangentgrp = (i+"_cluHandle_Ctrl_grp")
-                else:
-                    Tangentgrp = (i+"_clu"+str(r)+"Handle_Ctrl_grp")
+                Tangentgrp = i + '_cluHandle_Ctrl_grp' if r == 0 else i+'_clu'+str(r)+'Handle_Ctrl_grp'
                 tangentName = cmds.tangentConstraint(i, Tangentgrp, weight=1, aimVector=(0, 0, 1), upVector=(0, 1, 0), worldUpType="scene")
                 cmds.delete(tangentName)
 
@@ -667,7 +661,7 @@ class ApplePieA_pTCIK(object):
         cmds.select(cl=1)
         cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientX", 0)
         cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientY", 0)
-        cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientY", 0)
+        cmds.setAttr(mz_jot[len(mz_jot)-1] + ".jointOrientZ", 0)
         if cmds.objExists(sel + ".AutoLe") == 0:
             cmds.addAttr(sel, ln="AutoLe", at='double', min=0, max=1, dv=0)
             cmds.setAttr(sel + ".AutoLe", e=1, keyable=1)
@@ -694,10 +688,7 @@ class ApplePieA_pTCIK(object):
         self.doFinish(curveN)
 
     def doFinish(self, curveN):
-        if ui_variable['CtrlParentbox'].isChecked():
-            cluHandleCtrlgrp = '_cluHandle_Ctrl_grp'
-        else:
-            cluHandleCtrlgrp = '_clu*Handle_Ctrl_grp'
+        cluHandleCtrlgrp = '_cluHandle_Ctrl_grp' if ui_variable['CtrlParentbox'].isChecked() else '_clu*Handle_Ctrl_grp'
         if '_Blend' in curveN:
             editname = curveN.rsplit('_', 1)[0]
             cmds.group(editname, editname + '_clu*Handle', editname + cluHandleCtrlgrp,
@@ -740,10 +731,7 @@ class ApplePieA_pTCIK(object):
         cmds.showWindow(uiPose)
         ls = cmds.ls(type='transform')
         for i in splitText:
-            if '_clu*Handle_Ctrl' in i:
-                self.editi = (i.split('_clu*Handle_Ctrl\";')[0]).split('\"', 1)[1]
-            else:
-                self.editi = (i.split('\"', 1)[1]).rsplit('\"', 1)[0]
+            self.editi = (i.split('_clu*Handle_Ctrl\";')[0]).split('\"', 1)[1] if '_clu*Handle_Ctrl' in i else (i.split('\"', 1)[1]).rsplit('\"', 1)[0]
             if self.editi in ls:
                 cmds.textScrollList('textList', e=1, append=i)
             else:

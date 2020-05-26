@@ -1,6 +1,5 @@
 from PySide2 import QtCore, QtGui, QtWidgets
-import maya.cmds as cmds
-import maya.mel as mm
+from maya import cmds, mel
 import maya.OpenMayaUI as Omui
 import shiboken2
 
@@ -159,14 +158,14 @@ class ToolsBox(object):
     def samevtx(self, obj1='', obj2=''):
         list = cmds.ls(sl=1, fl=1)
         obj = list[0].split('.', 1)[0]
-        mm.eval("reflectionSetMode objectx;")
+        mel.eval("reflectionSetMode objectx;")
         for i in list:
             lvtxT = cmds.xform(obj1+'.'+i.split('.', 1)[1], q=1, os=1, t=1)
             cmds.select(i, sym=1, r=1)
             dvtx = cmds.ls(sl=1, fl=1)
             del dvtx[dvtx.index(i)]
             cmds.xform(obj2+'.'+dvtx[0].split('.', 1)[1], os=1, t=(lvtxT[0]*-1, lvtxT[1], lvtxT[2]))
-        mm.eval("reflectionSetMode none;")
+        mel.eval("reflectionSetMode none;")
 
     def xiuxingJoint(self):
         Raxial = 'Y'     #Z

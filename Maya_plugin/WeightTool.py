@@ -20,16 +20,17 @@ class WeightTool():
             cmds.deleteUI(self.ToolUi)
         cmds.window(self.ToolUi, t=self.ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='S/L', to=1)
-        cmds.menuItem(l='Save', c=lambda *args: LTools().vtxSave())
-        cmds.menuItem(l='Load', c=lambda *args: LTools().vtxLoad())
+        cmds.menuItem(l='Save', c=lambda *args: WeightTool().vtxSave())
+        cmds.menuItem(l='Load', c=lambda *args: WeightTool().vtxLoad())
         cmds.menu(l='Select', to=1)
-        cmds.menuItem(l='Save', c=lambda *args: LTools().createSelect())
-        cmds.menuItem(l='Save', c=lambda *args: LTools().getSelect())
+        cmds.menuItem(l='Save', c=lambda *args: WeightTool().createSelect())
+        cmds.menuItem(l='Save', c=lambda *args: WeightTool().getSelect())
         cmds.columnLayout('FiristcL', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.text('spJobchangeVtx', p='FiristcL', vis=0)
         cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobchangeVtx')
         cmds.rowLayout(nc=6, adj=2)
-        cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20, onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
+        cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20,
+                                onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
         cmds.textField('searchText', h=22, cc='Wait', ec='Wait')
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
@@ -41,16 +42,17 @@ class WeightTool():
         #cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
         #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) - 20))
         #invertSelection.png
-        cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=lambda *args: 'Wait')
+        cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=lambda *args: self.reSelect())
         cmds.setParent('..')
         cmds.setParent('..')
         cmds.formLayout('JointTVLayout')
-        cmds.treeView('JointTV', nb=1, h=100, scc='pass', pc=(1, 'pass'))
+        cmds.treeView('JointTV', nb=1, h=100, scc='pass', pc=(1, self.lock_unLock))
         cmds.popupMenu()
         cmds.menuItem(l='Lock All')
         cmds.menuItem(l='Unlock All')
         #cmds.menuItem(l='Select Vtx')
-        cmds.formLayout('JointTVLayout', e=1, af=[('JointTV', 'top', 0), ('JointTV', 'bottom', 0), ('JointTV', 'left', 3), ('JointTV', 'right', 3)])
+        cmds.formLayout('JointTVLayout', e=1, af=[('JointTV', 'top', 0), ('JointTV', 'bottom', 0),
+                                                    ('JointTV', 'left', 3), ('JointTV', 'right', 3)])
         cmds.setParent('..')
         cmds.columnLayout('vtxToolcL', cat=('both', 2), rs=2, cw=225)
         cmds.rowLayout(nc=4, cw4=(50, 50, 50, 50))
@@ -80,13 +82,13 @@ class WeightTool():
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='A/S Weight', w=80)
-        cmds.floatField(v=0.05, h=26, w=50, pre=3, min=0, max=1)
+        cmds.floatField('A/S Float', v=0.05, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='+', c='Wait')
         cmds.button(w=38, h=26, l='-', c='Wait')
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='M/D Weight', w=80)
-        cmds.floatField(v=0.95, h=26, w=50, pre=3, min=0, max=1)
+        cmds.floatField('M/D Float', v=0.95, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='*', c='Wait')
         cmds.button(w=38, h=26, l='/', c='Wait')
         cmds.setParent('..')
@@ -100,13 +102,14 @@ class WeightTool():
         cmds.scriptJob(e=['Undo', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
         cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
-        cmds.scriptJob(uid=[self.ToolUi,'WeightTool().refreshBoxChange(9)'])
+        cmds.scriptJob(uid=['WeightTool', 'WeightTool().refreshBoxChange(9)'])
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
                 if(objectType($object) == "joint"){ \
                 string $selCmd = "python (\\\"SelectInfluence(\'" + $object + "\')\\\")"; \
                 menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
                 }else{ \
-                menuItem -l "Object Mode" -ec true -c "python (\\\"WeightTool().refreshBoxChange(9)\\\");maintainActiveChangeSelectMode OvO 0" -rp "E" -p $parent;}}' )
+                menuItem -l "Object Mode" -ec true -c \
+                    "python (\\\"WeightTool().refreshBoxChange(9)\\\");maintainActiveChangeSelectMode OvO 0" -rp "E" -p $parent;}}')
 
     def refreshBoxChange(self, force):
         if force == 9 or not cmds.selectType(q=1, ocm=1, pv=1):
@@ -146,7 +149,18 @@ class WeightTool():
             else:
                 if not cmds.treeView('JointTV', q=1, iex=i):
                     cmds.treeView('JointTV', e=1, ai=[i, ''])
-
+        allItem = cmds.treeView('JointTV', q=1, iv=1)
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+        for j in allItem:
+            if cmds.getAttr(j + '.liw'):
+                cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
+            else:
+                cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
+            Value = '.%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
+            if not float(Value):
+                continue
+            cmds.treeView('JointTV', e=1, dl=(j, '%s   |   %s' % (j, Value)))
+            
     def addHItoList(self, i, jointList):
         jointP = cmds.listRelatives(i, p=1)
         if not jointP:
@@ -163,20 +177,74 @@ class WeightTool():
             if not cmds.treeView('JointTV', q=1, iex=i):
                 cmds.treeView('JointTV', e=1, ai=[i, ''])
 
+    def lock_unLock(self, jnt, but):
+        #cmds.getAttr(i + '.liw', l=1)
+        slItem = cmds.treeView('JointTV', q=1, si=1)
+        if not slItem:
+            slItem = [jnt]
+        if cmds.getAttr(jnt + '.liw'):
+            for i in slItem:
+                cmds.setAttr(i + '.liw', 0)
+                cmds.treeView('JointTV', e=1, i=(i, 1, 'Lock_OFF_grey.png'))
+        else:
+            for i in slItem:
+                cmds.setAttr(i + '.liw', 1)
+                cmds.treeView('JointTV', e=1, i=(i, 1, 'Lock_ON.png'))
 
+    def reSelect(self):
+        allItem = cmds.treeView('JointTV', q=1, iv=1)
+        slItem = cmds.treeView('JointTV', q=1, si=1)
+        cmds.treeView('JointTV', e=1, cs=1)
+        for i in slItem:
+            allItem.remove(i)
+        for i in allItem:
+            cmds.treeView('JointTV', e=1, si=(i, 1))
+    
+    def editVtxWeight(self, mode):
+        sel = cmds.ls(sl=1, fl=1)
+        if not sel:
+            return
+        selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
+        if not selVtx:
+            return
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
+        if not clusterName:
+            return
+        
+        if mode == '+' or mode == '-':
+            for v in selVtx:
+                for j in cmds.treeView('JointTV', q=1, si=1):
+                    Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
+                    Value = Value + cmds.floatField('A/S Float', q=1, v=1)   \
+                        if mode == '+' else Value - cmds.floatField('A/S Float', q=1, v=1)
+                    cmds.skinPercent(clusterName, v, tv=(j, Value))
+        elif mode == '*' or mode == '/':
+            for v in selVtx:
+                for j in cmds.treeView('JointTV', q=1, si=1):
+                    Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
+                    Value = Value * cmds.floatField('A/S Float', q=1, v=1)   \
+                        if mode == '*' else Value / cmds.floatField('A/S Float', q=1, v=1)
+                    cmds.skinPercent(clusterName, v, tv=(j, Value))
+        else:
+            for v in selVtx:
+                for j in cmds.treeView('JointTV', q=1, si=1):
+                    Value = float(mode)
+                    cmds.skinPercent(clusterName, v, tv=(j, Value))
+    
     # # # # # # # # # #
     def copyVtxWeight(self):
         selVtx = cmds.filterExpand(cmds.ls(sl=1)[0], sm=[28, 31, 36, 40, 46])
         if not selVtx:
             Om.MGlobal.displayError('Not Selected Vtx')
             return
-        selObj = cmds.ls(sl=1, o=1)[0]
-        clusterName = mel.eval('findRelatedSkinCluster("%s")' %selObj)
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
         if not clusterName:
             Om.MGlobal.displayError('Select No Skin')
             return
-        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000001, v=1)
-        TransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000001, t=None)
+        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000000000001, v=1)
+        TransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000000000001, t=None)
         '''   #倒序循环
         for i in range(len(ValueList)-1, -1, -1):
             if ValueList[i] < .0001:
@@ -208,32 +276,6 @@ class WeightTool():
         for i in selVtx:
             exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' %(clusterName, i, tvList))
     # # # # # # # # # #
-
-
-class DisplayYes():   #报绿
-
-    def __init__(self):
-        self.gCommandLine = mel.eval('$tmp = $gCommandLine')
-
-    def showMessage(self, message):
-        widget = shiboken2.wrapInstance(long(Omui.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
-        widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
-        cmds.select('time1', r=1)
-        WeightTool().refreshBoxChange(9)
-        cmds.text('spJobReLine', p='FiristcL', vis=0)   # p = Layout
-        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine')
-        Om.MGlobal.displayInfo(message)
-
-    def resetLine(self):
-        cmds.deleteUI('spJobReLine', ctl=1)
-        cmds.deleteUI(self.gCommandLine.rsplit('|', 1)[0])
-        mel.eval('source "initCommandLine.mel"')
-
-
-class LTools():
-
-    def __init__(self):
-        pass
 
     def createSelect(self):
         selvtx = cmds.ls(sl=1)
@@ -287,11 +329,9 @@ class LTools():
             cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
             for i in selVtx:
                 cmds.progressBar(gMainProgressBar, e=1, s=1)
-                valueList = cmds.skinPercent(clusterName, i, ib=.000001, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=.000001, q=1, t=None)
-                tvList = []
-                for u in range(len(valueList)):
-                    tvList.append([transList[u], valueList[u]])
+                valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
+                transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+                tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
                 wtStr = '%s--%s\r\n' %(i.split('.')[-1], tvList)
                 vwfile.write(wtStr)
             cmds.progressBar(gMainProgressBar, e=1, ep=1)
@@ -327,6 +367,26 @@ class LTools():
         DisplayYes().showMessage('Finish!')
 
 
+class DisplayYes():   #报绿
+
+    def __init__(self):
+        self.gCommandLine = mel.eval('$tmp = $gCommandLine')
+
+    def showMessage(self, message):
+        widget = shiboken2.wrapInstance(long(Omui.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
+        widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
+        cmds.select('time1', r=1)
+        WeightTool().refreshBoxChange(9)
+        cmds.text('spJobReLine', p='FiristcL', vis=0)   # p = Layout
+        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine')
+        Om.MGlobal.displayInfo(message)
+
+    def resetLine(self):
+        cmds.deleteUI('spJobReLine', ctl=1)
+        cmds.deleteUI(self.gCommandLine.rsplit('|', 1)[0])
+        mel.eval('source "initCommandLine.mel"')
+
+
 class WeightCheckTool():
 
     def ToolUi(self):
@@ -338,10 +398,10 @@ class WeightCheckTool():
         cmds.menuItem('SNmenuItem', l='View Object Name', cb=0, c=lambda *args: self.Load())
         cmds.formLayout('MainformLayout')
         cmds.paneLayout('ListLayout', cn='vertical3', ps=(1, 1, 1))
-        cmds.textScrollList('vtxList', ams=1, sc=lambda *args: cmds.textScrollList('weightList', e=1, da=1, sii=lambda *args:
-                                cmds.textScrollList('vtxList', q=1, sii=1)))
-        cmds.textScrollList('weightList', ams=1, sc=lambda *args: cmds.textScrollList('vtxList', e=1, da=1, sii=lambda *args:
-                                cmds.textScrollList('weightList', q=1, sii=1)))
+        cmds.textScrollList('vtxList', ams=1, sc=lambda *args:
+                                cmds.textScrollList('weightList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
+        cmds.textScrollList('weightList', ams=1, sc=lambda *args:
+                                cmds.textScrollList('vtxList', e=1, da=1, sii=cmds.textScrollList('weightList', q=1, sii=1)))
         cmds.setParent('..')
         cmds.columnLayout('cLayout', cat=('right', 5), cw=100)
         cmds.text(l='', h=3)
@@ -399,7 +459,7 @@ class WeightCheckTool():
                 self.Number.append(i)
             for w, j in zip(valueList, transList):
                 Value = str(w).rstrip('0').rstrip('.')
-                tvStr += '%s ~ %s @' % (j, Value)
+                tvStr += '%s ~ %s @ ' % (j, Value)
             if not cmds.menuItem('SNmenuItem', q=1, cb=1):
                 i = i.split('.')[1]
             cmds.textScrollList('vtxList', e=1, a=i)
@@ -424,21 +484,23 @@ class WeightCheckTool():
             for j in transList:
                 cmds.setAttr(j + '.liw', 0)
             for j in transList:
-                #Value = mel.eval('countNew(%s, %s)'
-                #            %(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
+                #mel.eval('global proc float _rounding(float $f, int $n){float $N = pow(10, ($n));float $a = $f%(1/$N)*$N;float $B;     \
+                #            if($a>0.5)$B = ceil($f*$N)/$N;else$B = floor($f*$N/$N);return $B;}')     #精度问题?
+                #Value = mel.eval('_rounding(%s, %s)' %(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
                 decimal.getcontext().rounding = 'ROUND_HALF_UP'
                 Value = float(str(decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j))).
                             quantize(decimal.Decimal(tempCode %1))).rstrip('0').rstrip('.'))
-                if Value == 0:
-                    continue
-                #print (clusterName, i, [j, Value])
-                exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' % (clusterName, i, [j, Value]))
+                #if Value == 0:
+                #    continue
+                cmds.skinPercent(clusterName, i, tv=(j, Value))
                 cmds.setAttr(j + '.liw', 1)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
     
     def RemoveMin(self):
+        if not self.Number:
+            return
         obj = cmds.ls(self.Number[0], o=1)[0]
         clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
         if not clusterName:
@@ -455,10 +517,10 @@ class WeightCheckTool():
             for j in transList:
                 jntLock.append(cmds.getAttr(j + '.liw'))
                 cmds.setAttr(j + '.liw', 0)
-            exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' % (clusterName, v, [tvList[0][0], 0]))
+            cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0))
             for j, l in zip(transList, jntLock):
                 cmds.setAttr(j + '.liw', l)
         self.Load()
 
 #WeightTool().ToolUi()
-WeightCheckTool().ToolUi()
+#WeightCheckTool().ToolUi()

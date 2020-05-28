@@ -72,25 +72,25 @@ class WeightTool():
         cmds.button(w=43, h=26, l='Grow', c=lambda *args: cmds.polySelectConstraint(pp=1))
         cmds.setParent('..')
         cmds.rowLayout(nc=7, cw=[(1, 30), (2, 30), (3, 30), (4, 30), (5, 30), (6, 30), (7, 30)])
-        cmds.button(w=30, h=26, l='0', c='Wait')
-        cmds.button(w=30, h=26, l='.1', c='Wait')
-        cmds.button(w=30, h=26, l='.25', c='Wait')
-        cmds.button(w=30, h=26, l='.5', c='Wait')
-        cmds.button(w=30, h=26, l='.75', c='Wait')
-        cmds.button(w=30, h=26, l='.9', c='Wait')
-        cmds.button(w=30, h=26, l='1', c='Wait')
+        cmds.button(w=30, h=26, l='0', c=lambda *args: self.editVtxWeight(0))
+        cmds.button(w=30, h=26, l='.1', c=lambda *args: self.editVtxWeight(.1))
+        cmds.button(w=30, h=26, l='.25', c=lambda *args: self.editVtxWeight(.25))
+        cmds.button(w=30, h=26, l='.5', c=lambda *args: self.editVtxWeight(.5))
+        cmds.button(w=30, h=26, l='.75', c=lambda *args: self.editVtxWeight(.75))
+        cmds.button(w=30, h=26, l='.9', c=lambda *args: self.editVtxWeight(.9))
+        cmds.button(w=30, h=26, l='1', c=lambda *args: self.editVtxWeight(1))
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='A/S Weight', w=80)
-        cmds.floatField('A/S Float', v=0.05, h=26, w=50, pre=3, min=0, max=1)
-        cmds.button(w=38, h=26, l='+', c='Wait')
-        cmds.button(w=38, h=26, l='-', c='Wait')
+        cmds.floatField('ASFloat', v=0.05, h=26, w=50, pre=3, min=0, max=1)
+        cmds.button(w=38, h=26, l='+', c=lambda *args: self.editVtxWeight('+'))
+        cmds.button(w=38, h=26, l='-', c=lambda *args: self.editVtxWeight('-'))
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='M/D Weight', w=80)
-        cmds.floatField('M/D Float', v=0.95, h=26, w=50, pre=3, min=0, max=1)
-        cmds.button(w=38, h=26, l='*', c='Wait')
-        cmds.button(w=38, h=26, l='/', c='Wait')
+        cmds.floatField('MDFloat', v=0.95, h=26, w=50, pre=3, min=0, max=1)
+        cmds.button(w=38, h=26, l='*', c=lambda *args: self.editVtxWeight('*'))
+        cmds.button(w=38, h=26, l='/', c=lambda *args: self.editVtxWeight('/'))
         cmds.setParent('..')
 
         cmds.showWindow(self.ToolUi)
@@ -99,8 +99,8 @@ class WeightTool():
         if cmds.text('spJobVtxParent', q=1, ex=1):
             return
         cmds.text('spJobVtxParent', p='FiristcL', vis=0)
-        cmds.scriptJob(e=['Undo', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
-        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobVtxParent')
+        cmds.scriptJob(e=['Undo', 'WeightTool().refreshJointList(None)'], p='spJobVtxParent')
+        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshJointList(None)'], p='spJobVtxParent')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
         cmds.scriptJob(uid=['WeightTool', 'WeightTool().refreshBoxChange(9)'])
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
@@ -137,12 +137,12 @@ class WeightTool():
             jointList = cmds.skinCluster(selobj, q=1, inf=1)
         oldJointList = cmds.treeView('JointTV', q=1, ch='')
         jointList.sort()
-        if oldJointList:
-            oldJointList.sort()
-            if oldJointList == jointList and not FilterChange:
-                return
-            else:
-                cmds.treeView('JointTV', e=1, ra=1)
+        #if oldJointList:
+        #    oldJointList.sort()
+        #    if oldJointList == jointList and not FilterChange:
+        #        return
+        #    else:
+        cmds.treeView('JointTV', e=1, ra=1)
         for i in jointList:
             if cmds.menuItem('HImeunItem', q=1, rb=1):
                 self.addHItoList(i, jointList)
@@ -156,7 +156,7 @@ class WeightTool():
                 cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
             else:
                 cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
-            Value = '.%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
+            Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
             if not float(Value):
                 continue
             cmds.treeView('JointTV', e=1, dl=(j, '%s   |   %s' % (j, Value)))
@@ -211,27 +211,36 @@ class WeightTool():
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
         if not clusterName:
             return
-        
         if mode == '+' or mode == '-':
             for v in selVtx:
+                tvList = []
                 for j in cmds.treeView('JointTV', q=1, si=1):
                     Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
-                    Value = Value + cmds.floatField('A/S Float', q=1, v=1)   \
-                        if mode == '+' else Value - cmds.floatField('A/S Float', q=1, v=1)
-                    cmds.skinPercent(clusterName, v, tv=(j, Value))
+                    Value = Value + cmds.floatField('ASFloat', q=1, v=1)   \
+                        if mode == '+' else Value - cmds.floatField('ASFloat', q=1, v=1)
+                    tvList.append((j, Value))
+                cmds.skinPercent(clusterName, v, tv=tvList)
         elif mode == '*' or mode == '/':
             for v in selVtx:
+                tvList = []
                 for j in cmds.treeView('JointTV', q=1, si=1):
                     Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
-                    Value = Value * cmds.floatField('A/S Float', q=1, v=1)   \
-                        if mode == '*' else Value / cmds.floatField('A/S Float', q=1, v=1)
-                    cmds.skinPercent(clusterName, v, tv=(j, Value))
+                    Value = Value * cmds.floatField('MDFloat', q=1, v=1)   \
+                        if mode == '*' else Value / cmds.floatField('MDFloat', q=1, v=1)
+                    tvList.append((j, Value))
+                cmds.skinPercent(clusterName, v, tv=tvList)
         else:
             for v in selVtx:
+                tvList = []
                 for j in cmds.treeView('JointTV', q=1, si=1):
                     Value = float(mode)
-                    cmds.skinPercent(clusterName, v, tv=(j, Value))
-    
+                    tvList.append((j, Value))
+                cmds.skinPercent(clusterName, v, tv=tvList)
+        siItem = cmds.treeView('JointTV', q=1, si=1)
+        self.refreshJointList(None)
+        for i in siItem:
+            cmds.treeView('JointTV', e=1, si=(i, 1))
+
     # # # # # # # # # #
     def copyVtxWeight(self):
         selVtx = cmds.filterExpand(cmds.ls(sl=1)[0], sm=[28, 31, 36, 40, 46])
@@ -522,5 +531,5 @@ class WeightCheckTool():
                 cmds.setAttr(j + '.liw', l)
         self.Load()
 
-#WeightTool().ToolUi()
+WeightTool().ToolUi()
 #WeightCheckTool().ToolUi()

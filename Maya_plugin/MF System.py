@@ -26,8 +26,6 @@ class MFcreate():
         cmds.button('R-90Button', l='Rotate-90', c=lambda *args: self.setCtrl('-90'))
         cmds.showWindow(MFUi)
 
-        decimal.getcontext().rounding = 'ROUND_HALF_UP'
-        self.uvFloat = []
         self.JointName = ['Center_Joint', 'YuAxis_Joint', 'YdAxis_Joint', 'XlAxis_Joint', 'XrAxis_Joint', 'ZfAxis_Joint', 'ZbAxis_Joint',
                             'L2_1_Joint',               'L2_3_Joint',                             'L2_7_Joint',               'L2_9_Joint',
                             'L1_1_Joint', 'L1_2_Joint', 'L1_3_Joint', 'L1_4_Joint', 'L1_6_Joint', 'L1_7_Joint', 'L1_8_Joint', 'L1_9_Joint',
@@ -78,7 +76,7 @@ class MFcreate():
                     for l in Attr:
                         cmds.setAttr('%s_Ctrl%s' % (i, l), l=1)
                     cmds.setAttr('%s_Ctrl.r%s' % (i, i[0].lower()), l=0)
-            
+            '''
             getUVface = Om.MSelectionList()
             getUVface.add('YuAxis_Surface')
             faceDagPath = Om.MDagPath()
@@ -89,15 +87,13 @@ class MFcreate():
             paramv = scriputil2.asDoublePtr()
             _temp_getUVJoint = self.JointName[19:]
             _temp_getUVJoint.append('YuAxis_Joint')
-            
             for i in _temp_getUVJoint:
                 jointpos = cmds.xform(i, q=1, ws=1, t=1)
                 mPoint = Om.MPoint(jointpos[0], jointpos[1], jointpos[2])
                 surfacea = Om.MFnNurbsSurface(faceDagPath).getParamAtPoint(mPoint, paramu, paramv, Om.MSpace.kWorld)
                 self.uvFloat.append([float(decimal.Decimal(str(scriputil.getDouble(paramu))).quantize(decimal.Decimal('%.3f' % 1))),
                                         float(decimal.Decimal(str(scriputil.getDouble(paramv))).quantize(decimal.Decimal('%.3f' % 1)))])
-            print(self.uvFloat)
-            cmds.setAttr('master_MF.uvValue', 'self.uvFloat', typ='string')
+            '''
             cmds.select(cl=1)
             cmds.parent(self.JointName, cmds.joint(n='RootJoint'))
             cmds.parent('RootJoint', 'master_MF')
@@ -107,7 +103,6 @@ class MFcreate():
         else:
             masterC = cmds.circle(nr=(0, 1, 0), r=4, ch=0, n='master_MF')
             cmds.addAttr('|master_MF', ln="CtrlJoint", dt="string")
-            cmds.addAttr('|master_MF', ln="uvValue", dt="string")
             cmds.setAttr(cmds.listRelatives(masterC, c=1, s=1)[0] + '.overrideEnabled', 1)
             cmds.setAttr(cmds.listRelatives(masterC, c=1, s=1)[0] + '.overrideColor', 17)
             cmds.setAttr(cmds.spaceLocator(n='MidJoint_loc')[0] + '.ty', 1)
@@ -122,31 +117,22 @@ class MFcreate():
         ctrl = cmds.ls(sl=1)[0]
         if not re.match('\S*_Joint_Ctrl', ctrl):
             return
-        self.Break()
+        #self.Break()
         midName = ctrl.split('_')[0]
-        cmds.createNode('pointOnSurfaceInfo', n='_temp_POSFI')
-        cmds.connectAttr(midName + '_SurfaceShape.ws', '_temp_POSFI.is', f=1)
-        uvPosition = []
-        for i in cmds.get:
-            cmds.setAttr('_temp_POSFI.u', i[0])
-            cmds.setAttr('_temp_POSFI.v', i[1])
-            _tempP = [float(decimal.Decimal(str(p)).quantize(decimal.Decimal('%.3f' % 1))) for p in cmds.getAttr('_temp_POSFI.p')[0]]
-            uvPosition.append(_tempP)
-        cmds.delete('_temp_POSFI')
+        decimal.getcontext().rounding = 'ROUND_HALF_UP'
+        getUVface = Om.MSelectionList()
+        getUVface.add(midName + '_Surface')
+        faceDagPath = Om.MDagPath()
+        getUVface.getDagPath(0, faceDagPath)
         ctrlJoint = []
-        for i in uvPosition:
-            for j in self.JointName:
-                _temp = [float(decimal.Decimal(str(p)).quantize(decimal.Decimal('%.3f' % 1))) for p in cmds.xform(j, q=1, ws=1, t=1)]
-                if i == _tempP:
-                    print(i, '\n', _temp, '\n', j)
-                    ctrlJoint.append(j)
-                    break
-        mode = [j for j in ctrlJoint if 'Center' in j]
-        if mode:
-            for j in ctrlJoint:
-                if j == 'Center_Joint':
-                    continue
-                cmds.parent(j, 'Center_Joint')
+        for i in self.JointName:
+            jointpos = cmds.xform(i, q=1, ws=1, t=1)
+            distance = Om.MFnNurbsSurface(faceDagPath).distanceToPoint(Om.MPoint(jointpos[0], jointpos[1], jointpos[2]), Om.MSpace.kWorld)
+            if float(decimal.Decimal(str(distance)).quantize(decimal.Decimal('%.3f' % 1))) == 0:
+                ctrlJoint.append(i)
+        if 'Center_Joint' in ctrlJoint:
+            ctrlJoint.remove('Center_Joint')
+            cmds.parent(ctrlJoint, 'Center_Joint')
             cmds.orientConstraint(ctrl, 'Center_Joint', mo=1, w=1, n='_temp_CtrlConstraint')
             cmds.setAttr('master_MF.CtrlJoint', 'Center_Joint', typ='string')
         else:
@@ -155,10 +141,9 @@ class MFcreate():
                     cmds.orientConstraint(ctrl, j, mo=1, w=1, n='_temp_CtrlConstraint')
                     cmds.setAttr('master_MF.CtrlJoint', j, typ='string')
                     _tempMidJoint = j
-            for j in ctrlJoint:
-                if j == _tempMidJoint:
-                    continue
-                cmds.parent(j, _tempMidJoint)
+                    ctrlJoint.remove(j)
+                    break
+            cmds.parent(ctrlJoint, _tempMidJoint)
         if Rotate:
             rotateAxis = ['.rx', '.ry', '.rz']
             for i in rotateAxis:

@@ -10,7 +10,7 @@ class MFcreate():
         MFUi = 'MFxxx'
         if cmds.window(MFUi, q=1, ex=1):
                 cmds.deleteUI(MFUi)
-        cmds.window(MFUi, t=MFUi, wh=(120, 100), tlb=1)
+        cmds.window(MFUi, t=MFUi + 'v1.0', wh=(120, 100), tlb=1)
         cmds.columnLayout('MainLayout', cat=('both', 2), rs=2, cw=120)
         cmds.button('CreateMFButton', l='Create_MF', c=lambda *args: self.createMF())
         if cmds.ls('master_MF'):
@@ -61,7 +61,7 @@ class MFcreate():
                 if a == 9:
                     for v, n in zip(_v, [['CenterY_Joint', '.ry'], ['CenterX_Joint', '.rx'], ['CenterZ_Joint', '.rz']]):
                         cmds.delete(cmds.parentConstraint(i, cmds.parent(
-                                        cmds.group(cmds.circle(nr=v, r=3, n=n[0] + '_Ctrl'), n=n[0] + '_Ctrl_grp'), 'master_MF'), w=1),
+                                        cmds.group(cmds.circle(nr=v, r=3+distance/.5, n=n[0] + '_Ctrl'), n=n[0] + '_Ctrl_grp'), 'master_MF'), w=1),
                                     cmds.parentConstraint(i, cmds.parent(
                                         cmds.nurbsPlane(ax=v, w=3.5*distance, ch=0, n=n[0].rsplit('_')[0] + '_Surface'), 'master_MF'), w=1))
                         for l in Attr:
@@ -70,7 +70,7 @@ class MFcreate():
                             cmds.setAttr('%s_Ctrl%s' % (n[0], l), l=1)
                 else:
                     cmds.delete(cmds.parentConstraint(i, cmds.parent(
-                                    cmds.group(cmds.circle(nr=_v[a], r=3, n=i + '_Ctrl'), n=i + '_Ctrl_grp'), 'master_MF'), w=1),
+                                    cmds.group(cmds.circle(nr=_v[a], r=3+distance/.5, n=i + '_Ctrl'), n=i + '_Ctrl_grp'), 'master_MF'), w=1),
                                 cmds.parentConstraint(i, cmds.parent(
                                     cmds.nurbsPlane(ax=_v[a], w=3.5*distance, ch=0, n=i.rsplit('_')[0] + '_Surface'), 'master_MF'), w=1))
                     for l in Attr:
@@ -117,7 +117,7 @@ class MFcreate():
         ctrl = cmds.ls(sl=1)[0]
         if not re.match('\S*_Joint_Ctrl', ctrl):
             return
-        #self.Break()
+        self.Break()
         midName = ctrl.split('_')[0]
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
         getUVface = Om.MSelectionList()

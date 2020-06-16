@@ -2,7 +2,7 @@
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
-except ImportError:   #有兼容性问题
+except ImportError:   #有兼容性问题 currentTextChanged.connect
     from PySide import QtGui as QtWidgets
     from PySide import QtCore
     import shiboken as shiboken2
@@ -89,16 +89,15 @@ _pTCIKVerision = 'v2.2.2'
 
 class Ui_ApplePieA(object):
 
-    def setupUi(self, ApplePieA):
+    def setupUi(self):
         try:
             pTCIKui.close()
-            # QtGui.QWidgetAction.deleteWidget("ApplePieA")
         except:
             pass
-        ApplePieA.setObjectName("ApplePieA")
-        #ApplePieA.resize(260, 500)
-        ApplePieA.setFixedSize(260, 500)
-        self.tabWidget = QtWidgets.QTabWidget(ApplePieA)
+        self.setObjectName("ApplePieA")
+        #self.resize(260, 500)
+        self.setFixedSize(260, 500)
+        self.tabWidget = QtWidgets.QTabWidget(self)
         self.tabWidget.setGeometry(QtCore.QRect(0, 0, 260, 480))
         self.tabWidget.setObjectName("tabWidget")
         self.child1 = QtWidgets.QWidget()
@@ -278,19 +277,16 @@ class Ui_ApplePieA(object):
         self.verticalLayoutB.addWidget(self.ChangeColor)
         self.tabWidget.addTab(self.child2, "")
 
-        ui_variable['Statusbar'] = self.Statusbar = QtWidgets.QStatusBar(ApplePieA)
+        ui_variable['Statusbar'] = self.Statusbar = QtWidgets.QStatusBar(self)
         self.Statusbar.setStyleSheet("color:yellow")
         self.Statusbar.setGeometry(QtCore.QRect(0, 475, 260, 28))
         self.Statusbar.setObjectName("Statusbar")
 
-        self.retranslateUi(ApplePieA)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(ApplePieA)
+        QtCore.QMetaObject.connectSlotsByName(self)
         ApplePieA_Dynamic().Ready_GetNode('HairSystem')
         ApplePieA_Dynamic().Ready_GetNode('Nucleus')
 
-    def retranslateUi(self, ApplePieA):
-        ApplePieA.setWindowTitle(u"ApplePieA")
         self.RebuildIntText.setText(u"重建段数")
         self.RebuildInt.setPlaceholderText(u"重建段数")
         self.CurveNameText.setText(u"曲线名")
@@ -334,7 +330,7 @@ class Ui_ApplePieA(object):
         self.ChangeColor.clicked.connect(lambda *args: ApplePieA_pTCIK().ChangeCurveColor())
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.child2), u"曲线DLC")
 
-    def eventFilter(self, object, event):
+    def eventFilter(self, object, event):     #鼠标移动就会触发...淦
         if object == self.SelectHairSystem:
             if event.type() == QtCore.QEvent.MouseButtonPress:
                 ApplePieA_Dynamic().Ready_GetNode('HairSystem')
@@ -366,10 +362,9 @@ class Showwindow(Ui_ApplePieA, QtWidgets.QWidget):
 
     def __init__(self):
         super(Showwindow, self).__init__()
-        self.setupUi(self)
+        self.setupUi()
         self.setParent(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
-        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
         self.setWindowTitle('pTCIK by_Y')
         ui_variable['Statusbar'].showMessage(_pTCIKVerision)
         self.show()
@@ -420,7 +415,7 @@ class ApplePieA_pTCIK(object):
             for c in range(len(cl)):
                 temp_node = cmds.createNode('nearestPointOnCurve', n='__temp_node')
                 cmds.connectAttr('__temp_cur.worldSpace[0]', temp_node + '.inputCurve')
-                if c == 0:
+                if not c:
                     cmds.connectAttr('__temp_cluHandleShape.origin', temp_node + '.inPosition')
                 else:
                     cmds.connectAttr('__temp_clu%sHandleShape.origin', temp_node + '.inPosition' %str(c))
@@ -428,7 +423,7 @@ class ApplePieA_pTCIK(object):
             node_p_list = sorted(node_p.items(), key=lambda item: item[1]) # 字典排序
             tcws = [[0 for y in range(3)] for x in range(len(selv))]
             for v in range(len(selv)):
-                c = '' if node_p_list[v][0] == 0 else node_p_list[v][0]
+                c = '' if not node_p_list[v][0] else node_p_list[v][0]
                 tcws[v][0] = cmds.getAttr('__temp_clu%sHandleShape.originX' %str(c))
                 tcws[v][1] = cmds.getAttr('__temp_clu%sHandleShape.originY' %str(c))
                 tcws[v][2] = cmds.getAttr('__temp_clu%sHandleShape.originZ' %str(c))

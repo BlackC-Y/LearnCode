@@ -31,6 +31,8 @@ class WeightTool():
         cmds.rowLayout(nc=6, adj=2)
         cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20,
                                 onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
+        cmds.popupMenu()
+        cmds.menuItem('OFFmeunItem', l='OFF', cb=0, c=lambda *args: self.refreshJointList(9))
         cmds.textField('searchText', h=22, cc=lambda *args: self.refreshJointList(cmds.textField('searchText', q=1, tx=1)))
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
@@ -42,11 +44,11 @@ class WeightTool():
         #cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
         #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) - 20))
         #invertSelection.png
-        cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=lambda *args: self.reSelect())
+        cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=self.reSelect)
         cmds.setParent('..')
         cmds.setParent('..')
         cmds.formLayout('JointTVLayout')
-        cmds.treeView('JointTV', nb=1, h=100, scc='pass', pc=(1, self.lock_unLock))
+        cmds.treeView('JointTV', nb=1, h=100, scc=self._weightfloat, pc=(1, self.lock_unLock))
         cmds.popupMenu()
         #cmds.menuItem(l='Lock All')
         #cmds.menuItem(l='Unlock All')
@@ -55,7 +57,8 @@ class WeightTool():
         cmds.setParent('..')
         cmds.columnLayout('vtxToolcL', cat=('both', 2), rs=2, cw=225)
         cmds.rowLayout(nc=4, cw4=(50, 50, 50, 50))
-        cmds.floatField(v=.05, w=52, h=26, pre=4, min=0, max=1, ec='wait')
+        cmds.floatField('weighrfloat', w=52, h=26, pre=4, min=0, max=1, 
+                            ec=lambda *args: self.editVtxWeight(cmds.floatField('weighrfloat', q=1, v=1)))
         cmds.button(w=50, h=26, l='Copy', c=lambda *args: self.copyVtxWeight())
         cmds.button(w=50, h=26, l='Paste', c=lambda *args: self.pasteVtxWeight())
         cmds.popupMenu()
@@ -123,7 +126,7 @@ class WeightTool():
                 % (edgeCmd, faceCmd, objModeCmd))
         
     def refreshBoxChange(self, force):
-        if force == 9 or not cmds.selectType(q=1, ocm=1, pv=1):
+        if force == 9 or not cmds.selectType(q=1, ocm=1, pv=1) or cmds.menuItem('OFFmeunItem', q=1, cb=1): 
             if cmds.text('spJobVtxParent', q=1, ex=1):
                 cmds.deleteUI('spJobVtxParent', ctl=1)
             mel.eval('source "dagMenuProc.mel"')
@@ -221,7 +224,7 @@ class WeightTool():
         if not selVtx:
             return
         selobj = cmds.ls(sl=1, o=1)[0]
-        clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
         if not clusterName:
             return
         sljntList = cmds.treeView('JointTV', q=1, si=1)
@@ -262,6 +265,15 @@ class WeightTool():
             cmds.skinCluster(self.tempcluster, e=1, siv=i)
             vtxList.append(cmds.filterExpand(cmds.ls(sl=1, fl=1), sm=[28, 31, 36, 40, 46]))
         cmds.select(vtxList, r=1)
+
+    def _weightfloat(self):
+        treesl = cmds.treeView('JointTV', q=1, si=1)
+        if not treesl:
+            return
+        sel = cmds.ls(sl=1, fl=1)
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+        cmds.floatField('weighrfloat', e=1, v=float('%.4f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=treesl[0])))
 
     # # # # # # # # # #
     def copyVtxWeight(self):

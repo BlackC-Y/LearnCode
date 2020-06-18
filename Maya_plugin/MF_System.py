@@ -61,7 +61,7 @@ class MFcreate():
                 if a == 9:
                     for v, n in zip(_v, [['CenterY_Joint', '.ry'], ['CenterX_Joint', '.rx'], ['CenterZ_Joint', '.rz']]):
                         cmds.delete(cmds.parentConstraint(i, cmds.parent(
-                                        cmds.group(cmds.circle(nr=v, r=3+distance/.5, n=n[0] + '_Ctrl'), n=n[0] + '_Ctrl_grp'), 'master_MF'), w=1),
+                                        cmds.group(cmds.circle(nr=v, r=2*distance+1, n=n[0] + '_Ctrl'), n=n[0] + '_Ctrl_grp'), 'master_MF'), w=1),
                                     cmds.parentConstraint(i, cmds.parent(
                                         cmds.nurbsPlane(ax=v, w=3.5*distance, ch=0, n=n[0].rsplit('_')[0] + '_Surface'), 'master_MF'), w=1))
                         for l in Attr:
@@ -70,7 +70,7 @@ class MFcreate():
                             cmds.setAttr('%s_Ctrl%s' % (n[0], l), l=1)
                 else:
                     cmds.delete(cmds.parentConstraint(i, cmds.parent(
-                                    cmds.group(cmds.circle(nr=_v[a], r=3+distance/.5, n=i + '_Ctrl'), n=i + '_Ctrl_grp'), 'master_MF'), w=1),
+                                    cmds.group(cmds.circle(nr=_v[a], r=2*distance+1, n=i + '_Ctrl'), n=i + '_Ctrl_grp'), 'master_MF'), w=1),
                                 cmds.parentConstraint(i, cmds.parent(
                                     cmds.nurbsPlane(ax=_v[a], w=3.5*distance, ch=0, n=i.rsplit('_')[0] + '_Surface'), 'master_MF'), w=1))
                     for l in Attr:

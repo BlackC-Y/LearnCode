@@ -1,6 +1,6 @@
 from maya import cmds
 import maya.OpenMaya as Om
-import decimal, re
+import decimal, re, math
 
 
 class MFcreate():
@@ -13,17 +13,19 @@ class MFcreate():
         cmds.window(MFUi, t=MFUi + 'v1.0', wh=(120, 100), tlb=1)
         cmds.columnLayout('MainLayout', cat=('both', 2), rs=2, cw=120)
         cmds.button('CreateMFButton', l='Create_MF', c=lambda *args: self.createMF())
+        cmds.popupMenu()
+        cmds.menuItem(l='Resume Joint Pos', c=lambda *args: self.reJointPose())
         if cmds.ls('master_MF'):
             cmds.button('CreateMFButton', e=1, bgc=[0, 1, 0])
             if not cmds.ls('MidJoint_loc'):
                 cmds.button('CreateMFButton', e=1, nbg=0)
-                cmds.button('CreateMFButton', e=1, en=0)
+                cmds.button('CreateMFButton', e=1, ann='Finish')
         cmds.button('SetVtrlButton', l='SetCtrl', c=lambda *args: self.setCtrl(None), vis=freeRotate)
         cmds.popupMenu()
         cmds.menuItem(l='Break', c=lambda *args: self.Break())
         cmds.rowLayout(nc=2, cw2=(55, 55))
-        cmds.button('R90Button', l='Rotate90', c=lambda *args: self.setCtrl('90'))
-        cmds.button('R-90Button', l='Rotate-90', c=lambda *args: self.setCtrl('-90'))
+        cmds.button('R90Button', l='Rotate90', c=lambda *args: self.setCtrl(90))
+        cmds.button('R-90Button', l='Rotate-90', c=lambda *args: self.setCtrl(-90))
         cmds.showWindow(MFUi)
 
         self.JointName = ['Center_Joint', 'YuAxis_Joint', 'YdAxis_Joint', 'XlAxis_Joint', 'XrAxis_Joint', 'ZfAxis_Joint', 'ZbAxis_Joint',
@@ -32,6 +34,8 @@ class MFcreate():
                             'L3_1_Joint', 'L3_2_Joint', 'L3_3_Joint', 'L3_4_Joint', 'L3_6_Joint', 'L3_7_Joint', 'L3_8_Joint', 'L3_9_Joint']
 
     def createMF(self):
+        if cmds.button('CreateMFButton', q=1, ann=1) == 'Finish':
+            return
         if cmds.ls('master_MF|MidJoint_loc'):
             for i in ['MidJoint_loc', 'UpJoint_loc']:
                 jointN = self.JointName[0] if i == 'MidJoint_loc' else self.JointName[1]
@@ -98,11 +102,17 @@ class MFcreate():
             cmds.parent(self.JointName, cmds.joint(n='RootJoint'))
             cmds.parent('RootJoint', 'master_MF')
             cmds.setAttr(cmds.group(cmds.ls("master_MF|*_Surface"), n='MF_Surface_grp') + '.visibility', 0)
+            posInfo = ''
+            for i in self.JointName:
+                xpos = cmds.xform(i, q=1, t=1, os=1)
+                posInfo += '%s * %s * %s * %s | ' % (i, xpos[0], xpos[1], xpos[2])
+            cmds.setAttr('master_MF.JointPos', posInfo, typ='string')
+            cmds.button('CreateMFButton', e=1, ann='Finish')
             cmds.button('CreateMFButton', e=1, nbg=0)
-            cmds.button('CreateMFButton', e=1, en=0)
         else:
             masterC = cmds.circle(nr=(0, 1, 0), r=4, ch=0, n='master_MF')
             cmds.addAttr('|master_MF', ln="CtrlJoint", dt="string")
+            cmds.addAttr('|master_MF', ln="JointPos", dt="string")
             cmds.setAttr(cmds.listRelatives(masterC, c=1, s=1)[0] + '.overrideEnabled', 1)
             cmds.setAttr(cmds.listRelatives(masterC, c=1, s=1)[0] + '.overrideColor', 17)
             cmds.setAttr(cmds.spaceLocator(n='MidJoint_loc')[0] + '.ty', 1)
@@ -113,11 +123,44 @@ class MFcreate():
             cmds.parent('UpJoint_loc', 'MidJoint_loc', masterC)
             cmds.button('CreateMFButton', e=1, bgc=[0, 1, 0])
 
+    def reJointPose(self):
+        for i in cmds.getAttr('|master_MF.JointPos').split('|')[:-1]:
+            _tempJP = i.split(' * ')
+            cmds.setAttr(_tempJP[0] + '.t', float(_tempJP[1]), float(_tempJP[2]), float(_tempJP[3]))
+
+    def multMatrix(self, inM, axis, angle):
+        tM = [[0 for y in range(3)] for x in range(3)]
+        angle *= math.pi/180
+        decimal.getcontext().rounding = 'ROUND_HALF_UP'
+        cosa = float(decimal.Decimal(str(math.cos(angle))).quantize(decimal.Decimal('%.8f' % 1)))
+        sina = float(decimal.Decimal(str(math.sin(angle))).quantize(decimal.Decimal('%.8f' % 1)))
+        if axis == '.rx':
+            tM[0][0] = 1
+            tM[1][1] = tM[2][2] = cosa
+            tM[1][2] = -sina
+            tM[2][1] = sina
+        elif axis == '.ry':
+            tM[0][0] = tM[2][2] = cosa
+            tM[0][2] = -sina
+            tM[1][1] = 1
+            tM[2][0] = sina
+        elif axis == '.rz':
+            tM[0][0] = tM[1][1] = cosa
+            tM[0][1] = -sina
+            tM[1][0] = sina
+            tM[2][2] = 1
+        multFinish = \
+            [inM[0]*tM[0][0]+inM[1]*tM[1][0]+inM[2]*tM[2][0], inM[0]*tM[0][1]+inM[1]*tM[1][1]+inM[2]*tM[2][1], inM[0]*tM[0][2]+inM[1]*tM[1][2]+inM[2]*tM[2][2], inM[3],
+             inM[4]*tM[0][0]+inM[5]*tM[1][0]+inM[6]*tM[2][0], inM[4]*tM[0][1]+inM[5]*tM[1][1]+inM[6]*tM[2][1], inM[4]*tM[0][2]+inM[5]*tM[1][2]+inM[6]*tM[2][2], inM[7],
+             inM[8]*tM[0][0]+inM[9]*tM[1][0]+inM[10]*tM[2][0], inM[8]*tM[0][1]+inM[9]*tM[1][1]+inM[10]*tM[2][1], inM[8]*tM[0][2]+inM[9]*tM[1][2]+inM[10]*tM[2][2], inM[11],
+             inM[12]*tM[0][0]+inM[13]*tM[1][0]+inM[14]*tM[2][0], inM[12]*tM[0][1]+inM[13]*tM[1][1]+inM[14]*tM[2][1], inM[12]*tM[0][2]+inM[13]*tM[1][2]+inM[14]*tM[2][2], inM[15]]
+        return multFinish
+        #multMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 2, 2, 1], 'y', 90)
+
     def setCtrl(self, Rotate):
         ctrl = cmds.ls(sl=1)[0]
         if not re.match('\S*_Joint_Ctrl', ctrl):
             return
-        self.Break()
         midName = ctrl.split('_')[0]
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
         getUVface = Om.MSelectionList()
@@ -130,31 +173,41 @@ class MFcreate():
             distance = Om.MFnNurbsSurface(faceDagPath).distanceToPoint(Om.MPoint(jointpos[0], jointpos[1], jointpos[2]), Om.MSpace.kWorld)
             if float(decimal.Decimal(str(distance)).quantize(decimal.Decimal('%.3f' % 1))) == 0:
                 ctrlJoint.append(i)
-        if 'Center_Joint' in ctrlJoint:
-            ctrlJoint.remove('Center_Joint')
-            cmds.parent(ctrlJoint, 'Center_Joint')
-            cmds.orientConstraint(ctrl, 'Center_Joint', mo=1, w=1, n='_temp_CtrlConstraint')
-            cmds.setAttr('master_MF.CtrlJoint', 'Center_Joint', typ='string')
-        else:
-            for j in ctrlJoint:
-                if not 'L' in j:
-                    cmds.orientConstraint(ctrl, j, mo=1, w=1, n='_temp_CtrlConstraint')
-                    cmds.setAttr('master_MF.CtrlJoint', j, typ='string')
-                    _tempMidJoint = j
-                    ctrlJoint.remove(j)
-                    break
-            cmds.parent(ctrlJoint, _tempMidJoint)
         if Rotate:
             rotateAxis = ['.rx', '.ry', '.rz']
             for i in rotateAxis:
                 if not cmds.getAttr(ctrl + i, l=1):
-                    if i == '.rx':
-                        cmds.rotate(int(Rotate), 0, 0, ctrl, r=1, os=1, fo=1)
-                    elif i == '.ry':
-                        cmds.rotate(0, int(Rotate), 0, ctrl, r=1, os=1, fo=1)
-                    elif i == '.rz':
-                        cmds.rotate(0, 0, int(Rotate), ctrl, r=1, os=1, fo=1)
+                    _tempAxis = i
+            twoAngle = [45, 90] if Rotate == 90 else [-45, -90]
+            for a in twoAngle:
+                for j in ctrlJoint:
+                    if j in self.JointName:
+                        _tempMidJoint = j
+                        continue
+                    cmds.xform(j, e=1, m=self.multMatrix(cmds.xform(j, q=1, m=1), _tempAxis, a))
+                if _tempAxis == '.rx':
+                    cmds.rotate(a, 0, 0, ctrl, _tempMidJoint, r=1, os=1, fo=1)
+                elif _tempAxis == '.ry':
+                    cmds.rotate(0, a, 0, ctrl, _tempMidJoint, r=1, os=1, fo=1)
+                elif _tempAxis == '.rz':
+                    cmds.rotate(0, 0, a, ctrl, _tempMidJoint, r=1, os=1, fo=1)
+                #   key
+        else:
             self.Break()
+            if 'Center_Joint' in ctrlJoint:
+                ctrlJoint.remove('Center_Joint')
+                cmds.parent(ctrlJoint, 'Center_Joint')
+                cmds.orientConstraint(ctrl, 'Center_Joint', mo=1, w=1, n='_temp_CtrlConstraint')
+                cmds.setAttr('master_MF.CtrlJoint', 'Center_Joint', typ='string')
+            else:
+                for j in ctrlJoint:
+                    if not 'L' in j:
+                        cmds.orientConstraint(ctrl, j, mo=1, w=1, n='_temp_CtrlConstraint')
+                        cmds.setAttr('master_MF.CtrlJoint', j, typ='string')
+                        _tempMidJoint = j
+                        ctrlJoint.remove(j)
+                        break
+                cmds.parent(ctrlJoint, _tempMidJoint)
         cmds.select(ctrl, r=1)
         cmds.button('SetVtrlButton', e=1, bgc=[0, 1, 0])
 

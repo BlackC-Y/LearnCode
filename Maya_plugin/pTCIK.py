@@ -1,8 +1,9 @@
 # -*- coding: GBK -*-
+# Only Python2
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
-except ImportError:   #有兼容性问题 currentTextChanged.connect
+except ImportError:
     from PySide import QtGui as QtWidgets
     from PySide import QtCore
     import shiboken as shiboken2
@@ -85,7 +86,7 @@ def pTCIK():
 '''
 
 ui_variable = {}
-_pTCIKVerision = 'v2.2.2'
+_pTCIKVerision = 'v2.3'
 
 class Ui_ApplePieA(object):
 
@@ -132,11 +133,11 @@ class Ui_ApplePieA(object):
         self.CurveName.setObjectName("CurveName")
         self.horizontalLayoutB.addWidget(self.CurveName)
         #self.CurveNameWar = QtWidgets.QLabel(self.verticalLayoutAWidget)
-        # self.CurveNameWar.setAlignment(QtCore.Qt.AlignCenter)
-        # self.CurveNameWar.setStyleSheet("color:yellow")
+        #self.CurveNameWar.setAlignment(QtCore.Qt.AlignCenter)
+        #self.CurveNameWar.setStyleSheet("color:yellow")
         #self.CurveNameWar.setMaximumSize(QtCore.QSize(245, 20))
-        # self.CurveNameWar.setObjectName("CurveNameWar")
-        # self.verticalLayoutA.addWidget(self.CurveNameWar)
+        #self.CurveNameWar.setObjectName("CurveNameWar")
+        #self.verticalLayoutA.addWidget(self.CurveNameWar)
         self.horizontalLayoutC = QtWidgets.QHBoxLayout()
         self.horizontalLayoutC.setObjectName("horizontalLayout")
         self.SelectPolyCurve = QtWidgets.QPushButton(self.verticalLayoutAWidget)
@@ -156,7 +157,7 @@ class Ui_ApplePieA(object):
         ui_variable['CtrlParentbox'] = self.CtrlParentbox = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
         self.CtrlParentbox.setMaximumSize(QtCore.QSize(100, 20))
         self.CtrlParentbox.setObjectName("CtrlParentbox")
-        # self.CtrlParentbox.setChecked(True)
+        #self.CtrlParentbox.setChecked(True)
         self.horizontalLayout0.addWidget(self.CtrlParentbox)
         ui_variable['IKjointbox'] = self.IKjointbox = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
         self.IKjointbox.setMaximumSize(QtCore.QSize(80, 20))
@@ -175,8 +176,8 @@ class Ui_ApplePieA(object):
         self.horizontalLayout1.addWidget(self.OnlyFXCurvebox)
         self.verticalLayoutA.addLayout(self.horizontalLayout1)
         #self.selectboxGrp = QtWidgets.QButtonGroup(self.verticalLayoutAWidget)
-        # self.selectboxGrp.addButton(self.selectboxA,11)
-        # self.selectboxGrp.addButton(self.selectboxB,12)
+        #self.selectboxGrp.addButton(self.selectboxA,11)
+        #self.selectboxGrp.addButton(self.selectboxB,12)
         self.horizontalLayoutD = QtWidgets.QHBoxLayout()
         self.horizontalLayoutD.setObjectName("horizontalLayout")
         self.JointIntText = QtWidgets.QLabel(self.verticalLayoutAWidget)
@@ -302,9 +303,13 @@ class Ui_ApplePieA(object):
         self.OnlyFXCurvebox.clicked.connect(lambda: self.setdisable())
         self.JointIntText.setText(u"骨骼段数")
         self.HairSystemText.setText(u"HairSystem")
-        self.SelectHairSystem.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
         self.NucleusText.setText(u"Nucleus")
-        self.SelectNucleus.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+        if int(cmds.about(v=1)) > 2016:
+            self.SelectHairSystem.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+            self.SelectNucleus.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+        else:
+            self.SelectHairSystem.currentIndexChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+            self.SelectNucleus.currentIndexChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
         self.BuildCtrl.setText(u"Build")
         self.BuildCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
         self.PoseEdit.setText(u"PoseEdit_ADV")
@@ -394,10 +399,6 @@ class ApplePieA_pTCIK(object):
             ui_variable['Statusbar'].showMessage(u"//名称冲突")
             Om.MGlobal.displayError(u"//名称冲突")
             return
-        '''     #列表对比
-		for A in L1:
-			if A in L2:
-		'''
         cmds.undoInfo(ock=1)
         if cmds.confirmDialog(t='Confirm', m='尝试居中对齐?', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
             cmds.polyToCurve(ch=0, form=2, degree=3, n='__temp_cur')
@@ -515,7 +516,7 @@ class ApplePieA_pTCIK(object):
             cvSize = cmds.getAttr(i+".controlPoints", size=1)
             for r in range(cvSize,):
                 Tangentgrp = i + '_cluHandle_Ctrl_grp' if r == 0 else i+'_clu'+str(r)+'Handle_Ctrl_grp'
-                tangentName = cmds.tangentConstraint(i, Tangentgrp, weight=1, aimVector=(0, 0, 1), upVector=(0, 1, 0), worldUpType="scene")
+                tangentName = cmds.tangentConstraint(i, Tangentgrp, w=1, aim=(0, 0, 1), u=(0, 1, 0), wut="scene")
                 cmds.delete(tangentName)
 
     def parentConstraintCurve(self):
@@ -528,7 +529,7 @@ class ApplePieA_pTCIK(object):
                 if r == 0:
                     cmds.parentConstraint(i + "_cluHandle_Ctrl", i + "_cluHandle", mo=1)
                 else:
-                    cmds.parentConstraint(i + "_clu%sHandle_Ctrl" %(r), i + "_clu%sHandle" %(r), mo=1)
+                    cmds.parentConstraint(i + "_clu%sHandle_Ctrl" % r, i + "_clu%sHandle" % r, mo=1)
 
     def CurveParent(self):
         getlist = self.checkCurve()
@@ -540,7 +541,7 @@ class ApplePieA_pTCIK(object):
                 if p == 1:
                     cmds.parent(i + "_clu1Handle_Ctrl_grp", i + "_cluHandle_Ctrl")
                 else:
-                    cmds.parent(i + "_clu%sHandle_Ctrl_grp" %(p), i + "_clu%sHandle_Ctrl" %(p-1))
+                    cmds.parent(i + "_clu%sHandle_Ctrl_grp" % p, i + "_clu%sHandle_Ctrl" % p - 1)
 
     def cShape(self):
         self.curSample = [
@@ -719,8 +720,8 @@ class ApplePieA_pTCIK(object):
         except:
             pass
         cmds.window(uiPose, t='List')
-        cmds.columnLayout(rowSpacing=5)
-        cmds.textScrollList('textList', numberOfRows=20, showIndexedItem=4)
+        cmds.columnLayout(rs=5)
+        cmds.textScrollList('textList', nr=20, shi=4)
         cmds.button('Add', l="Add", h=28, w=100, c=lambda*args: self.PoseEdit('add'))
         cmds.button('Delete', l="Delete", h=28, w=100, c=lambda*args: self.PoseEdit('delete'))
         cmds.showWindow(uiPose)
@@ -728,27 +729,27 @@ class ApplePieA_pTCIK(object):
         for i in splitText:
             self.editi = (i.split('_clu*Handle_Ctrl\";')[0]).split('\"', 1)[1] if '_clu*Handle_Ctrl' in i else (i.split('\"', 1)[1]).rsplit('\"', 1)[0]
             if self.editi in ls:
-                cmds.textScrollList('textList', e=1, append=i)
+                cmds.textScrollList('textList', e=1, a=i)
             else:
-                cmds.textScrollList('textList', e=1, append=i + '  //NeedDelete//')
+                cmds.textScrollList('textList', e=1, a=i + '  //NeedDelete//')
 
     def PoseEdit(self, mode):
         if mode == 'delete':
             poseSplit = self.buildposeText.split('/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 ' + 
-                cmds.textScrollList('textList', q=1, selectItem=1)[0].split(';')[0] + ';')
-            cmds.setAttr('buildPose.udAttr', poseSplit[0] + poseSplit[1], type='string')
+                cmds.textScrollList('textList', q=1, si=1)[0].split(';')[0] + ';')
+            cmds.setAttr('buildPose.udAttr', poseSplit[0] + poseSplit[1], typ='string')
             cmds.textScrollList('textList', e=1, rii=cmds.textScrollList('textList', q=1, sii=1)[0])
         elif mode == 'add':
             if cmds.promptDialog(t='addPose', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':
-                inputText = cmds.promptDialog(query=True, text=True)
+                inputText = cmds.promptDialog(q=True, t=True)
                 lsinput = cmds.ls(inputText)
                 if not lsinput:
                     cmds.error('无此物体')
                 elif len(lsinput) >= 2:
                     cmds.error('有重复物体')
                 cmds.setAttr('buildPose.udAttr', 
-                    cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' + inputText + '\";', type='string')
-                cmds.textScrollList('textList', e=1, append='\"' + inputText + '\";')
+                    cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' + inputText + '\";', typ='string')
+                cmds.textScrollList('textList', e=1, a='\"' + inputText + '\";')
     # # # # # # # # # #
 
 class ApplePieA_Dynamic(object):
@@ -767,7 +768,7 @@ class ApplePieA_Dynamic(object):
             #   for i in MenuItem:
             #        cmds.deleteUI(i)
             # cmds.menuItem(parent=(pTCIK.HairSystemMenu+'|OptionMenu'),label='CreateNew')
-            hairsystemitem = cmds.listRelatives(cmds.ls(type='hairSystem'), p=1)
+            hairsystemitem = cmds.listRelatives(cmds.ls(typ='hairSystem'), p=1)
             if hairsystemitem:
                 for i in hairsystemitem:
                     ui_variable['SelectHairSystem'].addItem(i)
@@ -775,7 +776,7 @@ class ApplePieA_Dynamic(object):
             ui_variable['SelectHairSystem'].addItem('Create New')
         if mode == 'Nucleus':
             ui_variable['SelectNucleus'].clear()
-            nucleusitem = cmds.ls(type='nucleus')
+            nucleusitem = cmds.ls(typ='nucleus')
             if nucleusitem:
                 for i in nucleusitem:
                     ui_variable['SelectNucleus'].addItem(i)
@@ -823,7 +824,7 @@ class ApplePieA_Dynamic(object):
             return
         cmds.undoInfo(ock=1)
         qComboBox = []
-        if ui_variable['SelectNucleus'].currentText() != 'Create New' and not cmds.ls(type='nucleus'):
+        if ui_variable['SelectNucleus'].currentText() != 'Create New' and not cmds.ls(typ='nucleus'):
             self.Ready_GetNode('Nucleus')
         if ui_variable['SelectNucleus'].currentText() == 'Create New':
             qComboBox = self.ifdef('NC')

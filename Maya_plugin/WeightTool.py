@@ -371,16 +371,12 @@ class WeightTool():
         if not filePath:
             return
         with open(filePath, 'w') as vwfile:
-            gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-            cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
             for i in selVtx:
-                cmds.progressBar(gMainProgressBar, e=1, s=1)
                 valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
                 transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
                 tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
                 wtStr = '%s--%s\r\n' %(i.split('.')[-1], tvList)
                 vwfile.write(wtStr)
-            cmds.progressBar(gMainProgressBar, e=1, ep=1)
         DisplayYes().showMessage('Finish!')
 
     def vtxLoad(self):
@@ -402,14 +398,10 @@ class WeightTool():
             while line:
                 allLine.append(line)
                 line = vwfile.readline()
-        gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-        cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
         for i in allLine:
-            cmds.progressBar(gMainProgressBar, e=1, s=1)
             vtx = i.split('--')[0].strip()
             tvList = i.split('--')[-1].strip()
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (clusterName, selobj + '.' + vtx, tvList))
-        cmds.progressBar(gMainProgressBar, e=1, ep=1)
         DisplayYes().showMessage('Finish!')
 
 

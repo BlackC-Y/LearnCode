@@ -24,64 +24,64 @@ def pTCIK():
     tabs = cmds.tabLayout(innerMarginWidth=5, innerMarginHeight=5)
 
     child1 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
-    cmds.intFieldGrp('RebuildIntFieldGrp', h=28, label='ÖØ½¨¶ÎÊı', cw2=(80, 100))
-    cmds.textFieldGrp('CurveNameTextFieldGrp', h=28,label="ÇúÏßÃû³Æ", cw2=(80, 100))
-    cmds.text(label="ÓĞÇúÏßÃû²Å¿É²Ù×÷") 
-    cmds.button('Next1Button', l="Ñ¡Ä£ĞÍµÄÏß", h=28,c=lambda*args: ApplePieA_pTCIK().SelectPolyCurve())
+    cmds.intFieldGrp('RebuildIntFieldGrp', h=28, label='é‡å»ºæ®µæ•°', cw2=(80, 100))
+    cmds.textFieldGrp('CurveNameTextFieldGrp', h=28,label="æ›²çº¿åç§°", cw2=(80, 100))
+    cmds.text(label="æœ‰æ›²çº¿åæ‰å¯æ“ä½œ") 
+    cmds.button('Next1Button', l="é€‰æ¨¡å‹çš„çº¿", h=28,c=lambda*args: ApplePieA_pTCIK().SelectPolyCurve())
     cmds.flowLayout(columnSpacing=45)
     cmds.text(l="")
-    cmds.text(l="µ÷ÕûÇúÏß", h=28)
-    cmds.button('reverseCurveButton', l="·´×ªÇúÏß", h=28, w=80,c=lambda*args: ApplePieA_pTCIK().reverseCurve())
+    cmds.text(l="è°ƒæ•´æ›²çº¿", h=28)
+    cmds.button('reverseCurveButton', l="åè½¬æ›²çº¿", h=28, w=80,c=lambda*args: ApplePieA_pTCIK().reverseCurve())
     cmds.setParent('..')
-    cmds.button('createCluAndCtrlButton', l="´´½¨´ØºÍ¿ØÖÆÆ÷", h=28,c=lambda*args: ApplePieA_pTCIK().createCluAndCtrl())
-    #cmds.button('CurveToolsButton', l="ÇúÏß¹¤¾ß(¿ÉÑ¡)", h=28,c=lambda*args: ApplePieA_pTCIK().CurveTools())
-    cmds.button('parentConButton', l="Ô¼Êø¿ØÖÆ", h=28,c=lambda*args: ApplePieA_pTCIK().parentConstraintCurve())
+    cmds.button('createCluAndCtrlButton', l="åˆ›å»ºç°‡å’Œæ§åˆ¶å™¨", h=28,c=lambda*args: ApplePieA_pTCIK().createCluAndCtrl())
+    #cmds.button('CurveToolsButton', l="æ›²çº¿å·¥å…·(å¯é€‰)", h=28,c=lambda*args: ApplePieA_pTCIK().CurveTools())
+    cmds.button('parentConButton', l="çº¦æŸæ§åˆ¶", h=28,c=lambda*args: ApplePieA_pTCIK().parentConstraintCurve())
     cmds.flowLayout(columnSpacing=25)
-    cmds.button('ParentButton', l="¿ØÖÆÆ÷²ã¼¶»¯", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent(''))
-    cmds.button('ReParentButton', l="½â¿ª²ã¼¶", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent('reverse'))
+    cmds.button('ParentButton', l="æ§åˆ¶å™¨å±‚çº§åŒ–", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent(''))
+    cmds.button('ReParentButton', l="è§£å¼€å±‚çº§", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent('reverse'))
     cmds.setParent('..')
-    cmds.intFieldGrp('IKJointIntFieldGrp', h=28, label="¹Ç÷À¶ÎÊı:", cw2=(80, 100))
-    cmds.button('ToIKButton', l="½¨Á¢IK", h=28,c=lambda*args: ApplePieA_pTCIK().CurveToIK())
+    cmds.intFieldGrp('IKJointIntFieldGrp', h=28, label="éª¨éª¼æ®µæ•°:", cw2=(80, 100))
+    cmds.button('ToIKButton', l="å»ºç«‹IK", h=28,c=lambda*args: ApplePieA_pTCIK().CurveToIK())
     cmds.setParent('..')
 
     child2 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
     cmds.flowLayout(columnSpacing=3)
-    cmds.button('CShapeButton',l='»»¸öĞÎ×´',h=28,w=123,c=lambda*args: ApplePieA_pTCIK().cShape())
-    cmds.button('TangentButton', l="ÇĞÏß¶ÔÆë", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().Tangent())
+    cmds.button('CShapeButton',l='æ¢ä¸ªå½¢çŠ¶',h=28,w=123,c=lambda*args: ApplePieA_pTCIK().cShape())
+    cmds.button('TangentButton', l="åˆ‡çº¿å¯¹é½", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().Tangent())
     cmds.setParent('..')
-    cmds.button('SelButton', l="Ñ¡Ôñµ±Ç°ÇúÏßµÄÏßÈ¦",h=28, c=lambda*args: ApplePieA_pTCIK().SelCurve())
+    cmds.button('SelButton', l="é€‰æ‹©å½“å‰æ›²çº¿çš„çº¿åœˆ",h=28, c=lambda*args: ApplePieA_pTCIK().SelCurve())
     cmds.flowLayout(columnSpacing=3)
-    cmds.button('RotXButton', l="XĞı×ª", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RX'))
-    cmds.button('RotYButton', l="YĞı×ª", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RY'))
-    cmds.button('RotZButton', l="ZĞı×ª", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RZ'))
+    cmds.button('RotXButton', l="Xæ—‹è½¬", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RX'))
+    cmds.button('RotYButton', l="Yæ—‹è½¬", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RY'))
+    cmds.button('RotZButton', l="Zæ—‹è½¬", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RZ'))
     cmds.setParent('..')
     cmds.flowLayout(columnSpacing=3)
-    cmds.button('ScaleAddButton', l="·Å´óÇúÏß", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SA'))
-    cmds.button('ScaleSubButton', l="ËõĞ¡ÇúÏß", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SS'))
+    cmds.button('ScaleAddButton', l="æ”¾å¤§æ›²çº¿", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SA'))
+    cmds.button('ScaleSubButton', l="ç¼©å°æ›²çº¿", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SS'))
     cmds.setParent('..')
-    cmds.canvas('CCanvas', rgbValue=(0, 0, 0),width=100, height=20)  # ÑÕÉ«ÏÔÊ¾¿ò ºÍÏÂĞĞ»¬Ìõ×éºÏ
-    cmds.intSliderGrp('SColorIntSliderGrp', minValue=1,maxValue=31, dc=lambda*args: ApplePieA_pTCIK().SColor())  # µ¥ĞĞ»¬Ìõ ºÍÉÏĞĞ×éºÏ
-    # cmds.colorIndexSliderGrp('curveColorIntFieldGrp',min=1,max=32)   #µ¥ĞĞÑÕÉ«»¬Ìõ
-    cmds.button('ChangeCurveColorButton', l="±ä¸üÑÕÉ«", h=28, c=lambda*args: ApplePieA_pTCIK().ChangeCurveColor())
+    cmds.canvas('CCanvas', rgbValue=(0, 0, 0),width=100, height=20)  # é¢œè‰²æ˜¾ç¤ºæ¡† å’Œä¸‹è¡Œæ»‘æ¡ç»„åˆ
+    cmds.intSliderGrp('SColorIntSliderGrp', minValue=1,maxValue=31, dc=lambda*args: ApplePieA_pTCIK().SColor())  # å•è¡Œæ»‘æ¡ å’Œä¸Šè¡Œç»„åˆ
+    # cmds.colorIndexSliderGrp('curveColorIntFieldGrp',min=1,max=32)   #å•è¡Œé¢œè‰²æ»‘æ¡
+    cmds.button('ChangeCurveColorButton', l="å˜æ›´é¢œè‰²", h=28, c=lambda*args: ApplePieA_pTCIK().ChangeCurveColor())
     cmds.setParent('..')
 
     child3 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
     cmds.flowLayout(columnSpacing=3)
-    cmds.textFieldGrp('FXCurveNameTextFieldGrp',h=28,label="ÇúÏßÃû", cw2=(60, 100),ed=0)
-    cmds.button('InputCurve',l="Ê°È¡ÇúÏß",h=28,w=50,c=lambda*args: ApplePieA_Dynamic().Ready_selectCurve())
+    cmds.textFieldGrp('FXCurveNameTextFieldGrp',h=28,label="æ›²çº¿å", cw2=(60, 100),ed=0)
+    cmds.button('InputCurve',l="æ‹¾å–æ›²çº¿",h=28,w=50,c=lambda*args: ApplePieA_Dynamic().Ready_selectCurve())
     cmds.setParent('..')
     cmds.flowLayout(columnSpacing=3)
     pTCIK.HairSystemMenu = cmds.optionMenuGrp('HairSystemMenu',label='HairSystem',cw2=(60,100))
     ApplePieA_Dynamic().Ready_hairSystem()
-    cmds.button('shuaxin',l='Ë¢ĞÂ',h=28,w=25,c=lambda*args: ApplePieA_Dynamic().Ready_hairSystem())
+    cmds.button('shuaxin',l='åˆ·æ–°',h=28,w=25,c=lambda*args: ApplePieA_Dynamic().Ready_hairSystem())
     cmds.button('nucleusSelect',l="->",h=28,w=25,c=lambda*args: ApplePieA_Dynamic().Ready(3))
     cmds.setParent('..')
     
-    cmds.button('RunButton', l="´´½¨¶¯Á¦Ñ§ÇúÏß", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().FXCurve())
+    cmds.button('RunButton', l="åˆ›å»ºåŠ¨åŠ›å­¦æ›²çº¿", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().FXCurve())
     cmds.setParent('..')
     
-    cmds.tabLayout( tabs, edit=True, tabLabel=((child1,'±¾Ìå'),(child2,'ÇúÏßDLC'),(child3,'¶¯Á¦Ñ§ÇúÏß')))
-    cmds.window(uiA, e=True, wh=(260, 500))  # ´°¿Úºó¶¨Öµ
+    cmds.tabLayout( tabs, edit=True, tabLabel=((child1,'æœ¬ä½“'),(child2,'æ›²çº¿DLC'),(child3,'åŠ¨åŠ›å­¦æ›²çº¿')))
+    cmds.window(uiA, e=True, wh=(260, 500))  # çª—å£åå®šå€¼
     cmds.showWindow(uiA)
 '''
 
@@ -154,11 +154,11 @@ class Ui_ApplePieA(object):
         self.verticalLayoutA.addWidget(self.lineA)
         self.horizontalLayout0 = QtWidgets.QHBoxLayout()
         self.horizontalLayout0.setObjectName("horizontalLayout")
-        ui_variable['CtrlParentbox'] = self.CtrlParentbox = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
-        self.CtrlParentbox.setMaximumSize(QtCore.QSize(100, 20))
-        self.CtrlParentbox.setObjectName("CtrlParentbox")
-        #self.CtrlParentbox.setChecked(True)
-        self.horizontalLayout0.addWidget(self.CtrlParentbox)
+        ui_variable['IKFKCtrlbox'] = self.IKFKCtrlbox = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
+        self.IKFKCtrlbox.setMaximumSize(QtCore.QSize(100, 20))
+        self.IKFKCtrlbox.setObjectName("IKFKCtrlbox")
+        #self.IKFKCtrlbox.setChecked(True)
+        self.horizontalLayout0.addWidget(self.IKFKCtrlbox)
         ui_variable['IKjointbox'] = self.IKjointbox = QtWidgets.QCheckBox(self.verticalLayoutAWidget)
         self.IKjointbox.setMaximumSize(QtCore.QSize(80, 20))
         self.IKjointbox.setObjectName("IKjointbox")
@@ -288,20 +288,20 @@ class Ui_ApplePieA(object):
         ApplePieA_Dynamic().Ready_GetNode('HairSystem')
         ApplePieA_Dynamic().Ready_GetNode('Nucleus')
 
-        self.RebuildIntText.setText(u"ÖØ½¨¶ÎÊı")
-        self.RebuildInt.setPlaceholderText(u"ÖØ½¨¶ÎÊı")
-        self.CurveNameText.setText(u"ÇúÏßÃû")
-        self.CurveName.setPlaceholderText(u"ÇúÏßÃû")
-        self.SelectPolyCurve.setText(u"Ñ¡Ä£ĞÍµÄÏß")
+        self.RebuildIntText.setText(u"é‡å»ºæ®µæ•°")
+        self.RebuildInt.setPlaceholderText(u"é‡å»ºæ®µæ•°")
+        self.CurveNameText.setText(u"æ›²çº¿å")
+        self.CurveName.setPlaceholderText(u"æ›²çº¿å")
+        self.SelectPolyCurve.setText(u"é€‰æ¨¡å‹çš„çº¿")
         self.SelectPolyCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().SelectPolyCurve())
-        self.reverseCurve.setText(u"·´×ªÇúÏß")
+        self.reverseCurve.setText(u"åè½¬æ›²çº¿")
         self.reverseCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().reverseCurve())
-        self.CtrlParentbox.setText(u"¿ØÖÆÆ÷²ã¼¶»¯")
-        self.IKjointbox.setText(u'½¨Á¢IK¹Ç÷À')
-        self.FXCurvebox.setText(u"Ìí¼Ó¶¯Á¦Ñ§")
-        self.OnlyFXCurvebox.setText(u"½ö¶¯Á¦Ñ§ÇúÏß")
+        self.IKFKCtrlbox.setText(u"IKFKæ§åˆ¶")
+        self.IKjointbox.setText(u'å»ºç«‹IKéª¨éª¼')
+        self.FXCurvebox.setText(u"æ·»åŠ åŠ¨åŠ›å­¦")
+        self.OnlyFXCurvebox.setText(u"ä»…åŠ¨åŠ›å­¦æ›²çº¿")
         self.OnlyFXCurvebox.clicked.connect(lambda: self.setdisable())
-        self.JointIntText.setText(u"¹Ç÷À¶ÎÊı")
+        self.JointIntText.setText(u"éª¨éª¼æ®µæ•°")
         self.HairSystemText.setText(u"HairSystem")
         self.NucleusText.setText(u"Nucleus")
         if int(cmds.about(v=1)) > 2016:
@@ -314,11 +314,11 @@ class Ui_ApplePieA(object):
         self.BuildCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
         self.PoseEdit.setText(u"PoseEdit_ADV")
         self.PoseEdit.clicked.connect(lambda *args: ApplePieA_pTCIK().PoseCheck())
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.child1), u"±¾Ìå")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.child1), u"æœ¬ä½“")
 
-        self.SellastCurve.setText(u'Ñ¡Ôñ×îºóÒ»´ÎÉú³ÉµÄ¿ØÖÆÆ÷')
+        self.SellastCurve.setText(u'é€‰æ‹©æœ€åä¸€æ¬¡ç”Ÿæˆçš„æ§åˆ¶å™¨')
         self.SellastCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().SelCurve())
-        self.CShape.setText(u"»»¸öĞÎ×´")
+        self.CShape.setText(u"æ¢ä¸ªå½¢çŠ¶")
         self.CShape.clicked.connect(lambda *args: ApplePieA_pTCIK().cShape())
         self.RotX.setText(u"RotX")
         self.RotX.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RX'))
@@ -326,16 +326,16 @@ class Ui_ApplePieA(object):
         self.RotY.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RY'))
         self.RotZ.setText(u"RotZ")
         self.RotZ.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RZ'))
-        self.ScaleAdd.setText(u"·Å´óÇúÏß")
+        self.ScaleAdd.setText(u"æ”¾å¤§æ›²çº¿")
         self.ScaleAdd.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('SA'))
-        self.ScaleSub.setText(u"ËõĞ¡ÇúÏß")
+        self.ScaleSub.setText(u"ç¼©å°æ›²çº¿")
         self.ScaleSub.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('SS'))
         self.SColorInt.valueChanged.connect(lambda*args: ApplePieA_pTCIK().SColor())
-        self.ChangeColor.setText(u"¸Ä±äÑÕÉ«")
+        self.ChangeColor.setText(u"æ”¹å˜é¢œè‰²")
         self.ChangeColor.clicked.connect(lambda *args: ApplePieA_pTCIK().ChangeCurveColor())
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.child2), u"ÇúÏßDLC")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.child2), u"æ›²çº¿DLC")
 
-    def eventFilter(self, object, event):     #Êó±êÒÆ¶¯¾Í»á´¥·¢...äÆ
+    def eventFilter(self, object, event):     #é¼ æ ‡ç§»åŠ¨å°±ä¼šè§¦å‘...æ·¦
         if object == self.SelectHairSystem:
             if event.type() == QtCore.QEvent.MouseButtonPress:
                 ApplePieA_Dynamic().Ready_GetNode('HairSystem')
@@ -350,13 +350,13 @@ class Ui_ApplePieA(object):
 
     def setdisable(self):
         if self.OnlyFXCurvebox.isChecked():
-            self.CtrlParentbox.setEnabled(False)
+            self.IKFKCtrlbox.setEnabled(False)
             self.IKjointbox.setEnabled(False)
             self.FXCurvebox.setEnabled(False)
             self.JointInt.setEnabled(False)
             self.JointIntText.setEnabled(False)
         else:
-            self.CtrlParentbox.setEnabled(True)
+            self.IKFKCtrlbox.setEnabled(True)
             self.IKjointbox.setEnabled(True)
             self.FXCurvebox.setEnabled(True)
             self.JointInt.setEnabled(True)
@@ -384,23 +384,23 @@ class ApplePieA_pTCIK(object):
     def SelectPolyCurve(self):
         ReBNum = ui_variable['RebuildInt'].text()
         if not ReBNum:
-            ui_variable['Statusbar'].showMessage(u'//Ã»ÌîÖØ½¨¶ÎÊı')
-            Om.MGlobal.displayError(u'//Ã»ÌîÖØ½¨¶ÎÊı')
+            ui_variable['Statusbar'].showMessage(u'//æ²¡å¡«é‡å»ºæ®µæ•°')
+            Om.MGlobal.displayError(u'//æ²¡å¡«é‡å»ºæ®µæ•°')
             return
         if not self.Curvename:
-            ui_variable['Statusbar'].showMessage(u"//Ã»ÌîÇúÏßÃû")
-            Om.MGlobal.displayError(u"//Ã»ÌîÇúÏßÃû")
+            ui_variable['Statusbar'].showMessage(u"//æ²¡å¡«æ›²çº¿å")
+            Om.MGlobal.displayError(u"//æ²¡å¡«æ›²çº¿å")
             return
         #ReBNum = cmds.intFieldGrp('RebuildIntFieldGrp', q=True, v1=True)
         polyEdgeN = cmds.ls(sl=True)
         Namelist = cmds.ls()
-        # bothName = cmp(Curvename,Namelist)  #¶Ô±ÈÃû³Æ
+        # bothName = cmp(Curvename,Namelist)  #å¯¹æ¯”åç§°
         if self.Curvename in Namelist:
-            ui_variable['Statusbar'].showMessage(u"//Ãû³Æ³åÍ»")
-            Om.MGlobal.displayError(u"//Ãû³Æ³åÍ»")
+            ui_variable['Statusbar'].showMessage(u"//åç§°å†²çª")
+            Om.MGlobal.displayError(u"//åç§°å†²çª")
             return
         cmds.undoInfo(ock=1)
-        if cmds.confirmDialog(t='Confirm', m='³¢ÊÔ¾ÓÖĞ¶ÔÆë?', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
+        if cmds.confirmDialog(t='Confirm', m='å°è¯•å±…ä¸­å¯¹é½?', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
             cmds.polyToCurve(ch=0, form=2, degree=3, n='__temp_cur')
             cmds.select(polyEdgeN, r=1)
             mel.eval('PolySelectConvert 3')
@@ -419,15 +419,15 @@ class ApplePieA_pTCIK(object):
                 if not c:
                     cmds.connectAttr('__temp_cluHandleShape.origin', temp_node + '.inPosition')
                 else:
-                    cmds.connectAttr('__temp_clu%sHandleShape.origin', temp_node + '.inPosition' %str(c))
+                    cmds.connectAttr('__temp_clu%sHandleShape.origin', temp_node + '.inPosition' % c)
                 node_p[c] = cmds.getAttr(temp_node + '.parameter')
-            node_p_list = sorted(node_p.items(), key=lambda item: item[1]) # ×ÖµäÅÅĞò
+            node_p_list = sorted(node_p.items(), key=lambda item: item[1]) # å­—å…¸æ’åº
             tcws = [[0 for y in range(3)] for x in range(len(selv))]
             for v in range(len(selv)):
                 c = '' if not node_p_list[v][0] else node_p_list[v][0]
-                tcws[v][0] = cmds.getAttr('__temp_clu%sHandleShape.originX' %str(c))
-                tcws[v][1] = cmds.getAttr('__temp_clu%sHandleShape.originY' %str(c))
-                tcws[v][2] = cmds.getAttr('__temp_clu%sHandleShape.originZ' %str(c))
+                tcws[v][0] = cmds.getAttr('__temp_clu%sHandleShape.originX' % c)
+                tcws[v][1] = cmds.getAttr('__temp_clu%sHandleShape.originY' % c)
+                tcws[v][2] = cmds.getAttr('__temp_clu%sHandleShape.originZ' % c)
             cmds.curve(p=tcws, n=self.Curvename)
             reshape = cmds.listRelatives(self.Curvename, s=1)
             cmds.rename(reshape, self.Curvename + 'Shape')
@@ -438,20 +438,20 @@ class ApplePieA_pTCIK(object):
             cmds.rename(pTCname[0], self.Curvename)
         cmds.rebuildCurve(self.Curvename, ch=0, rpo=1, rt=0, end=1, kr=0, kcp=0, kep=1, kt=0, s=int(ReBNum), d=3, tol=0.01)
         cvSize = cmds.getAttr(self.Curvename + ".controlPoints", size=1)
-        cmds.delete(self.Curvename + '.cv[1]', self.Curvename + '.cv[%s]' %str(cvSize-2))
+        cmds.delete(self.Curvename + '.cv[1]', self.Curvename + '.cv[%s]' % (cvSize-2))
         cmds.setAttr(self.Curvename + ".dispCV", 1)
         cmds.undoInfo(cck=1)
 
     def checkCurve(self):
         curlist = cmds.ls(sl=1)
         #if not cmds.listRelatives(curlist, s=1, type='nurbsCurve'):
-        #    ui_variable['Statusbar'].showMessage(u"//Î´Ñ¡ÔñÇúÏß")
-        #    Om.MGlobal.displayError(u"//Î´Ñ¡ÔñÇúÏß")
+        #    ui_variable['Statusbar'].showMessage(u"//æœªé€‰æ‹©æ›²çº¿")
+        #    Om.MGlobal.displayError(u"//æœªé€‰æ‹©æ›²çº¿")
         #    return
         for i in curlist:
             if not cmds.listRelatives(i, s=1, type='nurbsCurve'):
-                ui_variable['Statusbar'].showMessage(u'//ÓĞ·ÇÇúÏßÎïÌå')
-                Om.MGlobal.displayError(u'//ÓĞ·ÇÇúÏßÎïÌå')
+                ui_variable['Statusbar'].showMessage(u'//æœ‰éæ›²çº¿ç‰©ä½“')
+                Om.MGlobal.displayError(u'//æœ‰éæ›²çº¿ç‰©ä½“')
                 return
         return curlist
 
@@ -494,9 +494,10 @@ class ApplePieA_pTCIK(object):
             cmds.setAttr('tempCurveName.CurName', '%s_clu*Handle_Ctrl,' %(cmds.getAttr('tempCurveName.CurName') + i), type='string' )
         cmds.select(getlist, r=1)
         self.Tangent()
-        self.parentConstraintCurve()
-        if ui_variable['CtrlParentbox'].isChecked():
-            self.CurveParent()
+        _runmode = 'IKFK' if ui_variable['IKFKCtrlbox'].isChecked() else 'None'
+        self.parentConstraintCtrl(_runmode)
+        #if ui_variable['IKFKCtrlbox'].isChecked():
+        #    self.CurveParent()
         if ui_variable['FXCurvebox'].isChecked():
             ApplePieA_Dynamic().FXCurve(getlist)
         if ui_variable['IKjointbox'].isChecked():
@@ -514,12 +515,12 @@ class ApplePieA_pTCIK(object):
             return
         for i in getlist:
             cvSize = cmds.getAttr(i+".controlPoints", size=1)
-            for r in range(cvSize,):
+            for r in range(cvSize):
                 Tangentgrp = i + '_cluHandle_Ctrl_grp' if r == 0 else i+'_clu'+str(r)+'Handle_Ctrl_grp'
                 tangentName = cmds.tangentConstraint(i, Tangentgrp, w=1, aim=(0, 0, 1), u=(0, 1, 0), wut="scene")
                 cmds.delete(tangentName)
 
-    def parentConstraintCurve(self):
+    def parentConstraintCtrl(self, mode):
         getlist = self.checkCurve()
         if not getlist:
             return
@@ -530,6 +531,13 @@ class ApplePieA_pTCIK(object):
                     cmds.parentConstraint(i + "_cluHandle_Ctrl", i + "_cluHandle", mo=1)
                 else:
                     cmds.parentConstraint(i + "_clu%sHandle_Ctrl" % r, i + "_clu%sHandle" % r, mo=1)
+                if mode == 'IKFK':
+                    cvSize = cmds.getAttr(i + ".controlPoints", size=1)
+                    for r in range(cvSize-1):
+                        if not r:
+                            cmds.parentConstraint(i + "_cluHandle_Ctrl", i + "_clu1Handle_Ctrl_grp", mo=1)
+                        else:
+                            cmds.parentConstraint(i + "_clu%sHandle_Ctrl" % r, i + "_clu%sHandle_Ctrl_grp" % (r + 1), mo=1)
 
     def CurveParent(self):
         getlist = self.checkCurve()
@@ -564,7 +572,7 @@ class ApplePieA_pTCIK(object):
         ApplePieA_pTCIK.curveShape += 1
         cmds.select(getlist, r=1)
         cmds.undoInfo(cck=1)
-        cmds.evalDeferred("cmds.delete('__temp_Shape')")  #ÑÓ³ÙÖ´ĞĞ
+        cmds.evalDeferred("cmds.delete('__temp_Shape')")  #å»¶è¿Ÿæ‰§è¡Œ
 
     def SColor(self):
         ColorInt = int(ui_variable['SColorInt'].value())
@@ -602,8 +610,8 @@ class ApplePieA_pTCIK(object):
 
     def ChangeCurveColor(self):
         ColorNum = int(ui_variable['SColorInt'].value())
-        # ColorNum = cmds.colorIndexSliderGrp(curveColorIntFieldGrp,q=1,v=1)   #²éÑ¯ÑÕÉ«»¬Ìõ
-        # ColorNum = cmds.intSliderGrp('SColorIntSliderGrp', q=1, v=1)  # ²éÑ¯»¬ÌõÊıÖµ
+        # ColorNum = cmds.colorIndexSliderGrp(curveColorIntFieldGrp,q=1,v=1)   #æŸ¥è¯¢é¢œè‰²æ»‘æ¡
+        # ColorNum = cmds.intSliderGrp('SColorIntSliderGrp', q=1, v=1)  # æŸ¥è¯¢æ»‘æ¡æ•°å€¼
         selCurve = cmds.ls(sl=1)
         cmds.undoInfo(ock=1)
         for n in range(len(selCurve)):
@@ -612,15 +620,11 @@ class ApplePieA_pTCIK(object):
             cmds.setAttr(CurShape[0] + ".overrideColor", ColorNum)
         cmds.undoInfo(cck=1)
 
-    def CurveToIK(self, curveN):  # À´×ÔÕÅÀÏÊ¦
+    def CurveToIK(self, curveN):  # æ¥è‡ªå¼ è€å¸ˆ
         JointNum = int(ui_variable['JointInt'].text())
         #JointNum = cmds.intFieldGrp('IKJointIntFieldGrp',q=True,v1=True)
         Atype = 3
         sel = curveN
-        #if sel == 1:
-        #    Atype = 3
-        #else:
-        #    Atype = 2
         j = int(JointNum)+1
         mz_dd = []
         mz_Loc = []
@@ -633,11 +637,11 @@ class ApplePieA_pTCIK(object):
             cmds.setAttr(NodemP + ".worldUpType", Atype)
             B = cmds.spaceLocator(p=(0, 0, 0), n=curveN + "_Loc" + str(i))
             cmds.connectAttr(cmds.listRelatives(curveN, s=1)[0] + ".worldSpace[0]", NodemP + ".geometryPath", f=1)
-            #if cmds.objExists(sel + ".V" + str(i)) == 0:
-            #    cmds.addAttr(sel, ln="V" + str(i), at='double', min=0, max=1, dv=0)
-            #    cmds.setAttr(sel + ".V" + str(i), e=1, keyable=True)
+            if cmds.objExists(sel + ".V" + str(i)) == 0:
+                cmds.addAttr(sel, ln="V" + str(i), at='double', min=0, max=1, dv=0)
+                cmds.setAttr(sel + ".V" + str(i), e=1, keyable=True)
             #cmds.connectAttr(sel + ".V" + str(i), NodemP + ".uValue", f=1)
-            cmds.setAttr(NodemP + ".uValue", 1.0*(i)/int(JointNum))
+            cmds.setAttr(sel + ".V" + str(i), 1.0*(i)/int(JointNum))
             cmds.connectAttr(NodemP + ".allCoordinates", B[0] + ".translate", f=1)
             cmds.connectAttr(NodemP + ".rotate", B[0] + ".rotate", f=1)
             if Atype == 2:
@@ -684,31 +688,28 @@ class ApplePieA_pTCIK(object):
         self.doFinish(curveN)
 
     def doFinish(self, curveN):
-        cluHandleCtrlgrp = '_cluHandle_Ctrl_grp' if ui_variable['CtrlParentbox'].isChecked() else '_clu*Handle_Ctrl_grp'
+        cluHandleCtrlgrp = '_cluHandle_Ctrl_grp' if ui_variable['IKFKCtrlbox'].isChecked() else '_clu*Handle_Ctrl_grp'
         if '_Blend' in curveN:
-            editname = curveN.rsplit('_', 1)[0]
-            cmds.group(editname, editname + '_clu*Handle', editname + cluHandleCtrlgrp,
-                        editname + '_toFX', editname + '_OutFX', editname + '_onlyCtrl', 
-                        curveN, curveN + '_Jot0', curveN + '_SplineIkHandle', n=editname + '_grp')
-            cmds.hide(editname, editname + '_clu*Handle', editname + '_toFX', editname + '_OutFX', editname + '_onlyCtrl',
+            curveN = curveN.rsplit('_', 1)[0]
+            cmds.group(curveN, curveN + '_clu*Handle', curveN + cluHandleCtrlgrp,
+                        curveN + '_toFX', curveN + '_OutFX', curveN + '_onlyCtrl', 
+                        curveN, curveN + '_Jot0', curveN + '_SplineIkHandle', n=curveN + '_grp')
+            cmds.hide(curveN, curveN + '_clu*Handle', curveN + '_toFX', curveN + '_OutFX', curveN + '_onlyCtrl',
                         curveN + '_SplineIkHandle')
             cmds.setAttr(curveN + '.inheritsTransform', 0)
-            if cmds.ls('buildPose') and cmds.ls('DeformationSystem'):
-                cmds.setAttr('buildPose.udAttr', '%s/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"%s_clu*Handle_Ctrl\";'
-                                %(cmds.getAttr('buildPose.udAttr'), editname), type='string')
         else:
             cmds.group(curveN, curveN + '_clu*Handle', curveN + cluHandleCtrlgrp,
                         curveN + '_Jot0', curveN + '_SplineIkHandle', n=curveN + '_grp')
             cmds.hide(curveN + '_clu*Handle', curveN + '_SplineIkHandle')
-            if cmds.ls('buildPose') and cmds.ls('DeformationSystem'):
-                cmds.setAttr('buildPose.udAttr', '%s/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"%s_clu*Handle_Ctrl\";'
-                                %(cmds.getAttr('buildPose.udAttr'), curveN), type='string')
+        if cmds.ls('buildPose') and cmds.ls('DeformationSystem'):
+            cmds.setAttr('buildPose.udAttr', '%s/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"%s_clu*Handle_Ctrl\";'
+                            %(cmds.getAttr('buildPose.udAttr'), curveN), type='string')
 
     # # # # # # # # # #
     def PoseCheck(self):
         if not cmds.ls('buildPose.udAttr'):
-            ui_variable['Statusbar'].showMessage(u"//ÎŞPoseÏµÍ³")
-            Om.MGlobal.displayError(u"//ÎŞPoseÏµÍ³")
+            ui_variable['Statusbar'].showMessage(u"//æ— Poseç³»ç»Ÿ")
+            Om.MGlobal.displayError(u"//æ— Poseç³»ç»Ÿ")
             return
         self.buildposeText = cmds.getAttr('buildPose.udAttr')
         splitbuild = self.buildposeText.split('/*addItem*/')
@@ -744,9 +745,9 @@ class ApplePieA_pTCIK(object):
                 inputText = cmds.promptDialog(q=True, t=True)
                 lsinput = cmds.ls(inputText)
                 if not lsinput:
-                    cmds.error('ÎŞ´ËÎïÌå')
+                    cmds.error('æ— æ­¤ç‰©ä½“')
                 elif len(lsinput) >= 2:
-                    cmds.error('ÓĞÖØ¸´ÎïÌå')
+                    cmds.error('æœ‰é‡å¤ç‰©ä½“')
                 cmds.setAttr('buildPose.udAttr', 
                     cmds.getAttr('buildPose.udAttr') + '/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"' + inputText + '\";', typ='string')
                 cmds.textScrollList('textList', e=1, a='\"' + inputText + '\";')
@@ -797,11 +798,11 @@ class ApplePieA_Dynamic(object):
             cmds.setAttr(qComboBox[1] + ".clumpWidth", 0)
             cmds.parent(cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0])
         if not cmds.connectionInfo(qComboBox[1]+".nextState", sfd=1):
-            mel.eval('addActiveToNSystem("%s", "%s")'%(cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0]))
+            mel.eval('addActiveToNSystem("%s", "%s")' % (cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0]))
             cmds.connectAttr( 'time1.outTime', qComboBox[1] + '.currentTime', f=1)
             cmds.connectAttr(qComboBox[0] + '.startFrame', qComboBox[1] + '.startFrame', f=1)
             qComboBox[1] = cmds.listRelatives(qComboBox[1], p=1)[0]
-        if mel.eval('attributeExists("%s", "ctrlMode")'%qComboBox[1]):
+        if mel.eval('attributeExists("%s", "ctrlMode")' % qComboBox[1]):
             if not cmds.listConnections(qComboBox[1], c=1, t='reverse'):
                 self.reNode = cmds.createNode("reverse")
                 cmds.connectAttr(qComboBox[1] + ".ctrlMode", self.reNode+".inputX")
@@ -819,8 +820,8 @@ class ApplePieA_Dynamic(object):
 
     def FXCurve(self, curve):
         if not curve:
-            ui_variable['Statusbar'].showMessage(u"//Î´Ñ¡È¡ÇúÏß")
-            Om.MGlobal.displayError(u"//Î´Ñ¡È¡ÇúÏß")
+            ui_variable['Statusbar'].showMessage(u"//æœªé€‰å–æ›²çº¿")
+            Om.MGlobal.displayError(u"//æœªé€‰å–æ›²çº¿")
             return
         cmds.undoInfo(ock=1)
         qComboBox = []

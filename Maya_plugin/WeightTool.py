@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#Support Maya2016-2020
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
@@ -15,6 +15,7 @@ import decimal
 class WeightTool():
 
     def ToolUi(self):
+        __Verision = 0.5
         ToolUi = 'WeightTool'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
@@ -33,7 +34,7 @@ class WeightTool():
                                 onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
         cmds.popupMenu()
         cmds.menuItem('OFFmeunItem', l='OFF', cb=0, c=lambda *args: self.refreshJointList(9))
-        cmds.textField('searchText', h=22, cc=lambda *args: self.refreshJointList(cmds.textField('searchText', q=1, tx=1)))
+        cmds.textField('searchText', h=22, tcc=lambda *args: self.refreshJointList(cmds.textField('searchText', q=1, tx=1)))
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
         cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(None))
@@ -371,12 +372,16 @@ class WeightTool():
         if not filePath:
             return
         with open(filePath, 'w') as vwfile:
+            gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
+            cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
             for i in selVtx:
+                cmds.progressBar(gMainProgressBar, e=1, s=1)
                 valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
                 transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
                 tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
                 wtStr = '%s--%s\r\n' %(i.split('.')[-1], tvList)
                 vwfile.write(wtStr)
+            cmds.progressBar(gMainProgressBar, e=1, ep=1)
         DisplayYes().showMessage('Finish!')
 
     def vtxLoad(self):
@@ -398,10 +403,14 @@ class WeightTool():
             while line:
                 allLine.append(line)
                 line = vwfile.readline()
+        gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
+        cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
         for i in allLine:
+            cmds.progressBar(gMainProgressBar, e=1, s=1)
             vtx = i.split('--')[0].strip()
             tvList = i.split('--')[-1].strip()
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (clusterName, selobj + '.' + vtx, tvList))
+        cmds.progressBar(gMainProgressBar, e=1, ep=1)
         DisplayYes().showMessage('Finish!')
 
 

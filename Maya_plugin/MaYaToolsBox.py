@@ -4,8 +4,37 @@ import maya.OpenMayaUI as Omui
 import shiboken2
 
 
-class BoxUi(object):
+class MaYaToolsBox():
 
+    __Verision = 0.5
+    
+    def Jio(self):
+        self.Jio = {
+        'createloc': u'åœ¨é€‰æ‹©ç‰©ä½“çš„ä½ç½®åˆ›å»ºLocator',
+        'polytoCurve': u'æ‰¹é‡æå–æ›²çº¿__ä»…é€‚ç”¨äºå•ç‰‡æ¨¡å‹',
+        'movevtx_UI': u'ä¿®å‹æ—¶ä¼ é€’ç‚¹ \né€‰æ‹©è¦ä¼ é€’çš„ç‚¹ å¡«å†™è¢«ä¼ é€’çš„æ¨¡å‹',
+        'samevtx_UI': u'ç§»åŠ¨ç‚¹è¾¾åˆ°å¯¹ç§°ä¿®å½¢ \né€‰æ‹©åŸæ¨¡å‹ä¸Šè¦å¯¹ç§°çš„ç‚¹ åˆ†åˆ«å¡«å†™æ¨¡å‹',
+        'xiuxingJoint': u'åˆ›å»ºä¿®å‹éª¨éª¼(é«˜è‡ªå®šä¹‰) \né€‰æ‹©è¦ä¿®å‹çš„éª¨éª¼',
+        'xiuxingJointWang': u'åˆ›å»ºä¿®å‹éª¨éª¼(ä¹–å­™ç‰ˆ) \né€‰æ‹©è¦ä¿®å‹çš„éª¨éª¼',
+        'TransferUV': u'ä¼ é€’UV \né€‰æ‹©UVæ¨¡å‹+è¦ä¼ é€’çš„æ¨¡å‹',
+        'createFollicleOnface_UI': u'åœ¨å¹³é¢ä¸Šåˆ›å»ºæ¯›å›Šå’Œéª¨éª¼',
+            }
+
+    def ToolUi(self):
+        ToolUi = 'MaYaToolsBox'
+        if cmds.window(ToolUi, q=1, ex=1):
+            cmds.deleteUI(ToolUi)
+        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
+        cmds.columnLayout('MainCL', cat=('both', 2), rs=2, cw=220, adj=1)
+        cmds.textField('searchText', h=24, tcc=lambda *args: self.refreshToolList(cmds.textField('searchText', q=1, tx=1)))
+        cmds.textScrollList('vtxList', ams=1, sc=lambda *args:
+                                cmds.textScrollList('weightList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
+        cmds.setParent('..')
+
+        cmds.showWindow(ToolUi)
+
+    def refreshToolList(self):
+        pass
     def setupUi(self, BoxUi):
         try:
             Boxui.close()
@@ -23,7 +52,7 @@ class BoxUi(object):
         self.detail = QtWidgets.QLabel(BoxUi)
         self.detail.setGeometry(QtCore.QRect(10, 320, 280, 120))
         self.detail.setWordWrap(True)
-        self.detail.setFont(QtGui.QFont('ËÎÌå', 10))
+        self.detail.setFont(QtGui.QFont('å®‹ä½“', 10))
         self.detail.setObjectName("detailText")
         self.runJio = QtWidgets.QPushButton(BoxUi)
         self.runJio.setGeometry(QtCore.QRect(10, 460, 280, 28))
@@ -39,8 +68,8 @@ class BoxUi(object):
         self.listView.currentTextChanged.connect(lambda: self.detail.setText(Showwindow.Jio[self.listView.currentItem().text()]))
         #QtCore.QObject.connect(self.listView, QtCore.SIGNAL("currentTextChanged(QString)"), self.label.setText)
         self.searchEdit.textEdited.connect(lambda: self.finditem())
-        self.detail.setText(u"ËµÃ÷:")
-        self.runJio.setText(u"Ö´ĞĞ")
+        self.detail.setText(u"è¯´æ˜:")
+        self.runJio.setText(u"æ‰§è¡Œ")
         self.runJio.clicked.connect(lambda *args: eval('ToolsBox().' + self.listView.currentItem().text() + '()'))
 
     def finditem(self):
@@ -50,41 +79,13 @@ class BoxUi(object):
                 self.searchEdit.text().lower() in Showwindow.Jio[i].lower()):
                 self.listView.addItem(i)
 
-
-class Showwindow(BoxUi, QtWidgets.QWidget):
-
-    Jio = {
-        'createloc': u'ÔÚÑ¡ÔñÎïÌåµÄÎ»ÖÃ´´½¨Locator',
-        'polytoCurve': u'ÅúÁ¿ÌáÈ¡ÇúÏß__½öÊÊÓÃÓÚµ¥Æ¬Ä£ĞÍ',
-        'movevtx_UI': u'ĞŞĞÍÊ±´«µİµã \nÑ¡ÔñÒª´«µİµÄµã ÌîĞ´±»´«µİµÄÄ£ĞÍ',
-        'samevtx_UI': u'ÒÆ¶¯µã´ïµ½¶Ô³ÆĞŞĞÎ \nÑ¡ÔñÔ­Ä£ĞÍÉÏÒª¶Ô³ÆµÄµã ·Ö±ğÌîĞ´Ä£ĞÍ',
-        'xiuxingJoint': u'´´½¨ĞŞĞÍ¹Ç÷À(¸ß×Ô¶¨Òå) \nÑ¡ÔñÒªĞŞĞÍµÄ¹Ç÷À',
-        #'xiuxingJointWang': u'´´½¨ĞŞĞÍ¹Ç÷À(¹ÔËï°æ) \nÑ¡ÔñÒªĞŞĞÍµÄ¹Ç÷À',
-        'TransferUV': u'´«µİUV \nÑ¡ÔñUVÄ£ĞÍ+Òª´«µİµÄÄ£ĞÍ',
-        'createFollicleOnface_UI': u'ÔÚÆ½ÃæÉÏ´´½¨Ã«ÄÒºÍ¹Ç÷À',
-            }
-
-    def __init__(self):
-        super(Showwindow, self).__init__()
-        self.setupUi(self)
-        self.setParent(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.setWindowTitle('ToolsBox')
-        self.show()
-
-
-class ToolsBox(object):
-
     def chuangjian(self):
-        cmds.undoInfo(ock=1)
         alist = cmds.ls(sl=1, fl=1)
         for i in alist:
             txyz = cmds.xform(i, q=1, ws=1, t=1)
             cmds.setAttr(cmds.spaceLocator(n=i+'_loc')[0]+'.translate', txyz[0], txyz[1], txyz[2])
-        cmds.undoInfo(cck=1)
 
     def polytoCurve(self):
-        cmds.undoInfo(ock=1)
         blist = cmds.ls(sl=1)
         for i in blist:
             vnum = cmds.polyEvaluate(i, v=1)
@@ -104,7 +105,6 @@ class ToolsBox(object):
                 ch=0, form=2, degree=3), i + '_Cur')
             if cmds.xform(cname + '.cv[0]', q=1, ws=1, t=1)[1] < cmds.xform(cname + '.cv[' + str(cmds.getAttr(cname + ".controlPoints", size=1)) + ']', q=1, ws=1, t=1)[1]:
                 cmds.reverseCurve(cname, ch=0, rpo=1)
-        cmds.undoInfo(cck=1)
 
     def movevtx_UI(self):
         ui = 'ToolsBoxUI1'
@@ -114,7 +114,7 @@ class ToolsBox(object):
             pass
         cmds.window(ui, t='movevtx')
         cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('UI1objTextFieldGrp', l='Ä£ĞÍ', h=28, cw2=(30, 130))
+        cmds.textFieldGrp('UI1objTextFieldGrp', l='æ¨¡å‹', h=28, cw2=(30, 130))
         cmds.button('UI1RunButton', l="Run", h=28, w=100, c=lambda*args: self.movevtx(cmds.textFieldGrp('UI1objTextFieldGrp', q=1, tx=1)))
         cmds.window(ui, e=True, wh=(180, 100))
         cmds.showWindow(ui)
@@ -148,8 +148,8 @@ class ToolsBox(object):
             pass
         cmds.window(ui, t='samevtx')
         cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('UI2obj1TextFieldGrp',l='ÒÑĞŞĞÎÄ£ĞÍ', h=28, cw2=(60, 150))
-        cmds.textFieldGrp('UI2obj2TextFieldGrp',l='Òª¶Ô³ÆÄ£ĞÍ', h=28, cw2=(60, 150))
+        cmds.textFieldGrp('UI2obj1TextFieldGrp',l='å·²ä¿®å½¢æ¨¡å‹', h=28, cw2=(60, 150))
+        cmds.textFieldGrp('UI2obj2TextFieldGrp',l='è¦å¯¹ç§°æ¨¡å‹', h=28, cw2=(60, 150))
         cmds.button('RunButton', l="Run", h=28, w=100, c=lambda *args:
                     self.samevtx(cmds.textFieldGrp('UI2obj1TextFieldGrp', q=1, tx=1), cmds.textFieldGrp('UI2obj2TextFieldGrp', q=1, tx=1)))
         cmds.window(ui, e=True, wh=(220, 100))
@@ -170,7 +170,6 @@ class ToolsBox(object):
     def xiuxingJoint(self):
         Raxial = 'Y'     #Z
         Taxial = 'z'     #y
-        cmds.undoInfo(ock=1)
         joint = cmds.ls(sl=1, type="joint")[0]
         cmds.select(cl=1)
         blendJoint = cmds.joint(n=joint+"_BlendJoint")
@@ -206,10 +205,8 @@ class ToolsBox(object):
         cmds.connectAttr(floatMathB + ".outFloat", floatMathC + ".floatA", f=1)
         cmds.connectAttr(floatMathC + ".outFloat", blendJointEnd + ".t" + Taxial, f=1)
         cmds.connectAttr(joint + ".rotate" + Raxial, floatMathB + ".floatA", f=1)
-        cmds.undoInfo(cck=1)
 
     def xiuxingJointWang(self):
-        cmds.undoInfo(ock=1)
         jot_name = cmds.ls(sl=1, typ="joint")
         jot_bs_name1 = cmds.joint(n=(jot_name[0] + "_bs"), rad=3)
         jot_bs_name2 = cmds.joint(n=(jot_name[0] + "_bsend"), rad=3)
@@ -259,10 +256,8 @@ class ToolsBox(object):
                 cmds.setAttr(jot_bs_name2 + ".mumu", 0.5)
             for i in range(7):
                 cmds.setAttr(jot_bs_name2 + jot_attibuteZ[i], lock=1, keyable=0, channelBox=0)
-        cmds.undoInfo(cck=1)
 
     def TransferUV(self):
-        cmds.undoInfo(ock=1)
         dobj = cmds.ls(sl=1)
         if cmds.polyEvaluate(dobj[0], v=1) != cmds.polyEvaluate(dobj[1], v=1):
             dupobj = cmds.duplicate(dobj[1], rr=1)
@@ -274,7 +269,6 @@ class ToolsBox(object):
             cmds.delete(dupobj)
         else:
             cmds.polyTransfer(dobj[1], uv=1, ao=dobj[0])
-        cmds.undoInfo(cck=1)
 
     def createFollicleOnface_UI(self):
         ui = 'ToolsBoxUI3'
@@ -284,10 +278,10 @@ class ToolsBox(object):
             pass
         cmds.window(ui, t='createFollicleOnface')
         cmds.columnLayout(cat=("both", 2), columnWidth=180, rowSpacing=3)
-        cmds.textFieldGrp('UI3nameTextFieldGrp', l='Ãû³Æ', h=28, cw2=(50, 100))
-        cmds.intFieldGrp('UI3numIntFieldGrp', l='ÊıÁ¿', h=28, cw2=(50, 100))
+        cmds.textFieldGrp('UI3nameTextFieldGrp', l='åç§°', h=28, cw2=(50, 100))
+        cmds.intFieldGrp('UI3numIntFieldGrp', l='æ•°é‡', h=28, cw2=(50, 100))
         cmds.flowLayout(columnSpacing=5)
-        cmds.checkBox('UI3JointcheckBox', l='´´½¨¹Ç÷À', w=80)
+        cmds.checkBox('UI3JointcheckBox', l='åˆ›å»ºéª¨éª¼', w=80)
         cmds.button('UI3RunButton', l="Run", h=28, w=80, c=lambda *args: self.createFollicleOnface(
                     cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1), 
                     cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1), 

@@ -4,6 +4,8 @@ import os, re
 
 class setProjectTool():
 
+    __Verision = 1.1   #在maya文件夹中创建一个ProjectList文件
+
     def __init__(self):
         self.filePath = os.path.expanduser("~") + '/maya/ProjectList'
 
@@ -14,7 +16,7 @@ class setProjectTool():
         cmds.window(Ui, t=Ui, rtf=1, mb=1, mxb=0, wh=(230, 50))
         cmds.columnLayout(cat=('both', 2), rs=3, cw=230)
         cmds.optionMenu('ProjectList', l='ProjectPath')
-        cmds.button(h=24, l='Set', c=lambda *args: mel.eval('setProject \"%s\";print "Finish!"' %cmds.optionMenu('ProjectList', q=1, v=1).strip()))
+        cmds.button(h=24, l='Set', c=lambda *args: mel.eval('setProject \"%s\";print "Finish!"' % (cmds.optionMenu('ProjectList', q=1, v=1).strip())))
         cmds.popupMenu('rightC')
         cmds.menuItem(p='rightC', l='Add Project', c=lambda *args: self.refreshList('add'))
         cmds.menuItem(p='rightC', l='Delete Path', c=lambda *args: self.refreshList('delete'))
@@ -24,16 +26,15 @@ class setProjectTool():
     def refreshList(self, mode):
         if mode == 'add':
             if cmds.promptDialog(t='PojectPath', m='eg: C:/xxx/xxx', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':
-                newPath = cmds.promptDialog(q=1, t=1)
+                newPath = cmds.promptDialog(q=1, t=1).replace('\\', '/')
                 if not newPath:
                     return
+                if newPath == '----------':
+                    pass
                 elif not os.path.exists(newPath):
-                    Om.MGlobal.displayError('Path not exist!')
+                    Om.MGlobal.displayError(u'路径不存在! - Path not exist!')
                     return
-                elif ':\\' in newPath:
-                    Om.MGlobal.displayError('Path is wrong!')
-                    return
-                elif not re.match('.:/\S', newPath) and not re.match('\\\\\S', newPath):
+                elif not re.match('.:/\S', newPath) and not re.match('//\S', newPath):
                     Om.MGlobal.displayError('Path is wrong!')
                     return
                 with open(self.filePath, 'a') as listFile:
@@ -55,8 +56,10 @@ class setProjectTool():
                     cmds.deleteUI(i)
             with open(self.filePath, 'r') as listFile:
                 allPath = listFile.readline().split(';')
-                for i in allPath:
-                    if i:
+                for i in allPath[:-1]:
+                    if os.path.exists(i) or i == '----------':
                         cmds.menuItem(p='ProjectList', l=i)
+                    else:
+                        cmds.menuItem(p='ProjectList', l='%s - not exist' % i)
 
 setProjectTool().setProjectUi()

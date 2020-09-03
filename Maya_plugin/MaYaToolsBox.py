@@ -27,39 +27,15 @@ class MaYaToolsBox():
         cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.columnLayout('MainCL', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.textField('searchText', h=24, tcc=lambda *args: self.refreshToolList(cmds.textField('searchText', q=1, tx=1)))
-        cmds.textScrollList('vtxList', ams=1, sc=lambda *args:
-                                cmds.textScrollList('weightList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
+        cmds.textScrollList('ToolList', ams=0, sc=lambda *args: self.detail.setText(Showwindow.Jio[self.listView.currentItem().text()]
+                                cmds.textScrollList('ToolList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
+        cmds.button(l='执行', c=lambda *args: eval('self.%s()' % (cmds.textScrollList('ToolList', q=1, sii=1))))
         cmds.setParent('..')
 
         cmds.showWindow(ToolUi)
 
     def refreshToolList(self):
         pass
-    def setupUi(self, BoxUi):
-        try:
-            Boxui.close()
-        except:
-            pass
-        BoxUi.setObjectName("BoxUi")
-        BoxUi.resize(300, 500)
-        self.searchEdit = QtWidgets.QLineEdit(BoxUi)
-        self.searchEdit.setGeometry(QtCore.QRect(10, 20, 280, 28))
-        self.searchEdit.setObjectName("searchEdit")
-        self.listView = QtWidgets.QListWidget(BoxUi)
-        self.listView.setGeometry(QtCore.QRect(10, 60, 280, 250))
-        self.listView.setSortingEnabled(True)
-        self.listView.setObjectName("listView")
-        self.detail = QtWidgets.QLabel(BoxUi)
-        self.detail.setGeometry(QtCore.QRect(10, 320, 280, 120))
-        self.detail.setWordWrap(True)
-        self.detail.setFont(QtGui.QFont('宋体', 10))
-        self.detail.setObjectName("detailText")
-        self.runJio = QtWidgets.QPushButton(BoxUi)
-        self.runJio.setGeometry(QtCore.QRect(10, 460, 280, 28))
-        self.runJio.setObjectName("runJio")
-
-        self.retranslateUi(BoxUi)
-        QtCore.QMetaObject.connectSlotsByName(BoxUi)
 
     def retranslateUi(self, BoxUi):
         BoxUi.setWindowTitle(u"BoxUi")

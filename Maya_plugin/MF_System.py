@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from maya import cmds
 import maya.OpenMaya as Om
 import decimal, re, math

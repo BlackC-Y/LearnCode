@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from maya import cmds, mel
 import maya.OpenMaya as Om
 import os, re

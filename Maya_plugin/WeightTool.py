@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 #Support Maya2016-2020
 try:
     from PySide2 import QtCore, QtGui, QtWidgets

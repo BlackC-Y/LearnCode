@@ -1,7 +1,5 @@
-# -*- coding: GBK -*-
-#encoding:GBK
+# -*- coding: UTF-8 -*-
 from maya import cmds, mel
-#import maya.api.OpenMaya as om
 import re,math,random
 
 def My_GeneralTool():
@@ -10,7 +8,7 @@ def My_GeneralTool():
     if cmds.window(ToolWinUIname,q=True,ex=True):
         cmds.deleteUI(ToolWinUIname)
     cmds.window(ToolWinUIname,title=("MyTool-v01"),s=1,mb=1,bgc=[.2,.2,.2],widthHeight=(305,430))
-    ToolTabArray=["¿ØÖÆÆ÷","°ó¶¨¸¨Öú","ÃÉÆ¤¸¨Öú"]
+    ToolTabArray=["æ§åˆ¶å™¨","ç»‘å®šè¾…åŠ©","è’™çš®è¾…åŠ©"]
     ToolTab1_CheckBox=["TT1_SnapCheckB","TT1_SDKCheckB","TT1_ControlRadioBG"]
     ToolTab1_columnLy=ToolTab2_columnLy=ToolTab3_columnLy=""
     ToolColorGridLy=ToolTab1_c_columnLy=ToolCtrlGridLy=""
@@ -29,15 +27,15 @@ def My_GeneralTool():
     cmds.canvas("defaultColorCanvas",hsv=(237.446808,1,0.376),ann="5",pc='cmds.select(cl=1)')
     cmds.setParent( '..' )
     ToolTab1_c_rowColumnLy=cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1, 100), (2, 148)])
-    ToolTab1_Parent_checkA=cmds.checkBox('TT1_ParentCheckB', l='²ã¼¶»¯¿ØÖÆÆ÷', h=25)   #@@@@@
-    cmds.text(l='!!!×¢ÒâÑ¡ÔñË³Ğò ÏÈÑ¡¶¥¼¶ÎïÌå Ë³ĞòÑ¡Ôñ', w=200, bgc=(1,1,.5))   #@@@@@
-	#cmds.button(label="Ç°×ºÃû",h=30,c='cmds.PrefixHierarchyNames(1)')
-	#cmds.button(label="ÖÃ»»×Ö·û",h=30,c='mel.eval("performSearchReplaceNames 1")')
-    ToolTab1_Snap_checkB=cmds.checkBox(ToolTab1_CheckBox[0],label='¶ÔÆëµ½Ñ¡ÔñÎïÌå',v=1,h=25)
-    ToolTab1_SDK_checkB=cmds.checkBox(ToolTab1_CheckBox[1],label='Ìí¼Ósdk×é',h=25)
+    ToolTab1_Parent_checkA=cmds.checkBox('TT1_ParentCheckB', l='å±‚çº§åŒ–æ§åˆ¶å™¨', h=25)   #@@@@@
+    cmds.text(l='!!!æ³¨æ„é€‰æ‹©é¡ºåº å…ˆé€‰é¡¶çº§ç‰©ä½“ é¡ºåºé€‰æ‹©', w=200, bgc=(1,1,.5))   #@@@@@
+	#cmds.button(label="å‰ç¼€å",h=30,c='cmds.PrefixHierarchyNames(1)')
+	#cmds.button(label="ç½®æ¢å­—ç¬¦",h=30,c='mel.eval("performSearchReplaceNames 1")')
+    ToolTab1_Snap_checkB=cmds.checkBox(ToolTab1_CheckBox[0],label='å¯¹é½åˆ°é€‰æ‹©ç‰©ä½“',v=1,h=25)
+    ToolTab1_SDK_checkB=cmds.checkBox(ToolTab1_CheckBox[1],label='æ·»åŠ sdkç»„',h=25)
     cmds.setParent( '..' )
     ToolTab1_c_columnLy=cmds.columnLayout(ToolTabArray[0],adj=1)
-    ToolTab1_Control_radioBG=cmds.radioButtonGrp(ToolTab1_CheckBox[2],label="",sl=1 , labelArray4=["Ö»¶ÔÆë", "Ô¼Êø¿ØÖÆ", "¸¸×Ó¹ØÏµ","ÊôĞÔÁ¬½Ó"], numberOfRadioButtons=4,cw5=[0,60,75,75,75] )
+    ToolTab1_Control_radioBG=cmds.radioButtonGrp(ToolTab1_CheckBox[2],label="",sl=1 , labelArray4=["åªå¯¹é½", "çº¦æŸæ§åˆ¶", "çˆ¶å­å…³ç³»","å±æ€§è¿æ¥"], numberOfRadioButtons=4,cw5=[0,60,75,75,75] )
     cmds.setParent( '..' )
     ToolCtrlGridLy=cmds.gridLayout( numberOfColumns=8, cellWidthHeight=(35,35),w=298)
     ctrlOrder=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
@@ -49,25 +47,25 @@ def My_GeneralTool():
     cmds.setParent( '..' )
     ToolTab1_c1_rowColumnLy=cmds.rowColumnLayout( numberOfColumns=4,columnWidth=[(1, 73), (2, 73),(3, 73),(4, 73)])
     repaceShapeCheckBName="repaceShape_checkB"
-    ToolTab1_repaceS_checkB=cmds.checkBox(repaceShapeCheckBName,bgc=[.3,.3,1],label='ÖÃ»»ĞÎ×´',h=25,cc='MZ_checkBoxSelectChange("'+repaceShapeCheckBName+'")')
-    cmds.button(label="¸¸×ÓĞÎ½Úµã",bgc=[1,1,0],h=25,c='MZ_parentCurveShapeNode()')
-    cmds.button(label="·Å´óÇúÏß",bgc=[1,1,1],h=25,c='MZ_curScale_Rot("Large")')
-    cmds.button(label="ËõĞ¡ÇúÏß",bgc=[0,0,0],h=25,c='MZ_curScale_Rot("Small")')
+    ToolTab1_repaceS_checkB=cmds.checkBox(repaceShapeCheckBName,bgc=[.3,.3,1],label='ç½®æ¢å½¢çŠ¶',h=25,cc='MZ_checkBoxSelectChange("'+repaceShapeCheckBName+'")')
+    cmds.button(label="çˆ¶å­å½¢èŠ‚ç‚¹",bgc=[1,1,0],h=25,c='MZ_parentCurveShapeNode()')
+    cmds.button(label="æ”¾å¤§æ›²çº¿",bgc=[1,1,1],h=25,c='MZ_curScale_Rot("Large")')
+    cmds.button(label="ç¼©å°æ›²çº¿",bgc=[0,0,0],h=25,c='MZ_curScale_Rot("Small")')
     cmds.setParent( '..' )
     ToolTab1_c2_rowColumnLy=cmds.rowColumnLayout( numberOfColumns=3,columnWidth=[(1, 98), (2, 98),(3, 98)])
-    cmds.button(label="XÖáĞı×ª90",h=25,bgc=[1,.2,.2],c='MZ_curScale_Rot("X90")')
-    cmds.button(label="YÖáĞı×ª90",h=25,bgc=[.2,1,.2],c='MZ_curScale_Rot("Y90")')
-    cmds.button(label="ZÖáĞı×ª90",h=25,bgc=[.2,.2,1],c='MZ_curScale_Rot("Z90")')
+    cmds.button(label="Xè½´æ—‹è½¬90",h=25,bgc=[1,.2,.2],c='MZ_curScale_Rot("X90")')
+    cmds.button(label="Yè½´æ—‹è½¬90",h=25,bgc=[.2,1,.2],c='MZ_curScale_Rot("Y90")')
+    cmds.button(label="Zè½´æ—‹è½¬90",h=25,bgc=[.2,.2,1],c='MZ_curScale_Rot("Z90")')
     cmds.setParent( '..' )
     ToolTab1_c3_rowColumnLy=cmds.rowColumnLayout( numberOfColumns=3,columnWidth=[(1, 146), (2, 146)])
-    cmds.button(label="½âËøËùÓĞÊôĞÔ",h=25,bgc=[1,.5,.5],c='mz_lockAttr_T_R_S_V(1)')
-    cmds.button(label="Ëø¶¨Òş²ØÊôĞÔ",h=25,bgc=[.5,.5,1],c='mz_lockAttr_T_R_S_V(0)')
+    cmds.button(label="è§£é”æ‰€æœ‰å±æ€§",h=25,bgc=[1,.5,.5],c='mz_lockAttr_T_R_S_V(1)')
+    cmds.button(label="é”å®šéšè—å±æ€§",h=25,bgc=[.5,.5,1],c='mz_lockAttr_T_R_S_V(0)')
     cmds.setParent( '..' )
     cmds.setParent( '..' )
     ToolTab2_columnLy=cmds.columnLayout(ToolTabArray[1],adj=1)
     ToolTab2_c1_rowColumnLy=cmds.rowColumnLayout( numberOfColumns=2,columnWidth=[(1, 146), (2, 146)])
-    cmds.button(label="Ñ¡ÔñÏßÉú³ÉÖĞÏß",bgc=[.8,.8,0],h=25,c='')
-    cmds.button(label="Ñ¡ÔñÏß·ÖÀë³ÉÏß",bgc=[.8,.8,0],h=25,c='MZ_curvePickUp()')
+    cmds.button(label="é€‰æ‹©çº¿ç”Ÿæˆä¸­çº¿",bgc=[.8,.8,0],h=25,c='')
+    cmds.button(label="é€‰æ‹©çº¿åˆ†ç¦»æˆçº¿",bgc=[.8,.8,0],h=25,c='MZ_curvePickUp()')
     cmds.setParent( '..' )
     cmds.setParent( '..' )
     ToolTab3_columnly=cmds.columnLayout(ToolTabArray[2],adj=1)
@@ -264,7 +262,7 @@ def CreateCtrlCur(cc_Index):
                         cmds.connectAttr((cctrl+".sz"),(everyObj+".sz"),f=1)
                     else:
                         cmds.select(selectObj)
-                        cmds.error("ÄãÒª×öÊôĞÔÁ¬½Ó¿ØÖÆ£¬±»¿ØÖÆµÄÎïÌåµÄÎ»ÒÆĞı×ªÊôĞÔ¹éÁã")
+                        cmds.error("ä½ è¦åšå±æ€§è¿æ¥æ§åˆ¶ï¼Œè¢«æ§åˆ¶çš„ç‰©ä½“çš„ä½ç§»æ—‹è½¬å±æ€§å½’é›¶")
             if cmds.checkBox('TT1_ParentCheckB', q=1, v=1):
                     ctrllist.append(cctrl)
         for i in range(len(ctrllist)-1, 0, -1):
@@ -292,7 +290,7 @@ def CreateCtrlCur(cc_Index):
 def MZ_parentCurveShapeNode():
 	sel=cmds.ls(sl=1,type=["transform"])
 	if len(sel)==0 and  len(sel)==1:
-		cmds.error=("ÎïÌåÑ¡ÔñµÄ²»ÕıÈ·£¬ÇëÑ¡×ÅÄ¿±êÇúÏßÎïÌå£¬ÔÚ¼ÓÑ¡Î»ÖÃÎïÌå")
+		cmds.error=("ç‰©ä½“é€‰æ‹©çš„ä¸æ­£ç¡®ï¼Œè¯·é€‰ç€ç›®æ ‡æ›²çº¿ç‰©ä½“ï¼Œåœ¨åŠ é€‰ä½ç½®ç‰©ä½“")
 	i=0
 	while i<len(sel)-1:
 		ShapeNode=cmds.listRelatives(sel[i],children=True,s=1,type="nurbsCurve")

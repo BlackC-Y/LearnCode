@@ -1,23 +1,23 @@
-from PySide2 import QtCore, QtGui, QtWidgets
+# -*- coding: UTF-8 -*-
+'''Roadmap:1.带UI的直接生成在主窗口中，共用一个button.
+'''
 from maya import cmds, mel
-import maya.OpenMayaUI as Omui
-import shiboken2
 
 
 class MaYaToolsBox():
 
-    __Verision = 0.5
+    __Verision = 1.0
     
-    def Jio(self):
-        self.Jio = {
-        'createloc': u'在选择物体的位置创建Locator',
-        'polytoCurve': u'批量提取曲线__仅适用于单片模型',
-        'movevtx_UI': u'修型时传递点 \n选择要传递的点 填写被传递的模型',
-        'samevtx_UI': u'移动点达到对称修形 \n选择原模型上要对称的点 分别填写模型',
-        'xiuxingJoint': u'创建修型骨骼(高自定义) \n选择要修型的骨骼',
-        'xiuxingJointWang': u'创建修型骨骼(乖孙版) \n选择要修型的骨骼',
-        'TransferUV': u'传递UV \n选择UV模型+要传递的模型',
-        'createFollicleOnface_UI': u'在平面上创建毛囊和骨骼',
+    def __init__(self):
+        self.Info = {
+        'createloc': [u'在选择物体的位置创建Locator',],
+        'polytoCurve': [u'批量提取曲线__仅适用于单片模型',],
+        'movevtx_UI': [u'修型时传递点 \n选择要传递的点 填写被传递的模型',],
+        'samevtx_UI': [u'移动点达到对称修形 \n选择原模型上要对称的点 分别填写模型',],
+        'xiuxingJoint': [u'创建修型骨骼(高自定义) \n选择要修型的骨骼',],
+        'xiuxingJointWang': [u'创建修型骨骼(乖孙版) \n选择要修型的骨骼',],
+        'TransferUV': [u'传递UV \n选择UV模型+要传递的模型',],
+        'createFollicleOnface_UI': [u'在平面上创建毛囊和骨骼',],
             }
 
     def ToolUi(self):
@@ -27,33 +27,22 @@ class MaYaToolsBox():
         cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.columnLayout('MainCL', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.textField('searchText', h=24, tcc=lambda *args: self.refreshToolList(cmds.textField('searchText', q=1, tx=1)))
-        cmds.textScrollList('ToolList', ams=0, sc=lambda *args: self.detail.setText(Showwindow.Jio[self.listView.currentItem().text()]
-                                cmds.textScrollList('ToolList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
-        cmds.button(l='执行', c=lambda *args: eval('self.%s()' % (cmds.textScrollList('ToolList', q=1, sii=1))))
+        cmds.textScrollList('ToolList', ams=0, h=200, sc=lambda *args:
+                                cmds.text('detailText', e=1, l=self.Info[cmds.textScrollList('ToolList', q=1, si=1)[0]]))
+        cmds.columnLayout('EditCL', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.setParent('..')
+        cmds.text('detailText', p='EditCL', h=100, l='说明:')
+        cmds.button(l='执行', c=lambda *args: eval('MaYaToolsBox().%s()' % (cmds.textScrollList('ToolList', q=1, si=1)[0])))
 
+        for i in self.Info:
+            cmds.textScrollList('ToolList', e=1, a=i)
         cmds.showWindow(ToolUi)
 
-    def refreshToolList(self):
-        pass
-
-    def retranslateUi(self, BoxUi):
-        BoxUi.setWindowTitle(u"BoxUi")
-        for i in Showwindow.Jio:
-            self.listView.addItem(i)
-        self.listView.currentTextChanged.connect(lambda: self.detail.setText(Showwindow.Jio[self.listView.currentItem().text()]))
-        #QtCore.QObject.connect(self.listView, QtCore.SIGNAL("currentTextChanged(QString)"), self.label.setText)
-        self.searchEdit.textEdited.connect(lambda: self.finditem())
-        self.detail.setText(u"说明:")
-        self.runJio.setText(u"执行")
-        self.runJio.clicked.connect(lambda *args: eval('ToolsBox().' + self.listView.currentItem().text() + '()'))
-
-    def finditem(self):
-        self.listView.clear()
-        for i in Showwindow.Jio:
-            if (self.searchEdit.text().lower() in i.lower() or 
-                self.searchEdit.text().lower() in Showwindow.Jio[i].lower()):
-                self.listView.addItem(i)
+    def refreshToolList(self, string):
+        cmds.textScrollList('ToolList', e=1, ra=1)
+        for i in self.Info:
+            if string.lower() in i.lower() or string.lower() in self.Info[i][0].lower():
+                cmds.textScrollList('ToolList', e=1, a=i)
 
     def chuangjian(self):
         alist = cmds.ls(sl=1, fl=1)
@@ -237,9 +226,7 @@ class MaYaToolsBox():
         dobj = cmds.ls(sl=1)
         if cmds.polyEvaluate(dobj[0], v=1) != cmds.polyEvaluate(dobj[1], v=1):
             dupobj = cmds.duplicate(dobj[1], rr=1)
-            cmds.transferAttributes(dobj[0], dupobj,
-                                    transferPositions=0, transferNormals=0, transferUVs=2, transferColors=2, sampleSpace=0,
-                                    sourceUvSpace="map1", targetUvSpace="map1", searchMethod=3, flipUVs=0, colorBorders=1)
+            cmds.transferAttributes(dobj[0], dupobj, pos=0, nml=0, uvs=2, col=2, spa=0, sus="map1", tus="map1", sm=3, fuv=0, clb=1)
             cmds.delete(dupobj, ch=1)
             cmds.polyTransfer(dobj[1], uv=1, ao=dupobj[0])
             cmds.delete(dupobj)
@@ -259,8 +246,8 @@ class MaYaToolsBox():
         cmds.flowLayout(columnSpacing=5)
         cmds.checkBox('UI3JointcheckBox', l='创建骨骼', w=80)
         cmds.button('UI3RunButton', l="Run", h=28, w=80, c=lambda *args: self.createFollicleOnface(
-                    cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1), 
-                    cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1), 
+                    cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1),
+                    cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1),
                     cmds.checkBox('UI3JointcheckBox', q=1, v=1)))
         cmds.setParent('..')
         cmds.showWindow(ui)
@@ -296,5 +283,4 @@ class MaYaToolsBox():
                 cmds.parent(jointN,Joint_Grp)
     
 
-Boxui = Showwindow()
-Boxui.show()
+MaYaToolsBox().ToolUi()

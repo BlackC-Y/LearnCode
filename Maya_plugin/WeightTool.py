@@ -1,5 +1,9 @@
 # -*- coding: UTF-8 -*-
-#Support Maya2016-2020
+#Support Maya2015-2020
+
+'''Roadmap:1.骨骼列表刷新优化，要刷新权重注释，不动列表本身
+           2.使用2016新api加速setweight，对2015使用旧版
+'''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
@@ -15,8 +19,10 @@ import decimal
 
 class WeightTool():
 
+    __Verision = 0.5
+    
     def ToolUi(self):
-        __Verision = 0.5
+        
         ToolUi = 'WeightTool'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)

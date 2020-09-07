@@ -5,7 +5,7 @@ import os, re
 
 class setProjectTool():
 
-    __Verision = 1.1   #在maya文件夹中创建一个ProjectList文件
+    __Verision = 1.2   #在maya文件夹中创建一个ProjectList文件
 
     def __init__(self):
         self.filePath = os.path.expanduser("~") + '/maya/ProjectList'
@@ -14,16 +14,23 @@ class setProjectTool():
         Ui = 'setProject'
         if cmds.window(Ui, q=1, ex=1):
             cmds.deleteUI(Ui)
-        cmds.window(Ui, t=Ui, rtf=1, mb=1, mxb=0, wh=(230, 50))
-        cmds.columnLayout(cat=('both', 2), rs=3, cw=230)
+        cmds.window(Ui, t=Ui, rtf=1, mb=1, mxb=0, wh=(350, 50))
+        cmds.columnLayout(cat=('both', 2), rs=3, cw=350)
+        cmds.text('ProjectText', h=18, l= cmds.workspace(q=1, dir=1, rd=1))
         cmds.optionMenu('ProjectList', l='ProjectPath')
-        cmds.button(h=24, l='Set', c=lambda *args: mel.eval('setProject \"%s\";print "Finish!"' % (cmds.optionMenu('ProjectList', q=1, v=1).strip())))
+        cmds.button(h=24, l='Set', c=lambda *args: self.setPath())
         cmds.popupMenu('rightC')
         cmds.menuItem(p='rightC', l='Add Project', c=lambda *args: self.refreshList('add'))
         cmds.menuItem(p='rightC', l='Delete Path', c=lambda *args: self.refreshList('delete'))
         cmds.showWindow(Ui)
         self.refreshList(None)
-    
+    def setPath(self):
+        Path = cmds.optionMenu('ProjectList', q=1, v=1).strip()
+        if Path == '----------':
+            return
+        mel.eval('setProject \"%s\";print "Finish!"' %Path)
+        cmds.text('ProjectText', e=1, l=Path)
+        
     def refreshList(self, mode):
         if mode == 'add':
             if cmds.promptDialog(t='PojectPath', m='eg: C:/xxx/xxx', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':

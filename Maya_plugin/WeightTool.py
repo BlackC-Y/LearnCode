@@ -1,8 +1,9 @@
 # -*- coding: UTF-8 -*-
 #Support Maya2015-2020
 
-'''Roadmap:1.骨骼列表刷新优化，要刷新权重注释，不动列表本身
-           2.使用2016新api加速setweight，对2015使用旧版
+'''Roadmap:1.骨骼列表刷新优化，要刷新权重注释，不动列表本身   √
+           2.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
+           3.使用2016新api加速setweight，对2015使用旧版
 '''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -56,7 +57,8 @@ class WeightTool():
         cmds.setParent('..')
         cmds.setParent('..')
         cmds.formLayout('JointTVLayout')
-        cmds.treeView('JointTV', nb=1, h=100, scc=self._weightfloat, pc=(1, self.lock_unLock))
+        cmds.treeView('JointTV', nb=1, h=100, scc=self._weightView, pc=(1, self.lock_unLock))
+        cmds.text('savecluster', l='', vis=0)
         cmds.popupMenu()
         #cmds.menuItem(l='Lock All')
         #cmds.menuItem(l='Unlock All')
@@ -117,7 +119,7 @@ class WeightTool():
             edgeCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"edge\\\", 0);")'
             vertexCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"vertex\\\", 0);")'
             faceCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"facet\\\", 0);")'
-            objModeCmd = '"maintainActiveChangeSelectMode OvO 0;"'  #python (\\\"WeightTool().refreshBoxChange(9)\\\");
+            objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  #python (\\\"WeightTool().refreshBoxChange(9)\\\");
         else:
             edgeCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"edge\\\");")'
             vertexCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"vertex\\\");")'
@@ -125,7 +127,7 @@ class WeightTool():
             objModeCmd = '"changeSelectMode -component;changeSelectMode -object;"'
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
                 if(objectType($object) == "joint"){ \
-                string $selCmd = "python(\\\"cmds.treeView(\'JointTV\', e=1, cs=1);cmds.treeView(\'JointTV\', e=1, si=(\'" + $object + "\', 1))\\\")"; \
+                string $selCmd = "python(\\\"cmds.treeView(\'JointTV\', e=1, cs=1);cmds.treeView(\'JointTV\', e=1, si=(\'" + $object + "\', 1));WeightTool()._weightView()\\\")"; \
                 menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
                 }else{ \
                 menuItem -l "Edge" -ec true -c %s -rp "N" -p $parent; \
@@ -159,31 +161,44 @@ class WeightTool():
         self.tempcluster = clusterName
         jointList = cmds.skinCluster(selobj, q=1, wi=1) if cmds.menuItem('FImeunItem', q=1, cb=1) else cmds.skinCluster(selobj, q=1, inf=1)
         siItem = cmds.treeView('JointTV', q=1, si=1)
-        cmds.treeView('JointTV', e=1, ra=1)
-        if search:
-            text = cmds.textField('searchText', q=1, tx=1)
-            getList = [i for i in jointList if text in i]
-            if getList:
-                jointList = getList
-        cmds.treeView('JointTV', e=1, ra=1)
-        for i in jointList:
-            if cmds.menuItem('HImeunItem', q=1, rb=1):
-                self.addHItoList(i, jointList)
-            else:
-                cmds.treeView('JointTV', e=1, ai=[i, ''])
-        allItem = cmds.treeView('JointTV', q=1, ch='')
-        for j in allItem:
-            if cmds.getAttr(j + '.liw'):
-                cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
-            else:
-                cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
-            Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
-            if not float(Value):
-                continue
-            cmds.treeView('JointTV', e=1, dl=(j, '%s   |   %s' % (j, Value)))
-        if siItem:
-            for i in siItem:
-                cmds.treeView('JointTV', e=1, si=(i, 1))
+        if not cmds.treeView('JointTV', q=1, ch='') or cmds.text('savecluster', q=1, l=1) != clusterName or search:
+            cmds.treeView('JointTV', e=1, ra=1)
+            if search:
+                text = cmds.textField('searchText', q=1, tx=1)
+                getList = [i for i in jointList if text in i]
+                if getList:
+                    jointList = getList
+            cmds.treeView('JointTV', e=1, ra=1)
+            for i in jointList:
+                if cmds.menuItem('HImeunItem', q=1, rb=1):
+                    self.addHItoList(i, jointList)
+                else:
+                    cmds.treeView('JointTV', e=1, ai=[i, ''])
+            allItem = cmds.treeView('JointTV', q=1, ch='')
+            for j in allItem:
+                if cmds.getAttr(j + '.liw'):
+                    cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
+                else:
+                    cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
+                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
+                if not cmds.treeView('JointTV', q=1, dls=1):
+                    cmds.treeView('JointTV', e=1, dls=(j, ''))
+                if not float(Value):
+                    continue
+                cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' % Value))
+            if siItem:
+                for i in siItem:
+                    cmds.treeView('JointTV', e=1, si=(i, 1))
+        else:
+            allItem = cmds.treeView('JointTV', q=1, ch='')
+            for j in allItem:
+                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
+                if not cmds.treeView('JointTV', q=1, dls=1):
+                    cmds.treeView('JointTV', e=1, dls=(j, ''))
+                if not float(Value):
+                    continue
+                cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' % Value))
+        cmds.text('savecluster', e=1, l=clusterName)
             
     def addHItoList(self, i, jointList):
         jointP = cmds.listRelatives(i, p=1)
@@ -273,7 +288,12 @@ class WeightTool():
             cmds.skinCluster(self.tempcluster, e=1, siv=i)
             vtxList.append(cmds.filterExpand(cmds.ls(sl=1, fl=1), sm=[28, 31, 36, 40, 46]))
         cmds.select(vtxList, r=1)
-
+    
+    def _weightView(self):
+        if cmds.currentCtx() == 'artAttrSkinContext':
+            mel.eval('setSmoothSkinInfluence "%s";' % cmds.treeView('JointTV', q=1, si=1)[0])
+        self._weightfloat()
+        
     def _weightfloat(self):
         treesl = cmds.treeView('JointTV', q=1, si=1)
         if not treesl:

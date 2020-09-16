@@ -20,7 +20,7 @@ import decimal
 
 class WeightTool():
 
-    __Verision = 0.5
+    __Verision = 0.6.1
     
     def ToolUi(self):
         
@@ -28,12 +28,15 @@ class WeightTool():
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
         cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
-        cmds.menu(l='S/L', to=1)
-        cmds.menuItem(l='Save', c=lambda *args: WeightTool().vtxSave())
-        cmds.menuItem(l='Load', c=lambda *args: WeightTool().vtxLoad())
-        cmds.menu(l='Select', to=1)
-        cmds.menuItem(l='Create', c=lambda *args: WeightTool().createSelect())
-        cmds.menuItem(l='Get', c=lambda *args: WeightTool().getSelect())
+        cmds.menu(l='SkinT', to=1)
+        cmds.menuItem(d=1, dl="S/L")
+        cmds.menuItem(l='Save', c=lambda *args: self.vtxSave())
+        cmds.menuItem(l='Load', c=lambda *args: self.vtxLoad())
+        cmds.menuItem(d=1)
+        cmds.menuItem(l='reset SkinPose', c=lambda *args: self.resetSkinPose())
+        cmds.menu(l='RigT', to=1)
+        cmds.menuItem(l='Create', c=lambda *args: self.createSelect())
+        cmds.menuItem(l='Get', c=lambda *args: self.getSelect())
         cmds.columnLayout('FiristcL', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.text('spJobchangeVtx', p='FiristcL', vis=0)
         cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobchangeVtx')
@@ -346,7 +349,8 @@ class WeightTool():
         for i in selVtx:
             exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' %(clusterName, i, tvList))
     # # # # # # # # # #
-
+    
+    # # # # # Tool # # # # #
     def createSelect(self):
         selvtx = cmds.ls(sl=1)
         selobj = cmds.ls(sl=1, o=1)[0]
@@ -439,7 +443,24 @@ class WeightTool():
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (clusterName, selobj + '.' + vtx, tvList))
         cmds.progressBar(gMainProgressBar, e=1, ep=1)
         DisplayYes().showMessage('Finish!')
-
+    
+    def resetSkinPose(self):
+        for obj in cmds.ls(sl=1):
+            clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+            if not clusterName:
+                return
+            sk_mx = '%s.matrix' % clusterName
+            mx_mi = cmds.getAttr(sk_mx, mi=1)
+            infs = cmds.listConnections(sk_mx, s=1, d=0, scn=1)
+            if not infs:
+                return
+            for idx in mx_mi:
+                inf = cmds.listConnections('%s[%d]' % (sk_mx, idx), s=1, d=0, scn=1)
+                if not inf:
+                    continue
+                matrix = cmds.getAttr('%s.worldInverseMatrix[0]' % inf[0])
+                cmds.setAttr('%s.pm[%d]' % (clusterName, idx), matrix, typ='matrix')
+    # # # # # Tool # # # # #
 
 class DisplayYes():   #报绿
 

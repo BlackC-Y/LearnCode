@@ -20,7 +20,7 @@ import decimal
 
 class WeightTool():
 
-    __Verision = 0.6.1
+    __Verision = 0.62
     
     def ToolUi(self):
         
@@ -446,20 +446,32 @@ class WeightTool():
     
     def resetSkinPose(self):
         for obj in cmds.ls(sl=1):
-            clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+            clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
             if not clusterName:
                 return
-            sk_mx = '%s.matrix' % clusterName
-            mx_mi = cmds.getAttr(sk_mx, mi=1)
-            infs = cmds.listConnections(sk_mx, s=1, d=0, scn=1)
+            sk_matrix = clusterName + '.matrix'
+            mx_num = cmds.getAttr(sk_matrix, mi=1)
+            infs = cmds.listConnections(sk_matrix, s=1, d=0, scn=1)
             if not infs:
                 return
-            for idx in mx_mi:
-                inf = cmds.listConnections('%s[%d]' % (sk_mx, idx), s=1, d=0, scn=1)
+            for n in mx_num:
+                inf = cmds.listConnections('%s[%d]' % (sk_matrix, n), s=1, d=0, scn=1)
                 if not inf:
                     continue
                 matrix = cmds.getAttr('%s.worldInverseMatrix[0]' % inf[0])
-                cmds.setAttr('%s.pm[%d]' % (clusterName, idx), matrix, typ='matrix')
+                cmds.setAttr('%s.pm[%d]' % (clusterName, n), matrix, typ='matrix')
+            '''
+            bP_Node = cmds.listConnections(clusterName + '.bindPose', d=0, scn=1)[0]
+            bp_mem = bP_Node + '.members'
+            bp_num = cmds.getAttr(bp_mem, mi=1)
+            for n in bp_num:
+                inf = cmds.listConnections('%s[%d]' % (bp_mem, n), s=1, d=0, scn=1)
+                if not inf or n == 0 or n == 1:
+                    continue
+                #cmds.disconnectAttr('%s.bindPose' % inf[0], '%s[%d]' % (bp_mem, n))
+                #cmds.setAttr('%s[%d]' % (bp_mem, n), cmds.getAttr('%s.bindPose' % inf[0]), typ='matrix')
+                cmds.connectAttr('%s.bindPose' % inf[0], bP_Node + '.members[%d]' % n, f=1)
+           '''
     # # # # # Tool # # # # #
 
 class DisplayYes():   #报绿

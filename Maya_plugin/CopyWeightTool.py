@@ -4,7 +4,7 @@ class CopyWeightTool():
 
     __Verision = 1.0
 
-    def Ui(self)：
+    def Ui(self):
         ToolUi = 'CopyWeightTool'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
@@ -21,7 +21,7 @@ class CopyWeightTool():
         cmds.button('Run', c=lambda *args: Runfun())
         cmds.showWindow(ToolUi)
 
-    def Runfun():
+    def Runfun(self):
         _temp1_ = cmds.textFieldButtonGrp('sourceText', q=1, tx=1)
         _temp2_ = cmds.textFieldButtonGrp('targeText', q=1, tx=1)
         if not _temp1_ or not _temp2_:
@@ -45,3 +45,4 @@ class CopyWeightTool():
         cmds.copySkinWeights(_TempObj_, targelist, nm=1, sa='closestPoint', ia=('name', 'closestJoint', 'oneToOne'), nr=1)
         cmds.delete(_TempObj_)
     
+CopyWeightTool().Ui()

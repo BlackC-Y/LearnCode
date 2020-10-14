@@ -3,6 +3,8 @@ from maya import cmds, mel
 import maya.OpenMaya as Om
 import re
 
+cRivet__Verision = 1.0
+
 def cRivet(mode):
     slmesh = cmds.ls(sl=1, o=1, typ='mesh')
     slsurface = cmds.ls(sl=1, o=1, typ='nurbsSurface')
@@ -21,46 +23,49 @@ def cRivet(mode):
         cmds.setAttr(nLoft + '.u', 1)
         cmds.connectAttr(nCFME1 + '.oc', nLoft + '.ic[0]', f=1)
         cmds.connectAttr(nCFME2 + '.oc', nLoft + '.ic[1]', f=1)
-        nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
-        cmds.setAttr(nPOSI + '.top', 1)
-        cmds.setAttr(nPOSI + '.u', .5)
-        cmds.setAttr(nPOSI + '.v', .5)
-        cmds.connectAttr(nLoft + '.os', nPOSI + '.is', f=1)
-        Rivettyp = 0
+        if mode == 'follicle':
+            locN, locgrpN = cLoc(0)
+            nFollicle = cmds.createNode('follicle', p=locgrpN, n='%s_FollicleShape' %locN)
+            cmds.setAttr(nFollicle + '.visibility', 0)
+            cmds.setAttr(nFollicle + '.sim', 0)
+            cmds.connectAttr(locN + '.U', nFollicle + '.pu', f=1)
+            cmds.connectAttr(locN + '.V', nFollicle + '.pv', f=1)
+            cmds.connectAttr(nLoft + '.os', nFollicle + '.is', f=1)
+        else:
+            locN, locgrpN = cLoc(0)
+            nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
+            cmds.setAttr(nPOSI + '.top', 1)
+            cmds.connectAttr(locN + '.U', nPOSI + '.u', f=1)
+            cmds.connectAttr(locN + '.V', nPOSI + '.v', f=1)
+            cmds.connectAttr(nLoft + '.os', nPOSI + '.is', f=1)
     elif slsurface:
         onepoint = cmds.filterExpand(sm=41)
         if len(onepoint) != 1:
             Om.MGlobal.displayError('Select (One nurbsSurface Point)')
             return
         pointUV = re.findall(r'[[](.*?)[]]', onepoint[0])
-        nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
-        cmds.setAttr(nPOSI + '.top', 0)
-        cmds.setAttr(nPOSI + '.u', float(pointUV[0]))
-        cmds.setAttr(nPOSI + '.v', float(pointUV[1]))
-        cmds.connectAttr(slsurface[0] + '.ws', nPOSI + '.is', f=1)
-        Rivettyp = 1
+        if mode == 'follicle':
+            locN, locgrpN = cLoc(0, 1.0 / (cmds.getAttr('%s.mxu' %slsurface[0]) / float(pointUV[0])), 1.0 / (cmds.getAttr('%s.mxv' %slsurface[0]) / float(pointUV[1])))
+            nFollicle = cmds.createNode('follicle', p=locgrpN, n='%s_FollicleShape' %locN)
+            cmds.setAttr(nFollicle + '.visibility', 0)
+            cmds.setAttr(nFollicle + '.sim', 0)
+            cmds.connectAttr(locN + '.U', nFollicle + '.pu', f=1)
+            cmds.connectAttr(locN + '.V', nFollicle + '.pv', f=1)
+            cmds.connectAttr(slsurface[0] + '.ws', nFollicle + '.is', f=1)
+        else:
+            locN, locgrpN = cLoc(1, float(pointUV[0]), float(pointUV[1]))
+            nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
+            cmds.setAttr(nPOSI + '.top', 0)
+            cmds.connectAttr(locN + '.U', nPOSI + '.u', f=1)
+            cmds.connectAttr(locN + '.V', nPOSI + '.v', f=1)
+            cmds.connectAttr(slsurface[0] + '.ws', nPOSI + '.is', f=1)
     else:
         Om.MGlobal.displayError('Select (Mesh Edge) or (nurbsSurface Point)')
         return
-    locName = 'rivet%s' % str(len(cmds.ls('rivet*', typ='locator')) + 1)
-    locN = cmds.spaceLocator(n=locName)[0]
-    if Rivettyp:
-        cmds.addAttr(locN, ln='U', at='double', dv=0)
-        cmds.addAttr(locN, ln='V', at='double', dv=0)
-    else:
-        cmds.addAttr(locN, ln='U', at='double', min=0, max=1, dv=0)
-        cmds.addAttr(locN, ln='V', at='double', min=0, max=1, dv=0)
-    cmds.setAttr(locN + '.U', e=1, keyable=1)
-    cmds.setAttr(locN + '.U', cmds.getAttr(nPOSI + '.u'))
-    cmds.connectAttr(locN + '.U', nPOSI + '.u', f=1)
-    cmds.setAttr(locN + '.V', e=1, keyable=1)
-    cmds.setAttr(locN + '.V', cmds.getAttr(nPOSI + '.v'))
-    cmds.connectAttr(locN + '.V', nPOSI + '.v', f=1)
-    Attr = ['.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz']
-    for i in Attr:
-        cmds.setAttr(locN + i, lock=1)
-    locgrpN = cmds.group(locN, n=locN + '_grp')
-    if not mode:
+    if mode == 'follicle':
+        cmds.connectAttr(nFollicle + '.ot', locgrpN + '.t', f=1)
+        cmds.connectAttr(nFollicle + '.or', locgrpN + '.r', f=1)
+    elif mode == 'Matrix':
         if not cmds.pluginInfo('decomposeMatrix', q=1, l=1):
             cmds.loadPlugin('matrixNodes', quiet=1)
         nFBFM = cmds.createNode('fourByFourMatrix', n='rivetFBFM01')
@@ -81,7 +86,7 @@ def cRivet(mode):
         cmds.connectAttr(nDM + '.outputTranslate', locgrpN + '.t', f=1)
         cmds.connectAttr(nDM + '.outputRotate', locgrpN + '.r', f=1)
     elif mode == 'Aim':
-        nAimC = cmds.createNode('aimConstraint', p=locgrpN, n=locN + '_AimConstraint1')
+        nAimC = cmds.createNode('aimConstraint', p=locgrpN, n='%s_AimConstraint1' %locN)
         cmds.setAttr(nAimC + '.tg[0].tw', 1)
         cmds.setAttr(nAimC + '.a', 0, 1, 0, type='double3')
         cmds.setAttr(nAimC + '.u', 0, 0, 1, type='double3')
@@ -89,7 +94,23 @@ def cRivet(mode):
         cmds.connectAttr(nPOSI + '.tv', nAimC + '.wu', f=1)
         cmds.connectAttr(nPOSI + '.p', locgrpN + '.t', f=1)
         cmds.connectAttr(nAimC + '.cr', locgrpN + '.r', f=1)
-    elif mode == 'follicle':
-        pass
 
-cRivet(None)
+def cLoc(mode, uV = .5, vV = .5):
+    locName = 'rivet%s' % (len(cmds.ls('rivet*', typ='locator')) + 1)
+    locN = cmds.spaceLocator(n=locName)[0]
+    cmds.group(locN, n=locN + '_grp')
+    if mode:
+        cmds.addAttr(locN, ln='U', at='double', dv=0)
+        cmds.addAttr(locN, ln='V', at='double', dv=0)
+    else:
+        cmds.addAttr(locN, ln='U', at='double', min=0, max=1, dv=0)
+        cmds.addAttr(locN, ln='V', at='double', min=0, max=1, dv=0)
+    cmds.setAttr(locN + '.U', e=1, keyable=1)
+    cmds.setAttr(locN + '.U', uV)
+    cmds.setAttr(locN + '.V', e=1, keyable=1)
+    cmds.setAttr(locN + '.V', vV)
+    #for i in ['.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz']:
+    #    cmds.setAttr(locN + i, lock=1)
+    return locN, locN + '_grp'
+
+cRivet('follicle')

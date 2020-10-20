@@ -1,0 +1,37 @@
+#创建回绑定pose 到当前工具架
+
+from maya import cmds, mel
+
+melLine = ''
+for i in cmds.ls(sl=1, typ='joint'):
+	_t_ = cmds.getAttr(i + '.t')[0]
+	_r_ = cmds.getAttr(i + '.r')[0]
+    melLine += 'setAttr "%s.t" %f %f %f; \nsetAttr "%s.r" %f %f %f; \n' % (i, _t_[0], _t_[1], _t_[2], i, _r_[0], _r_[1], _r_[2])
+gShelfTopLevel = mel.eval('$tmp = $gShelfTopLevel')
+Layout1 = cmds.tabLayout(gShelfTopLevel, q=1, selectTab=1)
+cmds.shelfButton(c=melLine, ann='goBindPose', iol='goBindPose', i='commandButton.png', i1='commandButton.png', stp="mel", p=Layout1)
+
+#python报错
+
+import logging
+ 
+logging.basicConfig(level=logging.ERROR)
+#logging.info('vertex')   #info
+#logging.debug('selPoints')   #??
+#logging.error("Select error!")   #error
+
+#选择当前蒙皮的骨骼
+
+jointlist = cmds.skinCluster(cmds.ls(sl=1, o=1)[0], q=1, inf=1)
+#jointlist = [i.split(':')[1] for i in jointlist]
+cmds.select(jointlist,r=1)
+
+#选择在蒙皮上移动过的点
+
+num = []
+for i in range(cmds.polyEvaluate(v=1)):
+	if cmds.getAttr('tweak4.vlist[0].vertex[%s].xVertex' %i)   \
+    or cmds.getAttr('tweak4.vlist[0].vertex[%s].yVertex' %i)   \
+	or cmds.getAttr('tweak4.vlist[0].vertex[%s].zVertex' %i):
+        num.append('lilanzhou.vtx[%s]' %i)
+cmds.select(num, r=1)

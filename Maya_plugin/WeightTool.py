@@ -1,9 +1,8 @@
 # -*- coding: UTF-8 -*-
 #Support Maya2015-2020
 
-'''Roadmap:1.骨骼列表刷新优化，要刷新权重注释，不动列表本身   √
-           2.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
-           3.使用2016新api加速setweight，对2015使用旧版
+'''Roadmap:1.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
+           2.使用2016新api加速setweight，对2015使用旧版
 '''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -20,7 +19,7 @@ import decimal
 
 class WeightTool():
 
-    __Verision = 0.62
+    __Verision = 0.63
     
     def ToolUi(self):
         
@@ -44,13 +43,13 @@ class WeightTool():
         cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20,
                                 onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
         cmds.popupMenu()
-        cmds.menuItem('OFFmeunItem', l='OFF', cb=0, c=lambda *args: self.refreshJointList(9))
-        cmds.textField('searchText', h=22, tcc=lambda *args: self.refreshJointList(cmds.textField('searchText', q=1, tx=1)))
+        cmds.menuItem('OFFmeunItem', l='OFF', cb=0)
+        cmds.textField('searchText', h=22, tcc=lambda *args: self.refreshJointList(1, cmds.textField('searchText', q=1, tx=1)))
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
-        cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(None))
-        cmds.menuItem('AImeunItem', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(None))
-        cmds.menuItem('FImeunItem', l='Filter Zero', cb=1, c=lambda *args: self.refreshJointList(None))
+        cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('AImeunItem', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('FImeunItem', l='Filter Zero', cb=0, c=lambda *args: self.refreshJointList(1))
         #cmds.iconTextButton(i='expandInfluenceList.png', w=20, h=20,
         #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) + 20))
         #cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
@@ -69,14 +68,14 @@ class WeightTool():
         cmds.formLayout('JointTVLayout', e=1, af=[('JointTV', 'top', 0), ('JointTV', 'bottom', 0), ('JointTV', 'left', 3), ('JointTV', 'right', 3)])
         cmds.setParent('..')
         cmds.columnLayout('vtxToolcL', cat=('both', 2), rs=2, cw=225)
-        cmds.rowLayout(nc=4, cw4=(50, 50, 50, 50))
+        cmds.rowLayout(nc=4, cw4=(50, 50, 50, 65))
         cmds.floatField('weighrfloat', w=52, h=26, pre=4, min=0, max=1, 
                             ec=lambda *args: self.editVtxWeight(cmds.floatField('weighrfloat', q=1, v=1)))
         cmds.button(w=50, h=26, l='Copy', c=lambda *args: self.copyVtxWeight())
         cmds.button(w=50, h=26, l='Paste', c=lambda *args: self.pasteVtxWeight())
         cmds.popupMenu()
         cmds.menuItem(l='PasteAll', c=lambda *args: mel.eval("polyConvertToShell;artAttrSkinWeightPaste;"))
-        cmds.button(w=65, h=26, l='Hammer', c=lambda *args: mel.eval('weightHammerVerts'))
+        cmds.button(w=65, h=26, l='Hammer', c=lambda *args: mel.eval('weightHammerVerts;self.refreshJointList(0)'))
         cmds.setParent('..')
         cmds.rowLayout(nc=5, cw5=(43, 43, 43, 43, 43))
         cmds.button(w=43, h=26, l='Loop', c=lambda *args: cmds.polySelectSp(loop=1))
@@ -114,8 +113,8 @@ class WeightTool():
         if cmds.text('spJobVtxParent', q=1, ex=1):
             return
         cmds.text('spJobVtxParent', p='FiristcL', vis=0)
-        cmds.scriptJob(e=['Undo', 'WeightTool().refreshJointList(None)'], p='spJobVtxParent')
-        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshJointList(None)'], p='spJobVtxParent')
+        cmds.scriptJob(e=['Undo', 'WeightTool().refreshJointList(0)'], p='spJobVtxParent')
+        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshJointList(0)'], p='spJobVtxParent')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
         cmds.scriptJob(uid=['WeightTool', 'WeightTool().refreshBoxChange(9)'])
         if int(cmds.about(v=1)) > 2017:
@@ -149,7 +148,7 @@ class WeightTool():
             self.spJobStart()
             cmds.iconTextCheckBox('refresh', e=1, v=1)
     
-    def refreshJointList(self, search):
+    def refreshJointList(self, refresh, search = ''):
         if not cmds.selectType(q=1, ocm=1, pv=1):
             self.refreshBoxChange(9)
             return
@@ -162,40 +161,51 @@ class WeightTool():
             self.refreshBoxChange(9)
             return
         self.tempcluster = clusterName
-        jointList = cmds.skinCluster(selobj, q=1, wi=1) if cmds.menuItem('FImeunItem', q=1, cb=1) else cmds.skinCluster(selobj, q=1, inf=1)
+        jointList = cmds.skinCluster(selobj, q=1, inf=1)   #cmds.skinCluster(selobj, q=1, wi=1)
         siItem = cmds.treeView('JointTV', q=1, si=1)
-        if not cmds.treeView('JointTV', q=1, ch='') or cmds.text('savecluster', q=1, l=1) != clusterName or search:
+        _zero = cmds.menuItem('FImeunItem', q=1, cb=1)
+        condition = [cmds.treeView('JointTV', q=1, ch=''), cmds.text('savecluster', q=1, l=1),]
+        if not condition[0] or condition[1] != clusterName or refresh or _zero:
             cmds.treeView('JointTV', e=1, ra=1)
             if search:
                 text = cmds.textField('searchText', q=1, tx=1)
                 getList = [i for i in jointList if text in i]
                 if getList:
                     jointList = getList
-            cmds.treeView('JointTV', e=1, ra=1)
+            jointList.sort()
+            _jointList = []
+            _valueList = []
             for i in jointList:
-                if cmds.menuItem('HImeunItem', q=1, rb=1):
-                    self.addHItoList(i, jointList)
+                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000001, q=1, t=i)
+                if _zero: 
+                    if float(Value):
+                        _jointList.append(i)
+                        _valueList.append(Value)
                 else:
-                    cmds.treeView('JointTV', e=1, ai=[i, ''])
-            allItem = cmds.treeView('JointTV', q=1, ch='')
-            for j in allItem:
+                    _jointList.append(i)
+                    _valueList.append(Value)
+            for j, v in zip(_jointList, _valueList):
+                if cmds.menuItem('HImeunItem', q=1, rb=1):
+                    self.addHItoList(j, _jointList)
+                else:
+                    cmds.treeView('JointTV', e=1, ai=[j, ''])
                 if cmds.getAttr(j + '.liw'):
                     cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
                 else:
                     cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
-                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
                 if not cmds.treeView('JointTV', q=1, dls=1):
                     cmds.treeView('JointTV', e=1, dls=(j, ''))
-                if not float(Value):
-                    continue
-                cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' % Value))
+                if float(v):
+                    cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' % v))
             if siItem:
+                allItem = cmds.treeView('JointTV', q=1, ch='')
                 for i in siItem:
-                    cmds.treeView('JointTV', e=1, si=(i, 1))
+                    if i in allItem:
+                        cmds.treeView('JointTV', e=1, si=(i, 1))
         else:
             allItem = cmds.treeView('JointTV', q=1, ch='')
             for j in allItem:
-                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=j)
+                Value = '%.3f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000001, q=1, t=j)
                 if not cmds.treeView('JointTV', q=1, dls=1):
                     cmds.treeView('JointTV', e=1, dls=(j, ''))
                 if not float(Value):
@@ -222,7 +232,7 @@ class WeightTool():
     def lock_unLock(self, jnt, but):
         #cmds.getAttr(i + '.liw', l=1)
         slItem = cmds.treeView('JointTV', q=1, si=1)
-        if not slItem:
+        if not slItem or len(slItem) == 1:
             slItem = [jnt]
         if cmds.getAttr(jnt + '.liw'):
             for i in slItem:
@@ -236,6 +246,8 @@ class WeightTool():
     def reSelect(self):
         allItem = cmds.treeView('JointTV', q=1, iv=1)
         slItem = cmds.treeView('JointTV', q=1, si=1)
+        if not allItem or not slItem:
+            return
         cmds.treeView('JointTV', e=1, cs=1)
         for i in allItem:
             if i in slItem:
@@ -280,7 +292,7 @@ class WeightTool():
                 tvList = [(j, float(mode)) for j in sljntList]
                 cmds.skinPercent(clusterName, v, tv=tvList)
         siItem = cmds.treeView('JointTV', q=1, si=1)
-        self.refreshJointList(None)
+        self.refreshJointList(0)
         for i in siItem:
             cmds.treeView('JointTV', e=1, si=(i, 1))
                         
@@ -299,9 +311,9 @@ class WeightTool():
         
     def _weightfloat(self):
         treesl = cmds.treeView('JointTV', q=1, si=1)
-        if not treesl:
-            return
         sel = cmds.ls(sl=1, fl=1)
+        if not treesl or not sel:
+            return
         selobj = cmds.ls(sl=1, o=1)[0]
         clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
         cmds.floatField('weighrfloat', e=1, v=float('%.4f' % cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=treesl[0])))
@@ -326,6 +338,7 @@ class WeightTool():
                 del ValueList[i], TransList[i]
         '''
         self.vtxWeightInfo = [clusterName, TransList, ValueList]
+        self.refreshJointList(0)
         #print(self.vtxWeightInfo)
 
     def pasteVtxWeight(self):
@@ -348,6 +361,7 @@ class WeightTool():
         #print(tvList)
         for i in selVtx:
             exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' %(clusterName, i, tvList))
+        self.refreshJointList(0)
     # # # # # # # # # #
     
     # # # # # Tool # # # # #
@@ -517,12 +531,13 @@ class WeightCheckTool():
         cmds.button(l='Remove Min', w=80, h=26, c=lambda *args: self.RemoveMin())
         cmds.popupMenu()
         cmds.menuItem(l='Remove as Value', c=lambda *args: self.RemoveValue())
-        cmds.button(l='Select', w=80, h=26, c=lambda *args: cmds.select(self.Number, r=1))
+        cmds.button(l='Select', w=80, h=26, c=lambda *args: self.selectVtx())
         cmds.text(l='Decimal', h=20)
         cmds.intField('DecimalInt', v=3)
         cmds.text(l='Influence', h=20)
         cmds.intField('InfluenceInt', v=3)
         cmds.text('ViewNum', vis=0, h=20)
+        cmds.text('shapeInfo', vis=0)
         
         cmds.formLayout('MainformLayout', e=1, af=[('ListLayout', 'top', 0), ('ListLayout', 'bottom', 0), ('ListLayout', 'left', 3), ('cLayout', 'right', 3)])
         cmds.formLayout('MainformLayout', e=1, ac=('ListLayout', 'right', 3, 'cLayout'))
@@ -535,6 +550,7 @@ class WeightCheckTool():
             return None, None
         selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
         selobj = cmds.ls(sl=1, o=1)[0]
+        self.saveShape = selobj
         if not selVtx:
             if not selobj:
                 return None, None
@@ -578,13 +594,21 @@ class WeightCheckTool():
         if self.Number:
             cmds.text('ViewNum', e=1, vis=1, l='Number: ' + str(len(self.Number)))
             if not cmds.menuItem('SNmenuItem', q=1, cb=1):
-                for i in self.Number:
-                    i = i.split('.')[1]
-                    cmds.textScrollList('vtxList', e=1, si=i)
+                _tempSl = [i.split('.')[1] for i in self.Number]
+                cmds.textScrollList('vtxList', e=1, si=_tempSl)
             else:
                 cmds.textScrollList('vtxList', e=1, si=self.Number)
             cmds.textScrollList('weightList', e=1, sii=cmds.textScrollList('vtxList', q=1, sii=1))
-            
+        cmds.text('shapeInfo', e=1, l=self.saveShape)
+        
+    def selectVtx(self):
+        vtxList = cmds.textScrollList('vtxList', q=1, si=1)
+        if not '.' in vtxList[0]:
+            _shapeN = cmds.text('shapeInfo', q=1, l=1)
+            vtxList = ['%s.%s' % (_shapeN, i) for i in vtxList]
+        cmds.hilite(_shapeN)
+        cmds.select(vtxList, r=1)
+        
     def Clean(self):
         selVtx, clusterName = self.getSel()
         if not selVtx or not clusterName:

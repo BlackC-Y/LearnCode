@@ -3,6 +3,18 @@
 <h3 align="center">  </h3>
 <p align="center">
 
+## [pTCIK `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/pTCIK.py)
+
+#### 2020-10-23  Verision: `2.4`
+    1.优化了窗口生成的方式，又学了一招嘿
+    2.UI微调
+    3.增加由骨骼控制曲线的选项
+    4.整合了创建流程。但流程过长貌似不是好事，模块化会更好一些??
+    5.选择控制器功能优化
+    6.根据新的创建选项，重写了整理函数
+    7.Fix:在关掉动力学时创建曲线，不生成shape的问题
+    8.Note:不能用PointOnCurveInfo替换运动路径，没有方向的输出
+
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/WeightTool.py)
 
 #### 2020-10-21  Verision: `0.63`

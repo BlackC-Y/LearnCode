@@ -7,6 +7,7 @@ try:
     import shiboken2
 except ImportError:
     from PySide import QtGui as QtWidgets
+    from PySide import QtGui
     from PySide import QtCore
     import shiboken as shiboken2
 from maya import cmds, mel
@@ -14,82 +15,12 @@ from maya import OpenMaya as Om, OpenMayaUI as Omui
 import re
 
 
-'''
-def pTCIK():
-    uiA = 'ApplePieA_testA'
-    if cmds.window(self.UiName, q=1, ex=1):
-        cmds.deleteUI(uiA)
-    cmds.window(uiA, t=('v1.0'), menuBar=True)
-    tabs = cmds.tabLayout(innerMarginWidth=5, innerMarginHeight=5)
-
-    child1 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
-    cmds.intFieldGrp('RebuildIntFieldGrp', h=28, label='重建段数', cw2=(80, 100))
-    cmds.textFieldGrp('CurveNameTextFieldGrp', h=28,label="曲线名称", cw2=(80, 100))
-    cmds.text(label="有曲线名才可操作") 
-    cmds.button('Next1Button', l="选模型的线", h=28,c=lambda*args: ApplePieA_pTCIK().SelectPolyCurve())
-    cmds.flowLayout(columnSpacing=45)
-    cmds.text(l="")
-    cmds.text(l="调整曲线", h=28)
-    cmds.button('reverseCurveButton', l="反转曲线", h=28, w=80,c=lambda*args: ApplePieA_pTCIK().reverseCurve())
-    cmds.setParent('..')
-    cmds.button('createCluAndCtrlButton', l="创建簇和控制器", h=28,c=lambda*args: ApplePieA_pTCIK().createCluAndCtrl())
-    #cmds.button('CurveToolsButton', l="曲线工具(可选)", h=28,c=lambda*args: ApplePieA_pTCIK().CurveTools())
-    cmds.button('parentConButton', l="约束控制", h=28,c=lambda*args: ApplePieA_pTCIK().parentConstraintCurve())
-    cmds.flowLayout(columnSpacing=25)
-    cmds.button('ParentButton', l="控制器层级化", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent(''))
-    cmds.button('ReParentButton', l="解开层级", h=28,w=110,c=lambda*args: ApplePieA_pTCIK().CurveParent('reverse'))
-    cmds.setParent('..')
-    cmds.intFieldGrp('IKJointIntFieldGrp', h=28, label="骨骼段数:", cw2=(80, 100))
-    cmds.button('ToIKButton', l="建立IK", h=28,c=lambda*args: ApplePieA_pTCIK().CurveToIK())
-    cmds.setParent('..')
-
-    child2 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
-    cmds.flowLayout(columnSpacing=3)
-    cmds.button('CShapeButton',l='换个形状',h=28,w=123,c=lambda*args: ApplePieA_pTCIK().cShape())
-    cmds.button('TangentButton', l="切线对齐", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().Tangent())
-    cmds.setParent('..')
-    cmds.button('SelButton', l="选择当前曲线的线圈",h=28, c=lambda*args: ApplePieA_pTCIK().SelCurve())
-    cmds.flowLayout(columnSpacing=3)
-    cmds.button('RotXButton', l="X旋转", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RX'))
-    cmds.button('RotYButton', l="Y旋转", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RY'))
-    cmds.button('RotZButton', l="Z旋转", h=28,w=80, c=lambda*args: ApplePieA_pTCIK().RSCurve('RZ'))
-    cmds.setParent('..')
-    cmds.flowLayout(columnSpacing=3)
-    cmds.button('ScaleAddButton', l="放大曲线", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SA'))
-    cmds.button('ScaleSubButton', l="缩小曲线", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().RSCurve('SS'))
-    cmds.setParent('..')
-    cmds.canvas('CCanvas', rgbValue=(0, 0, 0),width=100, height=20)  # 颜色显示框 和下行滑条组合
-    cmds.intSliderGrp('SColorIntSliderGrp', minValue=1,maxValue=31, dc=lambda*args: ApplePieA_pTCIK().SColor())  # 单行滑条 和上行组合
-    # cmds.colorIndexSliderGrp('curveColorIntFieldGrp',min=1,max=32)   #单行颜色滑条
-    cmds.button('ChangeCurveColorButton', l="变更颜色", h=28, c=lambda*args: ApplePieA_pTCIK().ChangeCurveColor())
-    cmds.setParent('..')
-
-    child3 = cmds.columnLayout(cat=("both", 2), rowSpacing=5, columnWidth=250)
-    cmds.flowLayout(columnSpacing=3)
-    cmds.textFieldGrp('FXCurveNameTextFieldGrp',h=28,label="曲线名", cw2=(60, 100),ed=0)
-    cmds.button('InputCurve',l="拾取曲线",h=28,w=50,c=lambda*args: ApplePieA_Dynamic().Ready_selectCurve())
-    cmds.setParent('..')
-    cmds.flowLayout(columnSpacing=3)
-    pTCIK.HairSystemMenu = cmds.optionMenuGrp('HairSystemMenu',label='HairSystem',cw2=(60,100))
-    ApplePieA_Dynamic().Ready_hairSystem()
-    cmds.button('shuaxin',l='刷新',h=28,w=25,c=lambda*args: ApplePieA_Dynamic().Ready_hairSystem())
-    cmds.button('nucleusSelect',l="->",h=28,w=25,c=lambda*args: ApplePieA_Dynamic().Ready(3))
-    cmds.setParent('..')
-    
-    cmds.button('RunButton', l="创建动力学曲线", h=28,w=123,c=lambda*args: ApplePieA_pTCIK().FXCurve())
-    cmds.setParent('..')
-    
-    cmds.tabLayout( tabs, edit=True, tabLabel=((child1,'本体'),(child2,'曲线DLC'),(child3,'动力学曲线')))
-    cmds.window(uiA, e=True, wh=(260, 500))  # 窗口后定值
-    cmds.showWindow(uiA)
-'''
-
 ui_variable = {}
-_pTCIKVerision = 'v2.4'
 
 class Ui_ApplePieA(QtWidgets.QWidget):
     
     def __init__(self):
+        self._pTCIKVerision = 'v2.41'
         super(Ui_ApplePieA, self).__init__(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.UiName = 'ApplePieA'
         #self.setFocus()
@@ -388,7 +319,7 @@ class Ui_ApplePieA(QtWidgets.QWidget):
         self.setWindowFlags(QtCore.Qt.Window)
         #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
         self.setWindowTitle('pTCIK by_Y')
-        ui_variable['Statusbar'].showMessage(_pTCIKVerision)
+        ui_variable['Statusbar'].showMessage(self._pTCIKVerision)
         self.show()
         
     def eventFilter(self, object, event):     #鼠标移动就会触发...淦
@@ -424,7 +355,6 @@ class Ui_ApplePieA(QtWidgets.QWidget):
 
     def changeSColorInt(self):
         ColorInt = int(self.SColorInt.value())
-        #ColorInt = cmds.intSliderGrp('SColorIntSliderGrp', q=1, v=1)
         ColorIndex = [i*255 for i in cmds.colorIndex(ColorInt, q=1)]
         self.SColorview.setStyleSheet('background-color:rgb(%s,%s,%s)' %(ColorIndex[0], ColorIndex[1], ColorIndex[2]))
         #cmds.canvas('CCanvas', e=1, rgbValue=(ColorIndex[0], ColorIndex[1], ColorIndex[2]))
@@ -445,7 +375,6 @@ class ApplePieA_pTCIK(object):
             ui_variable['Statusbar'].showMessage(u"//没填曲线名")
             Om.MGlobal.displayError(u"//没填曲线名")
             return
-        #ReBNum = cmds.intFieldGrp('RebuildIntFieldGrp', q=True, v1=True)
         polyEdgeN = cmds.ls(sl=1)
         # bothName = cmp(Curvename,cmds.ls())  #对比名称
         if Curvename in cmds.ls():
@@ -525,7 +454,8 @@ class ApplePieA_pTCIK(object):
             self.jointCtrlNum = jointint
             for i in getlist:
                 cmds.setAttr(i + ".dispCV", 0)
-                cmds.addAttr(i, ln='ctrlName', dt='string')
+                if not cmds.ls(i + '.ctrlName'):
+                    cmds.addAttr(i, ln='ctrlName', dt='string')
                 _tempPos = cmds.createNode('pointOnCurveInfo')
                 cmds.connectAttr(i + '.worldSpace[0]', _tempPos + '.inputCurve', f=1)
                 cmds.setAttr(_tempPos + '.top', 1)
@@ -549,8 +479,8 @@ class ApplePieA_pTCIK(object):
             for i in getlist:
                 cmds.setAttr(i + ".dispCV", 0)
                 cmds.DeleteHistory(i)
-                cmds.addAttr(i, ln='ctrlName', dt='string')
-                cmds.setAttr(i + '.ctrlName', '', type='string')
+                if not cmds.ls(i + '.ctrlName'):
+                    cmds.addAttr(i, ln='ctrlName', dt='string')
                 curve = cmds.listRelatives(i, s=1, type="nurbsCurve")[0]
                 numCVs = cmds.getAttr(i + ".controlPoints", size=1)
                 for nu in range(numCVs):
@@ -653,8 +583,6 @@ class ApplePieA_pTCIK(object):
 
     def ChangeCurveColor(self):
         ColorNum = int(ui_variable['SColorInt'].value())
-        # ColorNum = cmds.colorIndexSliderGrp(curveColorIntFieldGrp,q=1,v=1)   #查询颜色滑条
-        # ColorNum = cmds.intSliderGrp('SColorIntSliderGrp', q=1, v=1)  # 查询滑条数值
         selCurve = cmds.ls(sl=1)
         cmds.undoInfo(ock=1)
         for n in range(len(selCurve)):
@@ -665,7 +593,6 @@ class ApplePieA_pTCIK(object):
 
     def CurveToIK(self, curveN):   # 来自张老师
         JointNum = int(ui_variable['JointInt'].text())
-        #JointNum = cmds.intFieldGrp('IKJointIntFieldGrp',q=True,v1=True)
         Atype = 3
         SavecurveN = curveN
         mz_dd = []
@@ -697,7 +624,7 @@ class ApplePieA_pTCIK(object):
         yt = cmds.joint(p=(Qv[0], Qv[1], Qv[2]), n=curveN + "_Jot0")
         mz_jot = []
         mz_jot.append(yt)
-         for i in range(1, len(mz_Loc)):
+        for i in range(1, len(mz_Loc)):
             Qv = cmds.xform(mz_Loc[i], q=1, ws=1, t=1)
             yt = cmds.joint(p=(Qv[0], Qv[1], Qv[2]), n="%s_Jot%s" %(curveN, i))
             cmds.joint("%s_Jot%s" %(curveN, i - 1), e=1, zso=1, oj='xyz')
@@ -808,16 +735,10 @@ class ApplePieA_Dynamic(object):
     def Ready_GetNode(self, mode):
         if mode == 'HairSystem':
             ui_variable['SelectHairSystem'].clear()
-            #MenuItem = cmds.optionMenu(pTCIK.HairSystemMenu+'|OptionMenu',q=1,ill=1)
-            # if MenuItem:
-            #   for i in MenuItem:
-            #        cmds.deleteUI(i)
-            # cmds.menuItem(parent=(pTCIK.HairSystemMenu+'|OptionMenu'),label='CreateNew')
             hairsystemitem = cmds.listRelatives(cmds.ls(typ='hairSystem'), p=1)
             if hairsystemitem:
                 for i in hairsystemitem:
                     ui_variable['SelectHairSystem'].addItem(i)
-                    # cmds.menuItem(parent=(pTCIK.HairSystemMenu+'|OptionMenu'),label=i)
             ui_variable['SelectHairSystem'].addItem('Create New')
         if mode == 'Nucleus':
             ui_variable['SelectNucleus'].clear()

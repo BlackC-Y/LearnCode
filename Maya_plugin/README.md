@@ -5,6 +5,11 @@
 
 ## [pTCIK `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/pTCIK.py)
 
+#### 2020-11-02  Verision: `2.41`
+    1.听大佬的话——精简多余代码
+    2.Fix:Maya2016的Ui支持问题
+    3.Fix:生成后直接删除控制器，不能再次运行的问题
+
 #### 2020-10-23  Verision: `2.4`
     1.优化了窗口生成的方式，又学了一招嘿
     2.UI微调

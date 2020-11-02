@@ -2,7 +2,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    __Verision = 1.0
+    __Verision = 1.1
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'
@@ -18,7 +18,7 @@ class CopyWeightTool():
                                     bc=lambda *args: cmds.textFieldButtonGrp('targeText', e=1, tx=str(cmds.ls(sl=1))))
         cmds.popupMenu()
         cmds.menuItem(l='Select', c=lambda *args: cmds.select(eval(cmds.textFieldButtonGrp('targeText', q=1, tx=1)), r=1))
-        cmds.button('Run', c=lambda *args: Runfun())
+        cmds.button('Run', c=lambda *args: self.Runfun())
         cmds.showWindow(ToolUi)
 
     def Runfun(self):
@@ -35,8 +35,10 @@ class CopyWeightTool():
         _list_ = ['%s.f[%s]' % (_TempObj_, i) 
                     for i in range(cmds.polyEvaluate(_TempObj_, f=1)) if not '%s.f[%s]' % (soureObj, i) in sourelist]
         cmds.delete(_list_)
-
-        cmds.skinCluster(cmds.skinCluster(soureObj, q=1, inf=1), _TempObj_ ,tsb=True, dr=4)
+        
+        infJointList = cmds.skinCluster(cmds.ls(sourelist, o=1)[0], q=1, inf=1)
+        jntLock = [cmds.getAttr(j + '.liw') for j in infJointList]
+        cmds.skinCluster(infJointList, _TempObj_ ,tsb=True, dr=4)
         cmds.copySkinWeights(soureObj, _TempObj_, nm=1, sa='closestPoint', ia='oneToOne', nr=1)
         if not '.vtx[' in _temp2_:
             targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fe=1, fuv=1 ,fvf=1, tv=1), fl=1)
@@ -44,5 +46,7 @@ class CopyWeightTool():
         #finalCopyList = _list_ + targelist   塞进列表第一位
         cmds.copySkinWeights(_TempObj_, targelist, nm=1, sa='closestPoint', ia=('name', 'closestJoint', 'oneToOne'), nr=1)
         cmds.delete(_TempObj_)
+        for j, l in zip(infJointList, jntLock):
+            cmds.setAttr(j + '.liw', l)
     
 CopyWeightTool().Ui()

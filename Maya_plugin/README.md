@@ -15,6 +15,7 @@
     7.Fix:在关掉动力学时创建曲线，不生成shape的问题
     8.Note:不能用PointOnCurveInfo替换运动路径，没有方向的输出
 
+
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/WeightTool.py)
 
 #### 2020-10-21  Verision: `0.63`
@@ -24,3 +25,10 @@
     
 #### 2020-09  Verision: `0.62`
     1.WeightTool: 骨骼列表刷新优化，刷新权重注释，不更改列表本身
+    
+    
+## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/CopyWeightTool.py)
+
+#### 2020-11-02  Verision: `1.1`
+    1.在拷贝时保留权重锁
+    2.Fix:一个不能运行的小问题

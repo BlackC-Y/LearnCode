@@ -37,3 +37,7 @@
 #### 2020-11-02  Verision: `1.1`
     1.在拷贝时保留权重锁
     2.Fix:一个不能运行的小问题
+
+## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/DataSaveUi.py)
+
+#### 2020-11-10  Verision: `1.0`

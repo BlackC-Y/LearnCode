@@ -40,6 +40,10 @@
 
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/DataSaveUi.py)
 
+#### 2020-11-11  Verision: `1.11`
+    1.Fix:临时物体没删除
+    2.Fix:Get位置时会出现很大的偏移
+    
 #### 2020-11-11  Verision: `1.1`
     1.增加所选物体中心位置的储存
     2.Fix:Get时的判断逻辑

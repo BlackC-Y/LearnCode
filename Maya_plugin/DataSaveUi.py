@@ -3,7 +3,7 @@ from maya import cmds, mel
 
 class DataSaveUi():
 
-    __Verision = 1.0
+    __Verision = 1.11
 
     def Ui(self):
         self.UiN = 'DataSaveUi'
@@ -62,6 +62,7 @@ class DataSaveUi():
             _tempclu_ = cmds.cluster()[1]
             cmds.text('%s_ComponentData%s' %(UiN, uiNum), e=1, l=str(cmds.getAttr(_tempclu_ + 'Shape.origin')[0]))
             cmds.text('%s_ComponentText%s' %(UiN, uiNum), e=1, l=u'已储存 中心位置')
+            cmds.delete(_tempclu_)
 
     def getData(self, uiNum):
         UiN = self.UiN
@@ -77,6 +78,11 @@ class DataSaveUi():
             cmds.xform(cmds.ls(sl=1), ws=1, t=data[0])
             cmds.xform(cmds.ls(sl=1), ws=1, ro=data[1])
         elif typString == u'已储存 中心位置':
-            cmds.xform(cmds.ls(sl=1), ws=1, t=(data[0], data[1], data[2]))
+            lsList = cmds.ls(sl=1)
+            _temploc_ = cmds.spaceLocator()[0]
+            cmds.setAttr(_temploc_ + '.t', data[0], data[1], data[2])
+            for i in lsList:
+                cmds.delete(cmds.pointConstraint(_temploc_, i, w=1))
+            cmds.delete(_temploc_)
 
 DataSaveUi().Ui()

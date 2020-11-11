@@ -29,6 +29,7 @@ class DataSaveUi():
         cmds.popupMenu(b=1)
         cmds.menuItem(l=u'名称(用于再次选择)', c=lambda *args: self.saveData('Name', uiNum))
         cmds.menuItem(l=u'位置(用于选择物体对位)', c=lambda *args: self.saveData('Position', uiNum))
+        cmds.menuItem(l=u'中心位置(用于选择物体对位)', c=lambda *args: self.saveData('CenterPosition', uiNum))
         cmds.button(l='Get', w=120, c=lambda *args: self.getData(uiNum))
         cmds.setParent('..')
         cmds.text('%s_ComponentText%s' %(UiN, uiNum), l='')
@@ -54,6 +55,13 @@ class DataSaveUi():
             _data = '[%s, %s]' %(cmds.xform(slList[0], q=1, ws=1, t=1), cmds.xform(slList[0], q=1, ws=1, ro=1))
             cmds.text('%s_ComponentData%s' %(UiN, uiNum), e=1, l=_data)
             cmds.text('%s_ComponentText%s' %(UiN, uiNum), e=1, l=u'已储存 位置')
+        elif Type == 'CenterPosition':
+            slList = cmds.ls(sl=1)
+            if not slList:
+                return
+            _tempclu_ = cmds.cluster()[1]
+            cmds.text('%s_ComponentData%s' %(UiN, uiNum), e=1, l=str(cmds.getAttr(_tempclu_ + 'Shape.origin')[0]))
+            cmds.text('%s_ComponentText%s' %(UiN, uiNum), e=1, l=u'已储存 中心位置')
 
     def getData(self, uiNum):
         UiN = self.UiN
@@ -63,10 +71,12 @@ class DataSaveUi():
             return
         data = eval(data)
         print(data)
-        if u'名称' in typString:
+        if typString == u'已储存 名称':
             cmds.select(data, add=1)
-        elif u'位置' in typString:
+        elif typString == u'已储存 位置':
             cmds.xform(cmds.ls(sl=1), ws=1, t=data[0])
             cmds.xform(cmds.ls(sl=1), ws=1, ro=data[1])
+        elif typString == u'已储存 中心位置':
+            cmds.xform(cmds.ls(sl=1), ws=1, t=(data[0], data[1], data[2]))
 
 DataSaveUi().Ui()

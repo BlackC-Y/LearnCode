@@ -3,7 +3,7 @@ from maya import cmds, mel
 
 class DataSaveUi():
 
-    __Verision = 1.11
+    __Verision = 1.12
 
     def Ui(self):
         self.UiN = 'DataSaveUi'
@@ -52,7 +52,10 @@ class DataSaveUi():
             if len(slList) != 1:
                 cmds.warning(u'只能选择一个物体')
                 return
-            _data = '[%s, %s]' %(cmds.xform(slList[0], q=1, ws=1, t=1), cmds.xform(slList[0], q=1, ws=1, ro=1))
+            _temploc_ = cmds.spaceLocator()
+            cmds.delete(cmds.parentConstraint(slList[0], _temploc_, w=1))
+            _data = '[%s, %s]' %(cmds.xform(_temploc_, q=1, ws=1, t=1), cmds.xform(_temploc_, q=1, ws=1, ro=1))
+            cmds.delete(_temploc_)
             cmds.text('%s_ComponentData%s' %(UiN, uiNum), e=1, l=_data)
             cmds.text('%s_ComponentText%s' %(UiN, uiNum), e=1, l=u'已储存 位置')
         elif Type == 'CenterPosition':
@@ -75,8 +78,13 @@ class DataSaveUi():
         if typString == u'已储存 名称':
             cmds.select(data, add=1)
         elif typString == u'已储存 位置':
-            cmds.xform(cmds.ls(sl=1), ws=1, t=data[0])
-            cmds.xform(cmds.ls(sl=1), ws=1, ro=data[1])
+            lsList = cmds.ls(sl=1)
+            _temploc_ = cmds.spaceLocator()[0]
+            cmds.xform(_temploc_, ws=1, t=data[0])
+            cmds.xform(_temploc_, ws=1, ro=data[1])
+            for i in lsList:
+                cmds.delete(cmds.pointConstraint(_temploc_, i, w=1))
+            cmds.delete(_temploc_)
         elif typString == u'已储存 中心位置':
             lsList = cmds.ls(sl=1)
             _temploc_ = cmds.spaceLocator()[0]

@@ -40,6 +40,9 @@
 
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/DataSaveUi.py)
 
+#### 2020-11-12  Verision: `1.12`
+    1.Fix:Get位置时会出现很大的偏移,全部使用约束定位,命令对空间的转换有问题
+    
 #### 2020-11-11  Verision: `1.11`
     1.Fix:临时物体没删除
     2.Fix:Get位置时会出现很大的偏移

@@ -5,6 +5,9 @@
 
 ## [pTCIK `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/pTCIK.py)
 
+#### 2020-11-20  Verision: `2.42`
+    1.Fix:提取曲线时，尝试居中对齐会报错
+
 #### 2020-11-02  Verision: `2.41`
     1.听大佬的话——精简多余代码
     2.Fix:Maya2016的Ui支持问题

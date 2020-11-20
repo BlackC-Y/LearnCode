@@ -20,7 +20,7 @@ ui_variable = {}
 class Ui_ApplePieA(QtWidgets.QWidget):
     
     def __init__(self):
-        self._pTCIKVerision = 'v2.41'
+        self._pTCIKVerision = 2.42
         super(Ui_ApplePieA, self).__init__(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.UiName = 'ApplePieA'
         #self.setFocus()
@@ -319,7 +319,7 @@ class Ui_ApplePieA(QtWidgets.QWidget):
         self.setWindowFlags(QtCore.Qt.Window)
         #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
         self.setWindowTitle('pTCIK by_Y')
-        ui_variable['Statusbar'].showMessage(self._pTCIKVerision)
+        ui_variable['Statusbar'].showMessage('Ver %s' %self._pTCIKVerision)
         self.show()
         
     def eventFilter(self, object, event):     #鼠标移动就会触发...淦
@@ -400,7 +400,7 @@ class ApplePieA_pTCIK(object):
                 if not c:
                     cmds.connectAttr('__temp_cluHandleShape.origin', temp_node + '.inPosition')
                 else:
-                    cmds.connectAttr('__temp_clu%sHandleShape.origin', temp_node + '.inPosition' % c)
+                    cmds.connectAttr('__temp_clu%sHandleShape.origin' %c, temp_node + '.inPosition')
                 node_p[c] = cmds.getAttr(temp_node + '.parameter')
             node_p_list = sorted(node_p.items(), key=lambda item: item[1]) # 字典排序
             tcws = [[0 for y in range(3)] for x in range(len(selv))]

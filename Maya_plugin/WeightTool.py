@@ -3,7 +3,6 @@
 
 '''Roadmap:1.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
            2.添加新api处理权重
-           3.增加晶格，曲线，曲面的权重调整功能
 '''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -20,7 +19,7 @@ import decimal
 
 class WeightTool():
 
-    __Verision = 0.7
+    __Verision = 0.71
     
     def ToolUi(self):
         
@@ -140,7 +139,7 @@ class WeightTool():
                 % (edgeCmd, faceCmd, objModeCmd))
         
     def refreshBoxChange(self, force):
-        if force == 9 or not cmds.selectType(q=1, ocm=1, pv=1) or cmds.menuItem('OFFmeunItem', q=1, cb=1): 
+        if force == 9 or cmds.menuItem('OFFmeunItem', q=1, cb=1):
             if cmds.text('spJobVtxParent', q=1, ex=1):
                 cmds.deleteUI('spJobVtxParent', ctl=1)
             mel.eval('source "dagMenuProc.mel"')
@@ -151,7 +150,8 @@ class WeightTool():
             cmds.iconTextCheckBox('refresh', e=1, v=1)
     
     def refreshJointList(self, refresh, search = ''):
-        if not cmds.selectType(q=1, ocm=1, pv=1):
+        seltyp = 0 if cmds.selectType(q=1, ocm=1, pv=1) or cmds.selectType(q=1, ocm=1, lp=1) or cmds.selectType(q=1, ocm=1, cv=1) else 1
+        if seltyp:
             self.refreshBoxChange(9)
             return
         sel = cmds.ls(sl=1, fl=1)
@@ -612,6 +612,7 @@ class WeightTool():
                     weightList.append(item[1])
                 _allappend([vtx, jointList, weightList])
                 line = vwfile.readline()
+            _allappend([-1, None, None])
         
         jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
         for j in infNameList:

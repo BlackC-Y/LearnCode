@@ -2,7 +2,8 @@
 #Support Maya2015-2020
 
 '''Roadmap:1.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
-           2.使用2016新api加速setweight，对2015使用旧版
+           2.添加新api处理权重
+           3.增加晶格，曲线，曲面的权重调整功能
 '''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -12,14 +13,14 @@ except ImportError:
     from PySide import QtCore
     import shiboken as shiboken2
 from maya import cmds, mel
-import maya.OpenMaya as Om
-import maya.OpenMayaUI as Omui
+from maya import OpenMaya as Om, OpenMayaAnim as OmAni, OpenMayaUI as Omui
+from maya.api import OpenMaya as om, OpenMayaAnim as omAni
 import decimal
 
 
 class WeightTool():
 
-    __Verision = 0.63
+    __Verision = 0.7
     
     def ToolUi(self):
         
@@ -29,8 +30,8 @@ class WeightTool():
         cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='SkinT', to=1)
         cmds.menuItem(d=1, dl="S/L")
-        cmds.menuItem(l='Save', c=lambda *args: self.vtxSave())
-        cmds.menuItem(l='Load', c=lambda *args: self.vtxLoad())
+        cmds.menuItem(l='Save', c=lambda *args: self.vtxSave_Mel())
+        cmds.menuItem(l='Load', c=lambda *args: self.vtxLoad_Mel())
         cmds.menuItem(d=1)
         cmds.menuItem(l='reset SkinPose', c=lambda *args: self.resetSkinPose())
         cmds.menu(l='RigT', to=1)
@@ -128,6 +129,7 @@ class WeightTool():
             faceCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"facet\\\");")'
             objModeCmd = '"changeSelectMode -component;changeSelectMode -object;"'
         mel.eval('global proc dagMenuProc(string $parent, string $object){ \
+                if(!size($object))return; \
                 if(objectType($object) == "joint"){ \
                 string $selCmd = "python(\\\"cmds.treeView(\'JointTV\', e=1, cs=1);cmds.treeView(\'JointTV\', e=1, si=(\'" + $object + "\', 1));WeightTool()._weightView()\\\")"; \
                 menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
@@ -153,7 +155,8 @@ class WeightTool():
             self.refreshBoxChange(9)
             return
         sel = cmds.ls(sl=1, fl=1)
-        if not sel:
+        errorsel = cmds.ls(sl=1, typ='transform') 
+        if not sel or errorsel:
             return
         selobj = cmds.ls(sl=1, o=1)[0]
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
@@ -199,9 +202,9 @@ class WeightTool():
                     cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' % v))
             if siItem:
                 allItem = cmds.treeView('JointTV', q=1, ch='')
-                for i in siItem:
-                    if i in allItem:
-                        cmds.treeView('JointTV', e=1, si=(i, 1))
+                _Temp_ = list(set(siItem).intersection(set(allItem)))   #求并集
+                for i in _Temp_:
+                    cmds.treeView('JointTV', e=1, si=(i, 1))
         else:
             allItem = cmds.treeView('JointTV', q=1, ch='')
             for j in allItem:
@@ -230,7 +233,6 @@ class WeightTool():
                 cmds.treeView('JointTV', e=1, ai=[i, ''])
 
     def lock_unLock(self, jnt, but):
-        #cmds.getAttr(i + '.liw', l=1)
         slItem = cmds.treeView('JointTV', q=1, si=1)
         if not slItem or len(slItem) == 1:
             slItem = [jnt]
@@ -249,9 +251,8 @@ class WeightTool():
         if not allItem or not slItem:
             return
         cmds.treeView('JointTV', e=1, cs=1)
-        for i in allItem:
-            if i in slItem:
-                continue
+        _Temp_ = list(set(allItem).difference(set(slItem)))   #求差集 a有b没有
+        for i in _Temp_:
             cmds.treeView('JointTV', e=1, si=(i, 1))
     
     def editVtxWeight(self, mode):
@@ -338,7 +339,6 @@ class WeightTool():
                 del ValueList[i], TransList[i]
         '''
         self.vtxWeightInfo = [clusterName, TransList, ValueList]
-        self.refreshJointList(0)
         #print(self.vtxWeightInfo)
 
     def pasteVtxWeight(self):
@@ -365,40 +365,14 @@ class WeightTool():
     # # # # # # # # # #
     
     # # # # # Tool # # # # #
-    def createSelect(self):
-        selvtx = cmds.ls(sl=1)
-        selobj = cmds.ls(sl=1, o=1)[0]
-        cluWs = cmds.getAttr(cmds.cluster(n='_tempClu_')[1] + 'Shape.origin')[0]
-        Curname = cmds.circle(n='_selectCur_')[0]
-        cmds.setAttr(Curname + '.translate', cmds.polyEvaluate(selobj, b=1)[0][1] + 1, cluWs[1], cluWs[2])
-        cmds.addAttr(Curname, ln='vtxinfo', dt='string')
-        cmds.setAttr(Curname + '.vtxinfo', '', type='string')
-        for i in selvtx:
-            cmds.setAttr(Curname + '.vtxinfo', cmds.getAttr(Curname + '.vtxinfo') + i + ',', type='string')
-        cmds.delete('_tempClu_Handle')
-        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideEnabled', 1)
-        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideColor', 16)
-
-    def getSelect(self):
-        _tempVtx = []
-        for c in cmds.ls(sl=1):
-            if not cmds.ls(c + '.vtxinfo'):
-                return
-            vtxList = cmds.getAttr(c + '.vtxinfo').split(',')[0:-1]
-            for i in vtxList:
-                _tempVtx.append(i)
-        cmds.select(_tempVtx, r=1)
-
-    def vtxSave(self):
+    def vtxSave_Mel(self):
         sel = cmds.ls(sl=1, fl=1)
         if not sel:
             Om.MGlobal.displayError('Select Nothing')
             return
+        selobj = cmds.ls(sl=1, o=1)[0]
         selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
         if not selVtx:
-            selobj = cmds.ls(sl=1, o=1)[0]
-            if not selobj:
-                return
             seltyp = cmds.objectType(cmds.listRelatives(selobj, s=1, f=1)[0])
             if seltyp == 'mesh':
                 suf = '.vtx'
@@ -413,23 +387,28 @@ class WeightTool():
         if not clusterName:
             Om.MGlobal.displayError('Select No Skin')
             return
-        filePath = cmds.fileDialog(m=1, dm='*.vtxWeight')
+        filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2)   #vtxWeight (*.vtxWeight);;sdd (*.sdd)
         if not filePath:
             return
-        with open(filePath, 'w') as vwfile:
-            gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-            cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
+        with open(filePath[0], 'w') as vwfile:
+            #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
+            #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
             for i in selVtx:
-                cmds.progressBar(gMainProgressBar, e=1, s=1)
+                #cmds.progressBar(gMainProgressBar, e=1, s=1)
                 valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
                 transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+                allWeight = 0
+                for w in range(len(valueList)):
+                    valueList[w] = round(valueList[w], 4)
+                    allWeight += valueList[w]
+                valueList[-1] += (1.0 - allWeight)
                 tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
                 wtStr = '%s--%s\r\n' %(i.split('.')[-1], tvList)
                 vwfile.write(wtStr)
-            cmds.progressBar(gMainProgressBar, e=1, ep=1)
-        DisplayYes().showMessage('Finish!')
+            #cmds.progressBar(gMainProgressBar, e=1, ep=1)
+        DisplayYes().showMessage('Process Finish!')
 
-    def vtxLoad(self):
+    def vtxLoad_Mel(self):
         sel = cmds.ls(sl=1, fl=1)
         if not sel:
             Om.MGlobal.displayError('Select Nothing')
@@ -439,25 +418,224 @@ class WeightTool():
         if not clusterName:
             Om.MGlobal.displayError('Select No Skin')
             return
-        filePath = cmds.fileDialog(m=0, dm='*.vtxWeight')
+        filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2, fm=1)
         if not filePath:
             return
         allLine = []
-        with open(filePath, 'r') as vwfile:
+        with open(filePath[0], 'r') as vwfile:
             line = vwfile.readline()
             while line:
                 allLine.append(line)
                 line = vwfile.readline()
-        gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-        cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
+        
+        jntList = cmds.skinCluster(selobj, q=1, inf=1)
+        jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
+        for j in jntList:
+            cmds.setAttr(j + '.liw', 0)
+        #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
+        #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
         for i in allLine:
-            cmds.progressBar(gMainProgressBar, e=1, s=1)
-            vtx = i.split('--')[0].strip()
-            tvList = i.split('--')[-1].strip()
+            #cmds.progressBar(gMainProgressBar, e=1, s=1)
+            strsplit = i.split('--')
+            vtx = strsplit[0].strip()
+            tvList = strsplit[-1].strip()
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (clusterName, selobj + '.' + vtx, tvList))
-        cmds.progressBar(gMainProgressBar, e=1, ep=1)
-        DisplayYes().showMessage('Finish!')
+        #cmds.progressBar(gMainProgressBar, e=1, ep=1)
+        for j, l in zip(jntList, jntLock):
+            cmds.setAttr(j + '.liw', l)
+        DisplayYes().showMessage('Process Finish!')
     
+    def vtxSave_Oapi(self):
+        selList = Om.MSelectionList()
+        Om.MGlobal.getActiveSelectionList(selList)
+        #_prselList = []
+        #selList.getSelectionStrings(_prselList)   #获取 MSelectionList 内容
+        #print _prselList
+        if selList.isEmpty():
+            Om.MGlobal.displayError('Select Nothing')
+            return
+        MObject = Om.MObject()     #存储所选物体的路径
+        MDagPath = Om.MDagPath()   #存储所选物体的组件的列表
+        selList.getDagPath(0, MDagPath)
+        selList.getDependNode(0, MObject)
+        #MDagPath.fullPathName()   #获取 MDagPath 内容
+        slMIt = Om.MItSelectionList(selList)
+        MItDagPath = Om.MDagPath()     #存储所选物体的路径
+        MItcomponent = Om.MObject()    #存储所选物体的组件的列表
+        slMIt.getDagPath(MItDagPath, MItcomponent)
+        
+        seltypeList = [110, 296, 267, 294, 279,]
+        _selType = MDagPath.apiType()
+        MDagPath.extendToShape()   #获取当前的shape节点
+        if not _selType in seltypeList:
+            return
+        elif MDagPath.apiType() == 296:
+            suf = 'vtx'
+        elif MDagPath.apiType() == 267 or MDagPath.apiType() == 294:
+            suf = 'cv'
+        elif MDagPath.apiType() == 279:
+            suf = 'pt'
+        connectNode = cmds.listHistory(MDagPath.partialPathName(), il=1, pdo=1)
+        if not connectNode:
+            Om.MGlobal.displayError('Select No Skin')
+            return
+        for skCluster in connectNode:
+            if cmds.nodeType(skCluster) == 'skinCluster':
+                break
+        
+        Om.MGlobal.getSelectionListByName(skCluster, selList)
+        skinObj = Om.MObject()
+        selList.getDependNode(1, skinObj)
+        infNameList = []   #骨骼列表
+        skinNode = OmAni.MFnSkinCluster(skinObj)
+        infs = Om.MDagPathArray()
+        numInfs = skinNode.influenceObjects(infs)
+        for i in range(numInfs):
+            infName = infs[i].partialPathName()
+            infNameList.append(infName)
+        #fn = Om.MFnDependencyNode(MDagPath.node())   #获取当前的shape节点
+        #print fn.name()   #获取 MFnDependencyNode 内容
+        filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2)   #vtxWeight (*.vtxWeight);;sdd (*.sdd)
+        if not filePath:
+            return
+        with open(filePath[0], 'w') as vwfile:
+            if not MItcomponent.isNull():    #component组件不为空（点）,线和面会强制转为点
+                itGeom = Om.MItGeometry(MItDagPath, MItcomponent)
+                while not itGeom.isDone():
+                    infCount = Om.MScriptUtil()
+                    infCountPtr = infCount.asUintPtr()
+                    Om.MScriptUtil.setUint(infCountPtr,0)
+                    weights = Om.MDoubleArray()
+                    skinNode.getWeights(MItDagPath, itGeom.currentItem(), weights, infCountPtr)
+                    
+                    #去除0权重数据
+                    allWeight = 0
+                    transList = []
+                    valueList = []
+                    _jLappend = transList.append
+                    _wLappend = valueList.append
+                    for i in range(len(weights)):
+                        _tempweight = round(weights[i], 4)
+                        if _tempweight:
+                            _jLappend(infNameList[i])
+                            _wLappend(_tempweight)
+                        allWeight += _tempweight
+                    valueList[0] += (1.0 - allWeight)
+                    tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
+                    wtStr = '%s[%s]--%s\r\n' %(suf, itGeom.index(), tvList)
+                    vwfile.write(wtStr)
+                    itGeom.next()
+            else:
+                vertIter = Om.MItGeometry(MObject)
+                while not vertIter.isDone():
+                    infCount = Om.MScriptUtil()
+                    infCountPtr = infCount.asUintPtr()
+                    Om.MScriptUtil.setUint(infCountPtr,0)
+                    weights = Om.MDoubleArray()
+                    skinNode.getWeights(MDagPath, vertIter.currentItem(), weights, infCountPtr)
+
+                    #去除0权重数据
+                    allWeight = 0
+                    transList = []
+                    valueList = []
+                    _jLappend = transList.append
+                    _wLappend = valueList.append
+                    for i in range(len(weights)):
+                        _tempweight = round(weights[i], 4)
+                        if _tempweight:
+                            _jLappend(infNameList[i])
+                            _wLappend(_tempweight)
+                        allWeight += _tempweight
+                    valueList[0] += (1.0 - allWeight)
+                    tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
+                    wtStr = '%s[%s]--%s\r\n' %(suf, vertIter.index(), tvList)
+                    vwfile.write(wtStr)
+                    vertIter.next()
+        DisplayYes().showMessage('Process Finish!')
+        
+    def vtxLoad_Oapi(self):
+        selList = Om.MSelectionList()
+        Om.MGlobal.getActiveSelectionList(selList)
+        if selList.isEmpty():
+            Om.MGlobal.displayError('Select Nothing')
+            return
+        elif selList.length() != 1:
+            Om.MGlobal.displayError("Nothing selected")
+        MObject = Om.MObject()     #存储所选物体的路径
+        MDagPath = Om.MDagPath()   #存储所选物体的组件的列表
+        selList.getDagPath(0, MDagPath)
+        selList.getDependNode(0, MObject)
+        #MDagPath.fullPathName()   #获取 MDagPath 内容
+        
+        _selType = MDagPath.apiType()
+        if _selType != 110:
+            Om.MGlobal.displayError('Please ReSelect')
+            return
+        connectNode = cmds.listHistory(MDagPath.partialPathName(), il=1, pdo=1)
+        if not connectNode:
+            Om.MGlobal.displayError('Select No Skin')
+            return
+        for skCluster in connectNode:
+            if cmds.nodeType(skCluster) == 'skinCluster':
+                break
+        
+        Om.MGlobal.getSelectionListByName(skCluster, selList)
+        skinObj = Om.MObject()
+        selList.getDependNode(1, skinObj)
+        infNameList = []   #骨骼列表
+        skinNode = OmAni.MFnSkinCluster(skinObj)
+        infs = Om.MDagPathArray()
+        numInfs = skinNode.influenceObjects(infs)
+        for i in range(numInfs):
+            infName = infs[i].partialPathName()
+            infNameList.append(infName)
+        #fn = Om.MFnDependencyNode(MDagPath.node())   #获取当前的shape节点
+        #print fn.name()   #获取 MFnDependencyNode 内容
+        filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2, fm=1)
+        if not filePath:
+            return
+        allLine = []
+        _allappend = allLine.append
+        with open(filePath[0], 'r') as vwfile:
+            line = vwfile.readline()
+            while line:
+                strsplit = line.split('--')
+                if '][' in strsplit[0]:
+                    Om.MGlobal.displayWarning('Error. Please ReSelect')
+                    self.vtxLoad_Mel()
+                    return
+                vtx = strsplit[0].split('[')[-1].split(']')[0]
+                jointList = []
+                weightList = []
+                for item in eval(strsplit[-1]):
+                    jointList.append(item[0])
+                    weightList.append(item[1])
+                _allappend([vtx, jointList, weightList])
+                line = vwfile.readline()
+        
+        jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
+        for j in infNameList:
+            cmds.setAttr(j + '.liw', 0)
+        vertIter = Om.MItGeometry(MObject)
+        _Num = 0
+        while not vertIter.isDone():
+            if vertIter.index() != int(allLine[_Num][0]):
+                vertIter.next()
+                continue
+            jntindex= Om.MIntArray()
+            weights = Om.MDoubleArray()
+            jntindexapp = jntindex.append
+            weightsapp = weights.append
+            for i in range(len(allLine[_Num][1])):
+                jntindexapp(infNameList.index(allLine[_Num][1][i]))
+                weightsapp(allLine[_Num][2][i])
+            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, False)
+            _Num += 1
+            vertIter.next()
+        for j, l in zip(infNameList, jntLock):
+            cmds.setAttr(j + '.liw', l)
+        DisplayYes().showMessage('Process Finish!')
+        
     def resetSkinPose(self):
         for obj in cmds.ls(sl=1):
             clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
@@ -474,18 +652,31 @@ class WeightTool():
                     continue
                 matrix = cmds.getAttr('%s.worldInverseMatrix[0]' % inf[0])
                 cmds.setAttr('%s.pm[%d]' % (clusterName, n), matrix, typ='matrix')
-            '''
-            bP_Node = cmds.listConnections(clusterName + '.bindPose', d=0, scn=1)[0]
-            bp_mem = bP_Node + '.members'
-            bp_num = cmds.getAttr(bp_mem, mi=1)
-            for n in bp_num:
-                inf = cmds.listConnections('%s[%d]' % (bp_mem, n), s=1, d=0, scn=1)
-                if not inf or n == 0 or n == 1:
-                    continue
-                #cmds.disconnectAttr('%s.bindPose' % inf[0], '%s[%d]' % (bp_mem, n))
-                #cmds.setAttr('%s[%d]' % (bp_mem, n), cmds.getAttr('%s.bindPose' % inf[0]), typ='matrix')
-                cmds.connectAttr('%s.bindPose' % inf[0], bP_Node + '.members[%d]' % n, f=1)
-           '''
+                cmds.dagPose(inf[0], rs=1, n=cmds.listConnections('%s.bp' %clusterName, s=1, d=0, scn=1)[0])
+    
+    def createSelect(self):
+        selvtx = cmds.ls(sl=1)
+        selobj = cmds.ls(sl=1, o=1)[0]
+        cluWs = cmds.getAttr(cmds.cluster(n='_tempClu_')[1] + 'Shape.origin')[0]
+        Curname = cmds.circle(n='_selectCur_')[0]
+        cmds.setAttr(Curname + '.translate', cmds.polyEvaluate(selobj, b=1)[0][1] + 1, cluWs[1], cluWs[2])
+        cmds.addAttr(Curname, ln='vtxinfo', dt='string')
+        cmds.setAttr(Curname + '.vtxinfo', '', type='string')
+        for i in selvtx:
+            cmds.setAttr(Curname + '.vtxinfo', cmds.getAttr(Curname + '.vtxinfo') + i + ',', type='string')
+        cmds.delete('_tempClu_Handle')
+        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideEnabled', 1)
+        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideColor', 16)
+        
+    def getSelect(self):
+        _tempVtx = []
+        for c in cmds.ls(sl=1):
+            if not cmds.ls(c + '.vtxinfo'):
+                return
+            vtxList = cmds.getAttr(c + '.vtxinfo').split(',')[0:-1]
+            for i in vtxList:
+                _tempVtx.append(i)
+        cmds.select(_tempVtx, r=1)
     # # # # # Tool # # # # #
 
 class DisplayYes():   #报绿

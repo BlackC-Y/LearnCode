@@ -2,7 +2,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    __Verision = 1.1
+    __Verision = 1.2
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'
@@ -13,11 +13,11 @@ class CopyWeightTool():
         cmds.textFieldButtonGrp('sourceText', l='soure', bl='Select', adj=2, ed=0, cw3=[40,200,60], 
                                     bc=lambda *args: cmds.textFieldButtonGrp('sourceText', e=1, tx=str(cmds.ls(sl=1))))
         cmds.popupMenu()
-        cmds.menuItem(l='Select', c=lambda *args: cmds.select(eval(cmds.textFieldButtonGrp('sourceText', q=1, tx=1)), r=1))
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.strProc(cmds.textFieldButtonGrp('sourceText', q=1, tx=1)), r=1))
         cmds.textFieldButtonGrp('targeText', l='targe', bl='Select', adj=2, ed=0, cw3=[40,200,60], 
                                     bc=lambda *args: cmds.textFieldButtonGrp('targeText', e=1, tx=str(cmds.ls(sl=1))))
         cmds.popupMenu()
-        cmds.menuItem(l='Select', c=lambda *args: cmds.select(eval(cmds.textFieldButtonGrp('targeText', q=1, tx=1)), r=1))
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.strProc(cmds.textFieldButtonGrp('targeText', q=1, tx=1)), r=1))
         cmds.button('Run', c=lambda *args: self.Runfun())
         cmds.showWindow(ToolUi)
 
@@ -26,9 +26,9 @@ class CopyWeightTool():
         _temp2_ = cmds.textFieldButtonGrp('targeText', q=1, tx=1)
         if not _temp1_ or not _temp2_:
             return
-        sourelist = cmds.ls(eval(_temp1_), fl=1)
-        targelist = cmds.ls(eval(_temp2_), fl=1)
-        soureObj = eval(_temp1_)[0].split('.')[0]
+        sourelist = cmds.ls(self.strProc(_temp1_), fl=1)
+        targelist = cmds.ls(self.strProc(_temp2_), fl=1)
+        soureObj = self.strProc(_temp1_)[0].split('.')[0]
         _TempObj_ = cmds.duplicate(soureObj, rr=1)[0]
         if not '.f[' in _temp1_:
             sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, fv=1, fe=1, fuv=1 ,fvf=1, tf=1), fl=1)
@@ -49,4 +49,8 @@ class CopyWeightTool():
         for j, l in zip(infJointList, jntLock):
             cmds.setAttr(j + '.liw', l)
     
+    def strProc(self, Onestr):
+        rlist = [i[2:-1] for i in Onestr[1:-1].split(', ')] if ', ' in Onestr else [Onestr[3:-2]]
+        return rlist
+
 CopyWeightTool().Ui()

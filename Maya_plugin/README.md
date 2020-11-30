@@ -87,6 +87,14 @@
     
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/CopyWeightTool.py)
 
+#### 2020-11-30  Verision: `1.2`
+<details>
+<summary>详情</summary>
+<pre>
+1.更改数据读取方式, 不再使用Py的eval, 可能导致Maya发生循环错误
+</pre>
+</details>
+
 #### 2020-11-02  Verision: `1.1`
 <details>
 <summary>详情</summary>
@@ -97,6 +105,15 @@
 </details>
 
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/DataSaveUi.py)
+
+#### 2020-11-30  Verision: `1.2`
+<details>
+<summary>详情</summary>
+<pre>
+1.更改数据读取方式, 不再使用Py的eval, 可能导致Maya发生循环错误
+2.Fix: 获取位置时, 选择为空没有及时停止脚本
+</pre>
+</details>
 
 #### 2020-11-12  Verision: `1.12`
 <details>

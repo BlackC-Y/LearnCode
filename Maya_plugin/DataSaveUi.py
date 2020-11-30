@@ -3,7 +3,7 @@ from maya import cmds, mel
 
 class DataSaveUi():
 
-    __Verision = 1.12
+    __Verision = 1.2
 
     def Ui(self):
         self.UiN = 'DataSaveUi'
@@ -54,7 +54,7 @@ class DataSaveUi():
                 return
             _temploc_ = cmds.spaceLocator()
             cmds.delete(cmds.parentConstraint(slList[0], _temploc_, w=1))
-            _data = '[%s, %s]' %(cmds.xform(_temploc_, q=1, ws=1, t=1), cmds.xform(_temploc_, q=1, ws=1, ro=1))
+            _data = '%s \n%s' %(cmds.xform(_temploc_, q=1, ws=1, t=1), cmds.xform(_temploc_, q=1, ws=1, ro=1))
             cmds.delete(_temploc_)
             cmds.text('%s_ComponentData%s' %(UiN, uiNum), e=1, l=_data)
             cmds.text('%s_ComponentText%s' %(UiN, uiNum), e=1, l=u'已储存 位置')
@@ -70,25 +70,33 @@ class DataSaveUi():
     def getData(self, uiNum):
         UiN = self.UiN
         typString = cmds.text('%s_ComponentText%s' %(UiN, uiNum), q=1, l=1)
-        data = cmds.text('%s_ComponentData%s' %(UiN, uiNum), q=1, l=1)
+        data = cmds.text('%s_ComponentData%s' % (UiN, uiNum), q=1, l=1)
+        lsList = cmds.ls(sl=1)
         if not data or not typString:
             return
-        data = eval(data)
         print(data)
         if typString == u'已储存 名称':
-            cmds.select(data, add=1)
+            rlist = [i[2:-1] for i in data[1:-1].split(', ')] if ', ' in data else [data[3:-2]]
+            cmds.select(rlist, add=1)
         elif typString == u'已储存 位置':
-            lsList = cmds.ls(sl=1)
+            if not lsList:
+                return
+            rlist = []
+            for i in data.split(' \n'):
+                _tempdata_ = i[1:-1].split(', ')
+                rlist.append(_tempdata_)
             _temploc_ = cmds.spaceLocator()[0]
-            cmds.xform(_temploc_, ws=1, t=data[0])
-            cmds.xform(_temploc_, ws=1, ro=data[1])
+            cmds.xform(_temploc_, ws=1, t=rlist[0])
+            cmds.xform(_temploc_, ws=1, ro=rlist[1])
             for i in lsList:
                 cmds.delete(cmds.pointConstraint(_temploc_, i, w=1))
             cmds.delete(_temploc_)
         elif typString == u'已储存 中心位置':
-            lsList = cmds.ls(sl=1)
+            if not lsList:
+                return
+            rlist = data[1:-1].split(', ')
             _temploc_ = cmds.spaceLocator()[0]
-            cmds.setAttr(_temploc_ + '.t', data[0], data[1], data[2])
+            cmds.setAttr(_temploc_ + '.t', float(rlist[0]), float(rlist[1]), float(rlist[2]))
             for i in lsList:
                 cmds.delete(cmds.pointConstraint(_temploc_, i, w=1))
             cmds.delete(_temploc_)

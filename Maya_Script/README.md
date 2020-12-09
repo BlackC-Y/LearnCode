@@ -3,7 +3,23 @@
 <h3 align="center">  </h3>
 <p align="center">
 
-## [pTCIK `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/pTCIK.py)
+## [cur2IK_FX `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/cur2IK_FX.py)
+
+#### 2020-12-09  Verision: `2.5`
+<details>
+<summary>详情</summary>
+<pre>
+1.添加新的流程, 从骨骼开始建立
+2.所有流程增加蒙皮骨骼作为最终结果
+3.隐藏不需要的物体和属性
+4.改用驱动关键帧对动力学开关进行控制
+  (若动力学开启, 在2019和更高版本中, 会因为cache playbacka功能会引起崩溃)
+5.清理冗余代码, 提升效率
+6.修改Ui部件名，确保Ui的唯一性
+7.Fix: 选择控制器时对名字的错误拆分
+8.Fix: 插件报错后，错误信息不消失
+</pre>
+</details>
 
 #### 2020-11-20  Verision: `2.42`
 <details>
@@ -34,12 +50,11 @@
 5.选择控制器功能优化
 6.根据新的创建选项，重写了整理函数
 7.Fix: 在关掉动力学时创建曲线, 不生成shape的问题
-8.Note: 不能用PointOnCurveInfo替换运动路径, 没有方向的输出
 </pre>
 </details>
 
 
-## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/WeightTool.py)
+## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
 #### 2020-11-26  Verision: `0.71`
 <details>
@@ -85,7 +100,7 @@
 </details>
     
     
-## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/CopyWeightTool.py)
+## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
 
 #### 2020-11-30  Verision: `1.2`
 <details>
@@ -104,14 +119,14 @@
 </pre>
 </details>
 
-## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_plugin/DataSaveUi.py)
+## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/DataSaveUi.py)
 
 #### 2020-11-30  Verision: `1.2`
 <details>
 <summary>详情</summary>
 <pre>
 1.更改数据读取方式, 不再使用Py的eval, 可能导致Maya发生循环错误
-2.Fix: 获取位置时, 选择为空没有及时停止脚本
+2.Fix: 获取位置时, 选择为空没有及时停止运行
 </pre>
 </details>
 

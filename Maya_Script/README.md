@@ -56,6 +56,19 @@
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
+#### 2020-12-24  Verision: `0.8`
+<details>
+<summary>详情</summary>
+<pre>
+1.增加 Api2.0 处理权重, 同时默认使用Api2.0
+  --Api2.0 只能处理Mesh模型
+2.添加右键菜单中的功能
+3.运行效率优化, 代码优化
+4.Fix: 在空白处右键, 不会弹出菜单的问题
+5.Fix: Api获取蒙皮节点时, 会误判, 改为mel调用获取
+</pre>
+</details>
+
 #### 2020-11-26  Verision: `0.71`
 <details>
 <summary>详情</summary>

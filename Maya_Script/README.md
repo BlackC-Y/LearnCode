@@ -56,13 +56,15 @@
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
-#### 2020-12-25  Verision: `0.81`
+#### 2020-12-25  Verision: `0.81~0.82`
 <details>
 <summary>详情</summary>
 <pre>
 1.使用Api Load权重时, 避免使用eval处理数据，改用字符串处理获取数据
-2.继续优化代码
-3.Fix: 脚本功能不运行时, 选择骨骼列表会报错
+2.修改Ui部件名，确保Ui的唯一性
+3.继续优化代码
+4.Fix: 脚本功能不运行时, 选择骨骼列表会报错
+5.Fix: 权重锤运行时报错
 </pre>
 </details>
 

@@ -11,22 +11,21 @@ except ImportError:
     from PySide import QtCore
     import shiboken as shiboken2
 from maya import cmds, mel
-from maya import OpenMaya as Om, OpenMayaAnim as OmAni
+from maya import OpenMaya as Om, OpenMayaAnim as OmAni, OpenMayaUI as OmUI
 from maya.api import OpenMaya as om, OpenMayaAnim as omAni
 import decimal
 #import time
 
 
-class WeightTool():
+class WeightTool_JellyBean():
 
-    __Verision = 0.8
+    __Verision = 0.82
     
     def ToolUi(self):
-        
-        ToolUi = 'WeightTool'
+        ToolUi = 'WeightTool_JellyBean'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
+        cmds.window(ToolUi, t='WeightTool', rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='SkinT', to=1)
         cmds.menuItem(d=1, dl="S/L")
         cmds.menuItem(l='Save', c=lambda *args: self.vtxSave_api())
@@ -36,46 +35,47 @@ class WeightTool():
         cmds.menu(l='RigT', to=1)
         cmds.menuItem(l='Create', c=lambda *args: self.createSelect())
         cmds.menuItem(l='Get', c=lambda *args: self.getSelect())
-        cmds.columnLayout('FiristcL', cat=('both', 2), rs=2, cw=220, adj=1)
-        cmds.text('spJobchangeVtx', p='FiristcL', vis=0)
-        cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool().refreshBoxChange(None)'], p='spJobchangeVtx')
+        cmds.columnLayout('FiristcL_JellyBean', cat=('both', 2), rs=2, cw=220, adj=1)
+        cmds.text('spJobchangeVtx_JellyBean', p='FiristcL_JellyBean', vis=0)
+        cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool_JellyBean().refreshBoxChange(None)'], p='spJobchangeVtx_JellyBean')
         cmds.rowLayout(nc=6, adj=2)
-        cmds.iconTextCheckBox('refresh', i='refresh.png', w=20, h=20,
+        cmds.iconTextCheckBox('refresh_JellyBean', i='refresh.png', w=20, h=20,
                                 onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
         cmds.popupMenu()
-        cmds.menuItem('OFFmeunItem', l='OFF', cb=0)
-        cmds.textField('searchText', h=22, tcc=lambda *args: self.refreshJointList(1, cmds.textField('searchText', q=1, tx=1)))
+        cmds.menuItem('OFFmeunItem_JellyBean', l='OFF', cb=0)
+        cmds.textField('searchText_JellyBean', h=22, tcc=lambda *args: self.refreshJointList(1, cmds.textField('searchText_JellyBean', q=1, tx=1)))
         cmds.popupMenu()
         cmds.radioMenuItemCollection()
-        cmds.menuItem('HImeunItem', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(1))
-        cmds.menuItem('AImeunItem', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(1))
-        cmds.menuItem('FImeunItem', l='Filter Zero', cb=0, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('HImeunItem_JellyBean', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('AImeunItem_JellyBean', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('FImeunItem_JellyBean', l='Filter Zero', cb=0, c=lambda *args: self.refreshJointList(1))
         #cmds.iconTextButton(i='expandInfluenceList.png', w=20, h=20,
-        #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) + 20))
+        #    c=lambda *args: cmds.treeView('JointTV_JellyBean', e=1, h=cmds.treeView('JointTV_JellyBean', q=1, h=1) + 20))
         #cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
-        #    c=lambda *args: cmds.treeView('JointTV', e=1, h=cmds.treeView('JointTV', q=1, h=1) - 20))
+        #    c=lambda *args: cmds.treeView('JointTV_JellyBean', e=1, h=cmds.treeView('JointTV_JellyBean', q=1, h=1) - 20))
         #invertSelection.png
         cmds.iconTextButton(i='invertSelection.png', w=20, h=20, c=self.reSelect)
         cmds.setParent('..')
         cmds.setParent('..')
-        cmds.formLayout('JointTVLayout')
-        cmds.treeView('JointTV', nb=1, h=100, scc=self._weightView, pc=(1, self.lock_unLock))
-        cmds.text('savecluster', l='', vis=0)
+        cmds.formLayout('JointTVLayout_JellyBean')
+        cmds.treeView('JointTV_JellyBean', nb=1, h=100, scc=self._weightView, pc=(1, self.lock_unLock))
+        cmds.text('savecluster_JellyBean', l='', vis=0)
         cmds.popupMenu()
         #cmds.menuItem(l='Lock All')
         #cmds.menuItem(l='Unlock All')
         cmds.menuItem(l='Select Vtx', c=lambda *args: self.slVtx())
-        cmds.formLayout('JointTVLayout', e=1, af=[('JointTV', 'top', 0), ('JointTV', 'bottom', 0), ('JointTV', 'left', 3), ('JointTV', 'right', 3)])
+        cmds.formLayout('JointTVLayout_JellyBean', e=1, af=[('JointTV_JellyBean', 'top', 0), ('JointTV_JellyBean', 'bottom', 0),
+                                                            ('JointTV_JellyBean', 'left', 3), ('JointTV_JellyBean', 'right', 3)])
         cmds.setParent('..')
-        cmds.columnLayout('vtxToolcL', cat=('both', 2), rs=2, cw=225)
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=225)
         cmds.rowLayout(nc=4, cw4=(50, 50, 50, 65))
-        cmds.floatField('weighrfloat', w=52, h=26, pre=4, min=0, max=1, 
-                            ec=lambda *args: self.editVtxWeight(cmds.floatField('weighrfloat', q=1, v=1)))
+        cmds.floatField('weighrfloat_JellyBean', w=52, h=26, pre=4, min=0, max=1, 
+                            ec=lambda *args: self.editVtxWeight(cmds.floatField('weighrfloat_JellyBean', q=1, v=1)))
         cmds.button(w=50, h=26, l='Copy', c=lambda *args: self.copyVtxWeight())
         cmds.button(w=50, h=26, l='Paste', c=lambda *args: self.pasteVtxWeight())
         cmds.popupMenu()
         cmds.menuItem(l='PasteAll', c=lambda *args: mel.eval("polyConvertToShell;artAttrSkinWeightPaste;"))
-        cmds.button(w=65, h=26, l='Hammer', c=lambda *args: mel.eval('weightHammerVerts;self.refreshJointList(0)'))
+        cmds.button(w=65, h=26, l='Hammer', c=lambda *args: (mel.eval('weightHammerVerts'), self.refreshJointList(0)))
         cmds.setParent('..')
         cmds.rowLayout(nc=5, cw5=(43, 43, 43, 43, 43))
         cmds.button(w=43, h=26, l='Loop', c=lambda *args: cmds.polySelectSp(loop=1))
@@ -96,13 +96,13 @@ class WeightTool():
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='A/S Weight', w=80)
-        cmds.floatField('ASFloat', v=0.05, h=26, w=50, pre=3, min=0, max=1)
+        cmds.floatField('ASFloat_JellyBean', v=0.05, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='+', c=lambda *args: self.editVtxWeight('+'))
         cmds.button(w=38, h=26, l='-', c=lambda *args: self.editVtxWeight('-'))
         cmds.setParent('..')
         cmds.rowLayout(nc=4, cw4=(80, 60, 38, 38))
         cmds.text(l='M/D Weight', w=80)
-        cmds.floatField('MDFloat', v=0.95, h=26, w=50, pre=3, min=0, max=1)
+        cmds.floatField('MDFloat_JellyBean', v=0.95, h=26, w=50, pre=3, min=0, max=1)
         cmds.button(w=38, h=26, l='*', c=lambda *args: self.editVtxWeight('*'))
         cmds.button(w=38, h=26, l='/', c=lambda *args: self.editVtxWeight('/'))
         cmds.setParent('..')
@@ -110,20 +110,20 @@ class WeightTool():
         cmds.showWindow(ToolUi)
 
     def spJobStart(self):
-        if cmds.text('spJobVtxParent', q=1, ex=1):
+        if cmds.text('spJobVtxParent_JellyBean', q=1, ex=1):
             return
-        cmds.text('spJobVtxParent', p='FiristcL', vis=0)
-        cmds.scriptJob(e=['Undo', 'WeightTool().refreshJointList(0)'], p='spJobVtxParent')
-        cmds.scriptJob(e=['SelectionChanged', 'WeightTool().refreshJointList(0)'], p='spJobVtxParent')
-        #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent')
-        cmds.scriptJob(uid=['WeightTool', 'WeightTool().refreshBoxChange(9)'])
+        cmds.text('spJobVtxParent_JellyBean', p='FiristcL_JellyBean', vis=0)
+        cmds.scriptJob(e=['Undo', 'WeightTool_JellyBean().refreshJointList(0)'], p='spJobVtxParent_JellyBean')
+        cmds.scriptJob(e=['SelectionChanged', 'WeightTool_JellyBean().refreshJointList(0)'], p='spJobVtxParent_JellyBean')
+        #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent_JellyBean')
+        cmds.scriptJob(uid=['WeightTool_JellyBean', 'WeightTool_JellyBean().refreshBoxChange(9)'])
         
         PaintSkinCmd = '"ArtPaintSkinWeightsToolOptions;"'
         if int(cmds.about(v=1)) > 2017:
             edgeCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"edge\\\", 0);")'
             vertexCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"vertex\\\", 0);")'
             faceCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"facet\\\", 0);")'
-            objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  #python (\\\"WeightTool().refreshBoxChange(9)\\\");
+            objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  #python (\\\"WeightTool_JellyBean().refreshBoxChange(9)\\\");
         else:
             edgeCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"edge\\\");")'
             vertexCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"vertex\\\");")'
@@ -133,7 +133,7 @@ class WeightTool():
                 if(!size($object)){ \
                 string $lsList[] = `ls -sl -o`; if(!size($lsList)){return;} else{$object = $lsList[0];}} \
                 if(objectType($object) == "joint"){ \
-                string $selCmd = "python(\\\"cmds.treeView(\'JointTV\', e=1, cs=1);cmds.treeView(\'JointTV\', e=1, si=(\'" + $object + "\', 1));WeightTool()._weightView()\\\")"; \
+                string $selCmd = "python(\\\"cmds.treeView(\'JointTV_JellyBean\', e=1, cs=1);cmds.treeView(\'JointTV_JellyBean\', e=1, si=(\'" + $object + "\', 1));WeightTool_JellyBean()._weightView()\\\")"; \
                 menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
                 }else{ \
                 menuItem -l "Paint Skin Weights Tool" -ec true -c %s -rp "NW" -p $parent; \
@@ -144,15 +144,15 @@ class WeightTool():
                 %(PaintSkinCmd, vertexCmd, edgeCmd, faceCmd, objModeCmd))
         
     def refreshBoxChange(self, force):
-        if force == 9 or cmds.menuItem('OFFmeunItem', q=1, cb=1):
-            if cmds.text('spJobVtxParent', q=1, ex=1):
-                cmds.deleteUI('spJobVtxParent', ctl=1)
+        if force == 9 or cmds.menuItem('OFFmeunItem_JellyBean', q=1, cb=1):
+            if cmds.text('spJobVtxParent_JellyBean', q=1, ex=1):
+                cmds.deleteUI('spJobVtxParent_JellyBean', ctl=1)
             mel.eval('source "dagMenuProc.mel"')
-            if cmds.window('WeightTool', q=1, ex=1):
-                cmds.iconTextCheckBox('refresh', e=1, v=0)
+            if cmds.window('WeightTool_JellyBean', q=1, ex=1):
+                cmds.iconTextCheckBox('refresh_JellyBean', e=1, v=0)
         else:
             self.spJobStart()
-            cmds.iconTextCheckBox('refresh', e=1, v=1)
+            cmds.iconTextCheckBox('refresh_JellyBean', e=1, v=1)
     
     def refreshJointList(self, refresh, search = ''):
         seltyp = 0 if cmds.selectType(q=1, ocm=1, pv=1) or cmds.selectType(q=1, ocm=1, lp=1) or cmds.selectType(q=1, ocm=1, cv=1) else 1
@@ -170,13 +170,13 @@ class WeightTool():
             return
         self.tempcluster = clusterName
         jointList = cmds.skinCluster(selobj, q=1, inf=1)   #cmds.skinCluster(selobj, q=1, wi=1)
-        siItem = cmds.treeView('JointTV', q=1, si=1)
-        _zero = cmds.menuItem('FImeunItem', q=1, cb=1)
-        condition = [cmds.treeView('JointTV', q=1, ch=''), cmds.text('savecluster', q=1, l=1),]
+        siItem = cmds.treeView('JointTV_JellyBean', q=1, si=1)
+        _zero = cmds.menuItem('FImeunItem_JellyBean', q=1, cb=1)
+        condition = [cmds.treeView('JointTV_JellyBean', q=1, ch=''), cmds.text('savecluster_JellyBean', q=1, l=1),]
         if not condition[0] or condition[1] != clusterName or refresh or _zero:
-            cmds.treeView('JointTV', e=1, ra=1)
+            cmds.treeView('JointTV_JellyBean', e=1, ra=1)
             if search:
-                text = cmds.textField('searchText', q=1, tx=1)
+                text = cmds.textField('searchText_JellyBean', q=1, tx=1)
                 getList = [i for i in jointList if text in i]
                 if getList:
                     jointList = getList
@@ -193,72 +193,72 @@ class WeightTool():
                     _jointList.append(i)
                     _valueList.append(Value)
             for j, v in zip(_jointList, _valueList):
-                if cmds.menuItem('HImeunItem', q=1, rb=1):
+                if cmds.menuItem('HImeunItem_JellyBean', q=1, rb=1):
                     self.addHItoList(j, _jointList)
                 else:
-                    cmds.treeView('JointTV', e=1, ai=[j, ''])
+                    cmds.treeView('JointTV_JellyBean', e=1, ai=[j, ''])
                 if cmds.getAttr(j + '.liw'):
-                    cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_ON.png'))
+                    cmds.treeView('JointTV_JellyBean', e=1, i=(j, 1, 'Lock_ON.png'))
                 else:
-                    cmds.treeView('JointTV', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
-                if not cmds.treeView('JointTV', q=1, dls=1):
-                    cmds.treeView('JointTV', e=1, dls=(j, ''))
+                    cmds.treeView('JointTV_JellyBean', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
+                if not cmds.treeView('JointTV_JellyBean', q=1, dls=1):
+                    cmds.treeView('JointTV_JellyBean', e=1, dls=(j, ''))
                 if float(v):
-                    cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' %v))
+                    cmds.treeView('JointTV_JellyBean', e=1, dls=(j, '   |   %s' %v))
             if siItem:
-                allItem = cmds.treeView('JointTV', q=1, ch='')
+                allItem = cmds.treeView('JointTV_JellyBean', q=1, ch='')
                 _Temp_ = list(set(siItem).intersection(set(allItem)))   #求并集
                 for i in _Temp_:
-                    cmds.treeView('JointTV', e=1, si=(i, 1))
+                    cmds.treeView('JointTV_JellyBean', e=1, si=(i, 1))
         else:
-            allItem = cmds.treeView('JointTV', q=1, ch='')
+            allItem = cmds.treeView('JointTV_JellyBean', q=1, ch='')
             for j in allItem:
                 Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=j)
-                if not cmds.treeView('JointTV', q=1, dls=1):
-                    cmds.treeView('JointTV', e=1, dls=(j, ''))
+                if not cmds.treeView('JointTV_JellyBean', q=1, dls=1):
+                    cmds.treeView('JointTV_JellyBean', e=1, dls=(j, ''))
                 if not float(Value):
                     continue
-                cmds.treeView('JointTV', e=1, dls=(j, '   |   %s' %Value))
-        cmds.text('savecluster', e=1, l=clusterName)
+                cmds.treeView('JointTV_JellyBean', e=1, dls=(j, '   |   %s' %Value))
+        cmds.text('savecluster_JellyBean', e=1, l=clusterName)
             
     def addHItoList(self, i, jointList):
         jointP = cmds.listRelatives(i, p=1)
         if not jointP:
-            if not cmds.treeView('JointTV', q=1, iex=i):
-                cmds.treeView('JointTV', e=1, ai=[i, ''])
-        elif cmds.treeView('JointTV', q=1, iex=jointP[0]):
-            if not cmds.treeView('JointTV', q=1, iex=i):
-                cmds.treeView('JointTV', e=1, ai=[i, jointP[0]])
+            if not cmds.treeView('JointTV_JellyBean', q=1, iex=i):
+                cmds.treeView('JointTV_JellyBean', e=1, ai=[i, ''])
+        elif cmds.treeView('JointTV_JellyBean', q=1, iex=jointP[0]):
+            if not cmds.treeView('JointTV_JellyBean', q=1, iex=i):
+                cmds.treeView('JointTV_JellyBean', e=1, ai=[i, jointP[0]])
         elif jointP[0] in jointList:
             self.addHItoList(jointP[0], jointList)
-            if not cmds.treeView('JointTV', q=1, iex=i):
-                cmds.treeView('JointTV', e=1, ai=[i, jointP[0]])
+            if not cmds.treeView('JointTV_JellyBean', q=1, iex=i):
+                cmds.treeView('JointTV_JellyBean', e=1, ai=[i, jointP[0]])
         else:
-            if not cmds.treeView('JointTV', q=1, iex=i):
-                cmds.treeView('JointTV', e=1, ai=[i, ''])
+            if not cmds.treeView('JointTV_JellyBean', q=1, iex=i):
+                cmds.treeView('JointTV_JellyBean', e=1, ai=[i, ''])
 
     def lock_unLock(self, jnt, but):
-        slItem = cmds.treeView('JointTV', q=1, si=1)
+        slItem = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         if not slItem or len(slItem) == 1:
             slItem = [jnt]
         if cmds.getAttr(jnt + '.liw'):
             for i in slItem:
                 cmds.setAttr(i + '.liw', 0)
-                cmds.treeView('JointTV', e=1, i=(i, 1, 'Lock_OFF_grey.png'))
+                cmds.treeView('JointTV_JellyBean', e=1, i=(i, 1, 'Lock_OFF_grey.png'))
         else:
             for i in slItem:
                 cmds.setAttr(i + '.liw', 1)
-                cmds.treeView('JointTV', e=1, i=(i, 1, 'Lock_ON.png'))
+                cmds.treeView('JointTV_JellyBean', e=1, i=(i, 1, 'Lock_ON.png'))
 
     def reSelect(self):
-        allItem = cmds.treeView('JointTV', q=1, iv=1)
-        slItem = cmds.treeView('JointTV', q=1, si=1)
+        allItem = cmds.treeView('JointTV_JellyBean', q=1, iv=1)
+        slItem = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         if not allItem or not slItem:
             return
-        cmds.treeView('JointTV', e=1, cs=1)
+        cmds.treeView('JointTV_JellyBean', e=1, cs=1)
         _Temp_ = list(set(allItem).difference(set(slItem)))   #求差集 a有b没有
         for i in _Temp_:
-            cmds.treeView('JointTV', e=1, si=(i, 1))
+            cmds.treeView('JointTV_JellyBean', e=1, si=(i, 1))
     
     def editVtxWeight(self, mode):
         sel = cmds.ls(sl=1, fl=1)
@@ -271,7 +271,7 @@ class WeightTool():
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
         if not clusterName:
             return
-        sljntList = cmds.treeView('JointTV', q=1, si=1)
+        sljntList = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         if not sljntList:
             om.MGlobal.displayError('Not Selected Joint')
             return
@@ -280,8 +280,8 @@ class WeightTool():
                 tvList = []
                 for j in sljntList:
                     Value = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=j)
-                    Value = Value + cmds.floatField('ASFloat', q=1, v=1)   \
-                        if mode == '+' else Value - cmds.floatField('ASFloat', q=1, v=1)
+                    Value = Value + cmds.floatField('ASFloat_JellyBean', q=1, v=1)   \
+                        if mode == '+' else Value - cmds.floatField('ASFloat_JellyBean', q=1, v=1)
                     tvList.append((j, Value))
                 cmds.skinPercent(clusterName, v, tv=tvList)
         elif mode == '*' or mode == '/':
@@ -289,21 +289,21 @@ class WeightTool():
                 tvList = []
                 for j in sljntList:
                     Value = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=j)
-                    Value = Value * cmds.floatField('MDFloat', q=1, v=1)   \
-                        if mode == '*' else Value / cmds.floatField('MDFloat', q=1, v=1)
+                    Value = Value * cmds.floatField('MDFloat_JellyBean', q=1, v=1)   \
+                        if mode == '*' else Value / cmds.floatField('MDFloat_JellyBean', q=1, v=1)
                     tvList.append((j, Value))
                 cmds.skinPercent(clusterName, v, tv=tvList)
         else:
             for v in selVtx:
                 tvList = [(j, float(mode)) for j in sljntList]
                 cmds.skinPercent(clusterName, v, tv=tvList)
-        siItem = cmds.treeView('JointTV', q=1, si=1)
+        siItem = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         self.refreshJointList(0)
         for i in siItem:
-            cmds.treeView('JointTV', e=1, si=(i, 1))
+            cmds.treeView('JointTV_JellyBean', e=1, si=(i, 1))
                         
     def slVtx(self):
-        slJnt = cmds.treeView('JointTV', q=1, si=1)
+        slJnt = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         vtxList = []
         for i in slJnt:
             cmds.skinCluster(self.tempcluster, e=1, siv=i)
@@ -311,19 +311,19 @@ class WeightTool():
         cmds.select(vtxList, r=1)
     
     def _weightView(self):
-        if cmds.iconTextCheckBox('refresh', q=1, v=1):
+        if cmds.iconTextCheckBox('refresh_JellyBean', q=1, v=1):
             if cmds.currentCtx() == 'artAttrSkinContext':
-                mel.eval('setSmoothSkinInfluence "%s";' %cmds.treeView('JointTV', q=1, si=1)[0])
+                mel.eval('setSmoothSkinInfluence "%s";' %cmds.treeView('JointTV_JellyBean', q=1, si=1)[0])
             self._weightfloat()
         
     def _weightfloat(self):
-        treesl = cmds.treeView('JointTV', q=1, si=1)
+        treesl = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         sel = cmds.ls(sl=1, fl=1)
         if not treesl or not sel:
             return
         selobj = cmds.ls(sl=1, o=1)[0]
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
-        cmds.floatField('weighrfloat', e=1, v=float('%.4f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=treesl[0])))
+        cmds.floatField('weighrfloat_JellyBean', e=1, v=float('%.4f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=treesl[0])))
 
     # # # # # # # # # #
     def copyVtxWeight(self):
@@ -388,7 +388,7 @@ class WeightTool():
                 suf = '.smp'
             elif seltyp == 'lattice':
                 suf = '.pt'
-            selVtx = cmds.ls(selobj + suf + '[*]', fl=1)
+            selVtx = cmds.ls('%s%s[*]' %(selobj, suf), fl=1)
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
         if not clusterName:
             om.MGlobal.displayError('Select No Skin')
@@ -801,43 +801,44 @@ class WeightTool():
         cmds.select(_tempVtx, r=1)
     # # # # # Tool # # # # #
 
+
 class DisplayYes():   #报绿
 
     def __init__(self):
         self.gCommandLine = mel.eval('$tmp = $gCommandLine')
 
     def showMessage(self, message):
-        widget = shiboken2.wrapInstance(long(Omui.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
+        widget = shiboken2.wrapInstance(long(OmUI.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
         widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
         cmds.select('time1', r=1)
-        WeightTool().refreshBoxChange(9)
-        cmds.text('spJobReLine', p='FiristcL', vis=0)   # p = Layout
-        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine')
+        WeightTool_JellyBean().refreshBoxChange(9)
+        cmds.text('spJobReLine_DisplayYes', p='FiristcL_JellyBean', vis=0)   # p = Layout
+        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine_DisplayYes')
         Om.MGlobal.displayInfo(message)
 
     def resetLine(self):
-        cmds.deleteUI('spJobReLine', ctl=1)
+        cmds.deleteUI('spJobReLine_DisplayYes', ctl=1)
         cmds.deleteUI(self.gCommandLine.rsplit('|', 1)[0])
         mel.eval('source "initCommandLine.mel"')
 
 
-class WeightCheckTool():
+class WeightCheckTool_JellyBean():
 
     def ToolUi(self):
-        ToolUi = 'WeightCheckTool'
+        ToolUi = 'WeightCheckTool_JellyBean'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, wh=(500, 300))
-        cmds.menu(l='View', to=0)
-        cmds.menuItem('SNmenuItem', l='View Object Name', cb=0, c=lambda *args: self.Load())
-        cmds.formLayout('MainformLayout')
-        cmds.paneLayout('ListLayout', cn='vertical3', ps=(1, 1, 1))
-        cmds.textScrollList('vtxList', ams=1, sc=lambda *args:
-                                cmds.textScrollList('weightList', e=1, da=1, sii=cmds.textScrollList('vtxList', q=1, sii=1)))
-        cmds.textScrollList('weightList', ams=1, sc=lambda *args:
-                                cmds.textScrollList('vtxList', e=1, da=1, sii=cmds.textScrollList('weightList', q=1, sii=1)))
+        cmds.window(ToolUi, t='WeightCheckTool', rtf=1, mb=1, wh=(500, 300))
+        cmds.formLayout('MainformLayout_JellyBean')
+        cmds.paneLayout('ListLayout_JellyBean', cn='vertical3', ps=(1, 1, 1))
+        cmds.textScrollList('vtxList_JellyBean', ams=1, sc=lambda *args:
+                                cmds.textScrollList('weightList_JellyBean', e=1, da=1, sii=cmds.textScrollList('vtxList_JellyBean', q=1, sii=1)))
+        cmds.popupMenu()
+        cmds.menuItem('SNmenuItem_JellyBean', l='View Object Name', cb=0, c=lambda *args: self.Load())
+        cmds.textScrollList('weightList_JellyBean', ams=1, sc=lambda *args:
+                                cmds.textScrollList('vtxList_JellyBean', e=1, da=1, sii=cmds.textScrollList('weightList_JellyBean', q=1, sii=1)))
         cmds.setParent('..')
-        cmds.columnLayout('cLayout', cat=('right', 5), cw=100)
+        cmds.columnLayout('cLayout_JellyBean', cat=('right', 5), cw=100)
         cmds.text(l='', h=3)
         cmds.button(l='Load', w=80, h=26, c=lambda *args: self.Load())
         cmds.button(l='Clean', w=80, h=26, c=lambda *args: self.Clean())
@@ -846,14 +847,15 @@ class WeightCheckTool():
         cmds.menuItem(l='Remove as Value', c=lambda *args: self.RemoveValue())
         cmds.button(l='Select', w=80, h=26, c=lambda *args: self.selectVtx())
         cmds.text(l='Decimal', h=20)
-        cmds.intField('DecimalInt', v=3)
+        cmds.intField('DecimalInt_JellyBean', v=3)
         cmds.text(l='Influence', h=20)
-        cmds.intField('InfluenceInt', v=3)
-        cmds.text('ViewNum', vis=0, h=20)
-        cmds.text('shapeInfo', vis=0)
+        cmds.intField('InfluenceInt_JellyBean', v=3)
+        cmds.text('ViewNum_JellyBean', vis=0, h=20)
+        cmds.text('shapeInfo_JellyBean', vis=0)
         
-        cmds.formLayout('MainformLayout', e=1, af=[('ListLayout', 'top', 0), ('ListLayout', 'bottom', 0), ('ListLayout', 'left', 3), ('cLayout', 'right', 3)])
-        cmds.formLayout('MainformLayout', e=1, ac=('ListLayout', 'right', 3, 'cLayout'))
+        cmds.formLayout('MainformLayout_JellyBean', e=1, af=[('ListLayout_JellyBean', 'top', 0), ('ListLayout_JellyBean', 'bottom', 0),
+                                                             ('ListLayout_JellyBean', 'left', 3), ('cLayout_JellyBean', 'right', 3)])
+        cmds.formLayout('MainformLayout_JellyBean', e=1, ac=('ListLayout_JellyBean', 'right', 3, 'cLayout_JellyBean'))
         cmds.showWindow(ToolUi)
     
     def getSel(self):
@@ -876,7 +878,7 @@ class WeightCheckTool():
                 suf = '.smp'
             elif seltyp == 'lattice':
                 suf = '.pt'
-            selVtx = cmds.ls(selobj + suf + '[*]', fl=1)
+            selVtx = cmds.ls('%s%s[*]' %(selobj, suf), fl=1)
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
         if not clusterName:
             om.MGlobal.displayError('Select No Skin')
@@ -884,40 +886,40 @@ class WeightCheckTool():
         return selVtx, clusterName
 
     def Load(self):
-        cmds.text('ViewNum', e=1, vis=0)
+        cmds.text('ViewNum_JellyBean', e=1, vis=0)
         selVtx, clusterName = self.getSel()
         if not selVtx or not clusterName:
             return
-        cmds.textScrollList('vtxList', e=1, ra=1)
-        cmds.textScrollList('weightList', e=1, ra=1)
+        cmds.textScrollList('vtxList_JellyBean', e=1, ra=1)
+        cmds.textScrollList('weightList_JellyBean', e=1, ra=1)
         self.Number = []
         for i in selVtx:
             valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
             transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
             tvStr = ''
-            if len(valueList) > cmds.intField('InfluenceInt', q=1, v=1):
+            if len(valueList) > cmds.intField('InfluenceInt_JellyBean', q=1, v=1):
                 self.Number.append(i)
             for w, j in zip(valueList, transList):
                 Value = str(w).rstrip('0').rstrip('.')
                 tvStr += '%s ~ %s @ ' %(j, Value)
-            if not cmds.menuItem('SNmenuItem', q=1, cb=1):
+            if not cmds.menuItem('SNmenuItem_JellyBean', q=1, cb=1):
                 i = i.split('.')[1]
-            cmds.textScrollList('vtxList', e=1, a=i)
-            cmds.textScrollList('weightList', e=1, a=tvStr)
+            cmds.textScrollList('vtxList_JellyBean', e=1, a=i)
+            cmds.textScrollList('weightList_JellyBean', e=1, a=tvStr)
         if self.Number:
-            cmds.text('ViewNum', e=1, vis=1, l='Number: ' + str(len(self.Number)))
-            if not cmds.menuItem('SNmenuItem', q=1, cb=1):
+            cmds.text('ViewNum_JellyBean', e=1, vis=1, l='Number: %s' %len(self.Number))
+            if not cmds.menuItem('SNmenuItem_JellyBean', q=1, cb=1):
                 _tempSl = [i.split('.')[1] for i in self.Number]
-                cmds.textScrollList('vtxList', e=1, si=_tempSl)
+                cmds.textScrollList('vtxList_JellyBean', e=1, si=_tempSl)
             else:
-                cmds.textScrollList('vtxList', e=1, si=self.Number)
-            cmds.textScrollList('weightList', e=1, sii=cmds.textScrollList('vtxList', q=1, sii=1))
-        cmds.text('shapeInfo', e=1, l=self.saveShape)
+                cmds.textScrollList('vtxList_JellyBean', e=1, si=self.Number)
+            cmds.textScrollList('weightList_JellyBean', e=1, sii=cmds.textScrollList('vtxList_JellyBean', q=1, sii=1))
+        cmds.text('shapeInfo_JellyBean', e=1, l=self.saveShape)
         
     def selectVtx(self):
-        vtxList = cmds.textScrollList('vtxList', q=1, si=1)
+        vtxList = cmds.textScrollList('vtxList_JellyBean', q=1, si=1)
         if not '.' in vtxList[0]:
-            _shapeN = cmds.text('shapeInfo', q=1, l=1)
+            _shapeN = cmds.text('shapeInfo_JellyBean', q=1, l=1)
             vtxList = ['%s.%s' %(_shapeN, i) for i in vtxList]
         cmds.hilite(_shapeN)
         cmds.select(vtxList, r=1)
@@ -929,7 +931,7 @@ class WeightCheckTool():
         jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
         jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
-        _decimal = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
+        _decimal = '%.%sf' %cmds.intField('DecimalInt_JellyBean', q=1, v=1)
         for i in selVtx:
             transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
             for j in transList:
@@ -962,7 +964,7 @@ class WeightCheckTool():
             for j in transList:
                 jntLock.append(cmds.getAttr(j + '.liw'))
                 cmds.setAttr(j + '.liw', 0)
-            while len(transList) > cmds.intField('InfluenceInt', q=1, v=1):
+            while len(transList) > cmds.intField('InfluenceInt_JellyBean', q=1, v=1):
                 valueList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, v=1)
                 tvdic = {}
                 for w, j in zip(valueList, transList):
@@ -994,5 +996,5 @@ class WeightCheckTool():
                 cmds.setAttr(j + '.liw', l)
             self.Load()
 
-WeightTool().ToolUi()
-#WeightCheckTool().ToolUi()
+WeightTool_JellyBean().ToolUi()
+#WeightCheckTool_JellyBean().ToolUi()

@@ -184,7 +184,7 @@ class WeightTool():
             _jointList = []
             _valueList = []
             for i in jointList:
-                Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000000001, q=1, t=i)
+                Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=i)
                 if _zero: 
                     if float(Value):
                         _jointList.append(i)
@@ -213,7 +213,7 @@ class WeightTool():
         else:
             allItem = cmds.treeView('JointTV', q=1, ch='')
             for j in allItem:
-                Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000000001, q=1, t=j)
+                Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=j)
                 if not cmds.treeView('JointTV', q=1, dls=1):
                     cmds.treeView('JointTV', e=1, dls=(j, ''))
                 if not float(Value):
@@ -279,7 +279,7 @@ class WeightTool():
             for v in selVtx:
                 tvList = []
                 for j in sljntList:
-                    Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
+                    Value = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=j)
                     Value = Value + cmds.floatField('ASFloat', q=1, v=1)   \
                         if mode == '+' else Value - cmds.floatField('ASFloat', q=1, v=1)
                     tvList.append((j, Value))
@@ -288,7 +288,7 @@ class WeightTool():
             for v in selVtx:
                 tvList = []
                 for j in sljntList:
-                    Value = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=j)
+                    Value = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=j)
                     Value = Value * cmds.floatField('MDFloat', q=1, v=1)   \
                         if mode == '*' else Value / cmds.floatField('MDFloat', q=1, v=1)
                     tvList.append((j, Value))
@@ -311,9 +311,10 @@ class WeightTool():
         cmds.select(vtxList, r=1)
     
     def _weightView(self):
-        if cmds.currentCtx() == 'artAttrSkinContext':
-            mel.eval('setSmoothSkinInfluence "%s";' %cmds.treeView('JointTV', q=1, si=1)[0])
-        self._weightfloat()
+        if cmds.iconTextCheckBox('refresh', q=1, v=1):
+            if cmds.currentCtx() == 'artAttrSkinContext':
+                mel.eval('setSmoothSkinInfluence "%s";' %cmds.treeView('JointTV', q=1, si=1)[0])
+            self._weightfloat()
         
     def _weightfloat(self):
         treesl = cmds.treeView('JointTV', q=1, si=1)
@@ -322,7 +323,7 @@ class WeightTool():
             return
         selobj = cmds.ls(sl=1, o=1)[0]
         clusterName = mel.eval('findRelatedSkinCluster("%s")' %selobj)
-        cmds.floatField('weighrfloat', e=1, v=float('%.4f' %cmds.skinPercent(clusterName, sel[0], ib=.000000000000001, q=1, t=treesl[0])))
+        cmds.floatField('weighrfloat', e=1, v=float('%.4f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=treesl[0])))
 
     # # # # # # # # # #
     def copyVtxWeight(self):
@@ -336,8 +337,8 @@ class WeightTool():
             om.MGlobal.displayError('Select No Skin')
             return
         mel.eval('artAttrSkinWeightCopy;')
-        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000000000001, v=1)
-        TransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000000000001, t=None)
+        ValueList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000001, v=1)
+        TransList = cmds.skinPercent(clusterName, selVtx, q=1, ib=.000000001, t=None)
         '''   #倒序循环
         for i in range(len(ValueList)-1, -1, -1):
             if ValueList[i] < .0001:
@@ -400,8 +401,8 @@ class WeightTool():
             #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
             for i in selVtx:
                 #cmds.progressBar(gMainProgressBar, e=1, s=1)
-                valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+                valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
+                transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
                 allWeight = 0
                 for w in range(len(valueList)):
                     valueList[w] = round(valueList[w], 4)
@@ -570,25 +571,11 @@ class WeightTool():
         filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2, fm=1)
         if not filePath:
             return
-        allLine = []
-        _allappend = allLine.append
-        with open(filePath[0], 'r') as vwfile:
-            line = vwfile.readline()
-            while line:
-                strsplit = line.split('--')
-                if '][' in strsplit[0]:
-                    Om.MGlobal.displayWarning('Error. Please ReSelect')
-                    self.vtxLoad_Mel()
-                    return
-                vtx = strsplit[0].split('[')[-1].split(']')[0]
-                jointList = []
-                weightList = []
-                for item in eval(strsplit[-1]):
-                    jointList.append(item[0])
-                    weightList.append(item[1])
-                _allappend([vtx, jointList, weightList])
-                line = vwfile.readline()
-            _allappend([-1, None, None])
+        allLine = self.readWeightData_Load(filePath[0])
+        if allLine == 'toMel':
+            Om.MGlobal.displayWarning('Some Error. Please ReSelect')
+            self.vtxLoad_Mel()
+            return
         
         jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
         for j in infNameList:
@@ -692,25 +679,11 @@ class WeightTool():
         filePath = cmds.fileDialog2(ff='WeightFile (*.vtxWeight *.sdd)', ds=2, fm=1)
         if not filePath:
             return
-        allLine = []
-        _allappend = allLine.append
-        with open(filePath[0], 'r') as vwfile:
-            line = vwfile.readline()
-            while line:
-                strsplit = line.split('--')
-                if '][' in strsplit[0]:
-                    om.MGlobal.displayWarning('Error. Please ReSelect')
-                    self.vtxLoad_Mel()
-                    return
-                vtx = strsplit[0].split('[')[-1].split(']')[0]
-                jointList = []
-                weightList = []
-                for item in eval(strsplit[-1]):
-                    jointList.append(item[0])
-                    weightList.append(item[1])
-                _allappend([vtx, jointList, weightList])
-                line = vwfile.readline()
-            _allappend([-1, None, None])
+        allLine = self.readWeightData_Load(filePath[0])
+        if allLine == 'toMel':
+            om.MGlobal.displayWarning('Some Error. Please ReSelect')
+            self.vtxLoad_Mel()
+            return
         
         jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
         for j in infNameList:
@@ -752,6 +725,38 @@ class WeightTool():
             allWeight += _tempweight
         valueList[0] += (1.0 - allWeight)
         return [[transList[it], valueList[it]] for it in range(len(valueList))]
+    
+    def readWeightData_Load(self, path):
+        allLine = []
+        _allappend = allLine.append
+        with open(path, 'r') as vwfile:
+            line = vwfile.readline()
+            while line:
+                strsplit = line.split('--')
+                if '][' in strsplit[0]:
+                    return 'toMel'
+                vtx = strsplit[0].split('[')[-1].split(']')[0]
+                _data = strsplit[-1].strip()
+                if '], [' in _data:
+                    jointList = []
+                    _jointListapp = jointList.append
+                    weightList = []
+                    _weightListapp = weightList.append
+                    for i in _data[2:-2].split('], ['):
+                        _str = i.split(', ')
+                        _jointListapp(_str[0][2:-1])
+                        _weightListapp(float(_str[1]))
+                    _allappend([vtx, jointList, weightList])
+                else:
+                    _str = _data[2:-2].split(', ')
+                    _allappend([vtx, [_str[0][2:-1]], [float(_str[1])]])
+                #for item in eval(_data):
+                #    jointList.append(item[0])
+                #    weightList.append(item[1])
+                #_allappend([vtx, jointList, weightList])
+                line = vwfile.readline()
+            _allappend([-1, None, None])
+        return allLine
     
     def resetSkinPose(self):
         for obj in cmds.ls(sl=1):
@@ -887,8 +892,8 @@ class WeightCheckTool():
         cmds.textScrollList('weightList', e=1, ra=1)
         self.Number = []
         for i in selVtx:
-            valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
-            transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+            valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
+            transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
             tvStr = ''
             if len(valueList) > cmds.intField('InfluenceInt', q=1, v=1):
                 self.Number.append(i)
@@ -923,18 +928,18 @@ class WeightCheckTool():
             return
         jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
         jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
+        decimal.getcontext().rounding = 'ROUND_HALF_UP'
+        _decimal = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
         for i in selVtx:
-            transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
-            tempCode = '%.' + str(cmds.intField('DecimalInt', q=1, v=1)) + 'f'
+            transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
             for j in transList:
                 cmds.setAttr(j + '.liw', 0)
             for j in transList:
                 #mel.eval('global proc float _rounding(float $f, int $n){float $N = pow(10, ($n));float $a = $f%(1/$N)*$N;float $B;     \
                 #            if($a>0.5)$B = ceil($f*$N)/$N;else$B = floor($f*$N/$N);return $B;}')     #精度问题?
-                #Value = mel.eval('_rounding(%s, %s)' %(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
-                decimal.getcontext().rounding = 'ROUND_HALF_UP'
-                Value = float(str(decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=j))).
-                            quantize(decimal.Decimal(tempCode %1))).rstrip('0').rstrip('.'))
+                #Value = mel.eval('_rounding(%s, %s)' %(cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
+                Value = float(str(decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=j))).
+                            quantize(decimal.Decimal(_decimal %1))).rstrip('0').rstrip('.'))
                 #if Value == 0:
                 #    continue
                 cmds.skinPercent(clusterName, i, tv=(j, Value))
@@ -952,19 +957,19 @@ class WeightCheckTool():
             om.MGlobal.displayError('Select No Skin')
             return
         for v in self.Number:
-            transList = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=None)
+            transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
             jntLock = []
             for j in transList:
                 jntLock.append(cmds.getAttr(j + '.liw'))
                 cmds.setAttr(j + '.liw', 0)
             while len(transList) > cmds.intField('InfluenceInt', q=1, v=1):
-                valueList = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, v=1)
+                valueList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, v=1)
                 tvdic = {}
                 for w, j in zip(valueList, transList):
                     tvdic[j] = w
                 tvList = sorted(tvdic.items(), key=lambda item: item[1])
                 cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0))
-                transList = cmds.skinPercent(clusterName, v, ib=.000000000000001, q=1, t=None)
+                transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
             for j, l in zip(transList, jntLock):
                 cmds.setAttr(j + '.liw', l)
         self.Load()
@@ -981,8 +986,8 @@ class WeightCheckTool():
                 jntLock.append(cmds.getAttr(j + '.liw'))
                 cmds.setAttr(j + '.liw', 0)
             for i in selVtx:
-                valueList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=.000000000000001, q=1, t=None)
+                valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
+                transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
                 reTvList = [(j, 0) for w, j in zip(valueList, transList) if w <= reValue]
                 cmds.skinPercent(clusterName, i, tv=reTvList)
             for j, l in zip(jntList, jntLock):

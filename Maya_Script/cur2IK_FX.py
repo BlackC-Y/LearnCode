@@ -11,18 +11,18 @@ except ImportError:
     from PySide import QtCore
     import shiboken as shiboken2
 from maya import cmds, mel
-from maya import OpenMaya as Om, OpenMayaUI as Omui
+from maya import OpenMaya as Om, OpenMayaUI as OmUI
 import re
 
 
 ui_variable = {}
 
-class Ui_ApplePieA(QtWidgets.QWidget):
+class cur2IK_FX_Ui(QtWidgets.QWidget):
     
     def __init__(self):
-        self._cur2IK_FX_Verision = 2.5
-        super(Ui_ApplePieA, self).__init__(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
-        self.UiName = 'ApplePieA'
+        self._cur2IK_FX_Verision = 2.51
+        super(cur2IK_FX_Ui, self).__init__(shiboken2.wrapInstance(long(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
+        self.UiName = 'cur2IK_FX'
         #self.setFocus()
         self.setupUi()
         
@@ -277,17 +277,17 @@ class Ui_ApplePieA(QtWidgets.QWidget):
 
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
-        ApplePieA_Dynamic().Ready_GetNode('HairSystem')
-        ApplePieA_Dynamic().Ready_GetNode('Nucleus')
+        Dynamic_ApplePie().Ready_GetNode('HairSystem')
+        Dynamic_ApplePie().Ready_GetNode('Nucleus')
 
         self.RebuildIntText.setText(u"重建段数")
         self.RebuildInt.setPlaceholderText(u"重建段数")
         self.CurveNameText.setText(u"曲线名")
         self.CurveName.setPlaceholderText(u"曲线名")
         self.SelectPolyCurve.setText(u"选模型的线")
-        self.SelectPolyCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().SelectPolyCurve())
+        self.SelectPolyCurve.clicked.connect(lambda *args: cur2IK_ApplePie().SelectPolyCurve())
         self.reverseCurve.setText(u"反转曲线")
-        self.reverseCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().reverseCurve())
+        self.reverseCurve.clicked.connect(lambda *args: cur2IK_ApplePie().reverseCurve())
         self.FromJointBG.setText(u"从骨骼开始")
         self.FromJointBG.clicked.connect(lambda: self.setdisable())
         self.FromJointWar.setText(u"请顺序选择开始和结束骨骼\n且不能进行批量操作")
@@ -301,37 +301,37 @@ class Ui_ApplePieA(QtWidgets.QWidget):
         self.HairSystemText.setText(u"HairSystem")
         self.NucleusText.setText(u"Nucleus")
         if int(cmds.about(v=1)) > 2016:
-            self.SelectHairSystem.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
-            self.SelectNucleus.currentTextChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+            self.SelectHairSystem.currentTextChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
+            self.SelectNucleus.currentTextChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
         else:
-            self.SelectHairSystem.currentIndexChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
-            self.SelectNucleus.currentIndexChanged.connect(lambda *args: ApplePieA_Dynamic().Acondition())
+            self.SelectHairSystem.currentIndexChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
+            self.SelectNucleus.currentIndexChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
         self.BuildCtrl.setText(u"Build")
-        self.BuildCtrl.clicked.connect(lambda *args: ApplePieA_pTCIK().createCtrl())
+        self.BuildCtrl.clicked.connect(lambda *args: cur2IK_ApplePie().createCtrl())
         self.PoseEdit.setText(u"PoseEdit_ADV")
-        self.PoseEdit.clicked.connect(lambda *args: ApplePieA_pTCIK().PoseCheck())
+        self.PoseEdit.clicked.connect(lambda *args: cur2IK_ApplePie().PoseCheck())
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.child1), u"本体")
 
         self.SelCtrlCurve.setText(u'选择控制器')
-        self.SelCtrlCurve.clicked.connect(lambda *args: ApplePieA_pTCIK().SelCurve())
+        self.SelCtrlCurve.clicked.connect(lambda *args: cur2IK_ApplePie().SelCurve())
         self.CShape.setText(u"换个形状")
-        self.CShape.clicked.connect(lambda *args: ApplePieA_pTCIK().cShape())
+        self.CShape.clicked.connect(lambda *args: cur2IK_ApplePie().cShape())
         self.RotX.setText(u"RotX")
-        self.RotX.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RX'))
+        self.RotX.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RX'))
         self.RotY.setText(u"RotY")
-        self.RotY.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RY'))
+        self.RotY.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RY'))
         self.RotZ.setText(u"RotZ")
-        self.RotZ.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('RZ'))
+        self.RotZ.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RZ'))
         self.ScaleAdd.setText(u"放大曲线")
-        self.ScaleAdd.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('SA'))
+        self.ScaleAdd.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('SA'))
         self.ScaleSub.setText(u"缩小曲线")
-        self.ScaleSub.clicked.connect(lambda *args: ApplePieA_pTCIK().RSCurve('SS'))
+        self.ScaleSub.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('SS'))
         self.SColorInt.valueChanged.connect(lambda*args: self.changeSColorInt())
         self.SColorview.setText(u"更改颜色")
-        self.SColorview.clicked.connect(lambda *args: ApplePieA_pTCIK().ChangeCurveColor())
+        self.SColorview.clicked.connect(lambda *args: cur2IK_ApplePie().ChangeCurveColor())
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.child2), u"曲线DLC")
         
-        #self.setParent(shiboken2.wrapInstance(long(Omui.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
+        #self.setParent(shiboken2.wrapInstance(long(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
         #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
         self.setWindowTitle('pTCIK by_Y')
@@ -341,15 +341,15 @@ class Ui_ApplePieA(QtWidgets.QWidget):
     def eventFilter(self, object, event):     #鼠标移动就会触发...淦
         if object == self.SelectHairSystem:
             if event.type() == QtCore.QEvent.MouseButtonPress:
-                ApplePieA_Dynamic().Ready_GetNode('HairSystem')
+                Dynamic_ApplePie().Ready_GetNode('HairSystem')
             # if event.type() == QtCore.QEvent.MouseButtonDblClick:
             #    if event.button() == QtCore.Qt.RightButton:
             #        pass
-            return super(Ui_ApplePieA, self).eventFilter(object, event)
+            return super(cur2IK_FX_Ui, self).eventFilter(object, event)
         elif object == self.SelectNucleus:
             if event.type() == QtCore.QEvent.MouseButtonPress:
-                ApplePieA_Dynamic().Ready_GetNode('Nucleus')
-            return super(Ui_ApplePieA, self).eventFilter(object, event)
+                Dynamic_ApplePie().Ready_GetNode('Nucleus')
+            return super(cur2IK_FX_Ui, self).eventFilter(object, event)
 
     def setdisable(self):
         if self.OnlyFXCurvebox.isChecked():
@@ -385,7 +385,7 @@ class Ui_ApplePieA(QtWidgets.QWidget):
         #cmds.canvas('CCanvas', e=1, rgbValue=(ColorIndex[0], ColorIndex[1], ColorIndex[2]))
 
 
-class ApplePieA_pTCIK(object):
+class cur2IK_ApplePie(object):
 
     curveShape = 0
     def __init__(self):
@@ -507,7 +507,7 @@ class ApplePieA_pTCIK(object):
         if not getlist:
             return
         if ui_variable['OnlyFXCurvebox'].isChecked():
-            ApplePieA_Dynamic().FXCurve(getlist)
+            Dynamic_ApplePie().FXCurve(getlist)
             return
         if ui_variable['SkinCtrlbox'].isChecked():
             jointint = int(ui_variable['ctrlNumhorLineEdit'].text())
@@ -558,7 +558,7 @@ class ApplePieA_pTCIK(object):
         if ui_variable['IKFKCtrlbox'].isChecked():
             self.IKFKCtrl(ui_variable['SkinCtrlbox'].isChecked())
         if ui_variable['FXCurvebox'].isChecked():
-            ApplePieA_Dynamic().FXCurve(getlist)
+            Dynamic_ApplePie().FXCurve(getlist)
         if ui_variable['IKjointbox'].isChecked():
             if ui_variable['FXCurvebox'].isChecked():
                 for i in getlist:
@@ -587,22 +587,24 @@ class ApplePieA_pTCIK(object):
             [((0, 1, 0), (0, 0.92388, 0.382683), (0, 0.707107, 0.707107), (0, 0.382683, 0.92388), (0, 0, 1), (0, -0.382683, 0.92388), (0, -0.707107, 0.707107), (0, -0.92388, 0.382683), (0, -1, 0), (0, -0.92388, -0.382683), (0, -0.707107, -0.707107), (0, -0.382683, -0.92388), (0, 0, -1), (0, 0.382683, -0.92388), (0, 0.707107, -0.707107), (0, 0.92388, -0.382683), (0, 1, 0), (0.382683, 0.92388, 0), (0.707107, 0.707107, 0), (0.92388, 0.382683, 0), (1, 0, 0), (0.92388, -0.382683, 0), (0.707107, -0.707107, 0), (0.382683, -0.92388, 0), (0, -1, 0), (-0.382683, -0.92388, 0), (-0.707107, -0.707107, 0), (-0.92388, -0.382683, 0), (-1, 0, 0), (-0.92388, 0.382683, 0), (-0.707107, 0.707107, 0),(-0.382683, 0.92388, 0), (0, 1, 0), (0, 0.92388, -0.382683), (0, 0.707107, -0.707107), (0, 0.382683, -0.92388), (0, 0, -1), (-0.382683, 0, -0.92388), (-0.707107, 0, -0.707107), (-0.92388, 0, -0.382683), (-1, 0, 0), (-0.92388, 0, 0.382683), (-0.707107, 0, 0.707107), (-0.382683, 0, 0.92388), (0, 0, 1), (0.382683, 0, 0.92388), (0.707107, 0, 0.707107), (0.92388, 0, 0.382683), (1, 0, 0), (0.92388, 0, -0.382683), (0.707107, 0, -0.707107), (0.382683, 0, -0.92388), (0, 0, -1)), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52)],
             [((-1.6, -6.4, 0), (-1.6, -1.6, 0), (-6.4, -1.6, 0), (-6.4, 1.6, 0), (-1.6, 1.6, 0), (-1.6, 6.4, 0), (1.6, 6.4, 0), (1.6, 1.6, 0), (6.4, 1.6, 0),(6.4, -1.6, 0), (1.6, -1.6, 0), (1.6, -6.4, 0), (-1.6, -6.4, 0)), (0, 4.8, 9.6, 12.8, 17.6, 22.4, 25.6, 30.4, 35.2, 38.4, 43.2, 48, 51.2)],
                             ]
-        if ApplePieA_pTCIK.curveShape == 4:
-            ApplePieA_pTCIK.curveShape = 0
+        if cur2IK_ApplePie.curveShape == 4:
+            cur2IK_ApplePie.curveShape = 0
         getlist = self.checkCurve()
         if not getlist:
             return
         cmds.undoInfo(ock=1)
-        if ApplePieA_pTCIK.curveShape == 3:
+        if cur2IK_ApplePie.curveShape == 3:
             cmds.circle(n='__temp_Shape')
         else:
-            cmds.curve(d=1, p=curSample[ApplePieA_pTCIK.curveShape][0], k=curSample[ApplePieA_pTCIK.curveShape][1], n='__temp_Shape')
+            cmds.curve(d=1, p=curSample[cur2IK_ApplePie.curveShape][0], k=curSample[cur2IK_ApplePie.curveShape][1], n='__temp_Shape')
         for i in getlist:
             cmds.connectAttr('__temp_Shape.worldSpace[0]', cmds.listRelatives(i, s=1, type="nurbsCurve")[0] + '.create', f=1)
-        ApplePieA_pTCIK.curveShape += 1
+        cur2IK_ApplePie.curveShape += 1
         cmds.select(getlist, r=1)
+        cmds.refresh()
+        cmds.delete('__temp_Shape')
+        #cmds.evalDeferred("cmds.delete('__temp_Shape')")  #延迟执行
         cmds.undoInfo(cck=1)
-        cmds.evalDeferred("cmds.delete('__temp_Shape')")  #延迟执行
 
     def SelCurve(self):
         getlist = self.checkCurve()
@@ -810,7 +812,7 @@ class ApplePieA_pTCIK(object):
                 cmds.textScrollList('PoseCheck_textList', e=1, a='\"' + inputText + '\";')
     # # # # # # # # # #
 
-class ApplePieA_Dynamic(object):
+class Dynamic_ApplePie(object):
 
     def Acondition(self):
         if ui_variable['SelectHairSystem'].currentText() != 'Create New':
@@ -920,10 +922,10 @@ class ApplePieA_Dynamic(object):
             cmds.blendShape(_c + '_OutFX', _c + '_onlyCtrl', _c + '_Blend', n=_c + '_curveBS')
             cmds.connectAttr(qComboBox[1] + '.ctrlMode', '%s_curveBS.%s_OutFX' %(_c, _c))
             cmds.connectAttr(self.reNode + ".outputX", '%s_curveBS.%s_onlyCtrl' %(_c, _c))
-        ApplePieA_Dynamic().Ready_GetNode('HairSystem')
-        ApplePieA_Dynamic().Ready_GetNode('Nucleus')
+        Dynamic_ApplePie().Ready_GetNode('HairSystem')
+        Dynamic_ApplePie().Ready_GetNode('Nucleus')
         cmds.setAttr(qComboBox[1] + ".ctrlMode", _tempctrlMode)
         cmds.setAttr(qComboBox[0] + ".enable", 1)
         cmds.undoInfo(cck=1)
 
-Ui_ApplePieA()
+cur2IK_FX_Ui()

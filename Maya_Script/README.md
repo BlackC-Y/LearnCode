@@ -5,6 +5,15 @@
 
 ## [cur2IK_FX `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/cur2IK_FX.py)
 
+#### 2020-12-25  Verision: `2.51`
+<details>
+<summary>详情</summary>
+<pre>
+1.修改ui部件名, 与脚本的新名字保持一致
+2.用刷新替代延迟运行，避免出错
+</pre>
+</details>
+
 #### 2020-12-09  Verision: `2.5`
 <details>
 <summary>详情</summary>

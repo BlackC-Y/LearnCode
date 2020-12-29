@@ -70,7 +70,7 @@
 <summary>详情</summary>
 <pre>
 1.使用Api Load权重时, 避免使用eval处理数据，改用字符串处理获取数据
-2.修改Ui部件名，确保Ui的唯一性
+2.修改Ui部件名, 确保Ui的唯一性
 3.继续优化代码
 4.Fix: 脚本功能不运行时, 选择骨骼列表会报错
 5.Fix: 权重锤运行时报错
@@ -135,6 +135,17 @@
     
     
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
+
+#### 2020-12-29  Verision: `1.3`
+<details>
+<summary>详情</summary>
+<pre>
+1. 增加向未蒙皮物体拷贝权重的功能
+2. 优化流程, 优化代码
+3. Fix: 源组件为物体时, 没有可删除的内容会报黄
+2. Fix: 源组件没有蒙皮时报错
+</pre>
+</details>
 
 #### 2020-11-30  Verision: `1.2`
 <details>

@@ -2,7 +2,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    __Verision = 1.3
+    __Verision = 1.31
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'
@@ -29,19 +29,18 @@ class CopyWeightTool():
         sourelist = cmds.ls(self.strProc(_temp1_), fl=1)
         targelist = cmds.ls(self.strProc(_temp2_), fl=1)
         soureObj = cmds.ls(sourelist, o=1)[0]
-        targeObj = cmds.ls(targelist, o=1)[0]
+        targeObj = cmds.ls(targelist, o=1)
         if cmds.objectType(soureObj, i='mesh'):
             soureObj = cmds.listRelatives(soureObj, p=1)[0]
-        if cmds.objectType(targeObj, i='mesh'):
-            targeObj = cmds.listRelatives(targeObj, p=1)[0]
-        same = 1 if soureObj == targeObj else 0
+        if cmds.objectType(targeObj[0], i='mesh'):
+            targeObj = cmds.listRelatives(targeObj[0], p=1)
+        same = 1 if soureObj == targeObj[0] else 0
         soureSkCluster = mel.eval('findRelatedSkinCluster("%s")' %soureObj)
         if not soureSkCluster:
-            cmds.warning('Soure No Skin')
+            cmds.error('Soure No Skin')
             return
         if not '.f[' in _temp1_:
             sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, fv=1, fe=1, fuv=1 ,fvf=1, tf=1), fl=1)
-        
         infJointList = cmds.skinCluster(soureObj, q=1, inf=1)
         jntLock = [cmds.getAttr(j + '.liw') for j in infJointList]
         if same:
@@ -52,18 +51,22 @@ class CopyWeightTool():
             cmds.skinCluster(infJointList, _TempObj_ ,tsb=1, dr=4)
             cmds.copySkinWeights(soureObj, _TempObj_, nm=1, sa='closestPoint', ia='oneToOne', nr=1)
             soureObj = _TempObj_
-        if not mel.eval('findRelatedSkinCluster("%s")' %targeObj):
-            cmds.skinCluster(infJointList, targeObj, tsb=1, mi=cmds.getAttr('%s.maxInfluences' %soureSkCluster), dr=4)
-            #cmds.getAttr('%s.maintainMaxInfluences' %soureSkCluster)
-        if not '.vtx[' in _temp2_:
-            targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fe=1, fuv=1 ,fvf=1, tv=1), fl=1)
+        
         #_list_ = [_TempObj_]
         #finalCopyList = _list_ + targelist   塞进列表第一位
-        cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=('oneToOne', 'closestJoint'), nr=1)
+        for i in targeObj:
+            if not mel.eval('findRelatedSkinCluster("%s")' %i):
+                cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' %soureSkCluster), dr=4)
+                targelist = i
+            else:
+                if not '.vtx[' in _temp2_:
+                    targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fe=1, fuv=1 ,fvf=1, tv=1), fl=1)
+            cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=('oneToOne', 'closestJoint'), nr=1)
         if same:
             cmds.delete(_TempObj_)
         for j, l in zip(infJointList, jntLock):
             cmds.setAttr(j + '.liw', l)
+        print('Finish!')
     
     def strProc(self, Onestr):
         return [i[2:-1] for i in Onestr[1:-1].split(', ')] if ', ' in Onestr else [Onestr[3:-2]]

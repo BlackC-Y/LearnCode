@@ -65,7 +65,7 @@
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
-#### 2020-12-25  Verision: `0.81~0.82`
+#### 2020-12-25  Verision: `0.81 ~ 0.82`
 <details>
 <summary>详情</summary>
 <pre>
@@ -90,16 +90,7 @@
 </pre>
 </details>
 
-#### 2020-11-26  Verision: `0.71`
-<details>
-<summary>详情</summary>
-<pre>
-1.Fix: 晶格、曲线、曲面的权重调整功能修复
-2.Fix: 使用api Load点权重时，权重完成了点还在循环判断，会报错
-</pre>
-</details>
-
-#### 2020-11-26  Verision: `0.7`
+#### 2020-11-26  Verision: `0.7 ~ 0.71`
 <details>
 <summary>详情</summary>
 <pre>
@@ -112,6 +103,9 @@
 7.Fix: 在空白处右键菜单获取物体为空, 导致的报错
 8.Fix: Save点权重时因为缺少物体而报错
 9.Fix: Load权重时因为有权重锁, 可能导致设置权重失败
+  ▽
+1.Fix: 晶格、曲线、曲面的权重调整功能修复
+2.Fix: 使用api Load点权重时，权重完成了点还在循环判断，会报错
 </pre>
 </details>
     
@@ -136,11 +130,12 @@
     
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
 
-#### 2020-12-29  Verision: `1.3`
+#### 2020-12-29  Verision: `1.3 ~ 1.31`
 <details>
 <summary>详情</summary>
 <pre>
 1. 增加向未蒙皮物体拷贝权重的功能
+   --增加向多个未蒙皮物体拷贝权重的功能 (2020-12-31)
 2. 优化流程, 优化代码
 3. Fix: 源组件为物体时, 没有可删除的内容会报黄
 2. Fix: 源组件没有蒙皮时报错
@@ -175,29 +170,15 @@
 </pre>
 </details>
 
-#### 2020-11-12  Verision: `1.12`
-<details>
-<summary>详情</summary>
-<pre>
-1.Fix: Get位置时会出现很大的偏移, 全部使用约束定位, 命令对空间的转换有问题
-</pre>
-</details>
-    
-#### 2020-11-11  Verision: `1.11`
-<details>
-<summary>详情</summary>
-<pre>
-1.Fix: 临时物体没删除
-2.Fix: Get位置时会出现很大的偏移
-</pre>
-</details>
-    
-#### 2020-11-11  Verision: `1.1`
+#### 2020-11-11  Verision: `1.1 ~ 1.12`
 <details>
 <summary>详情</summary>
 <pre>
 1.增加所选物体中心位置的储存
 2.Fix: Get时的判断逻辑
+3.Fix: 临时物体没删除
+  ▽
+1.Fix: Get位置时会出现很大的偏移, 全部使用约束定位, 命令对空间的转换有问题
 </pre>
 </details>
     

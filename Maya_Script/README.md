@@ -5,16 +5,7 @@
 
 ## [cur2IK_FX `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/cur2IK_FX.py)
 
-#### 2020-12-25  Verision: `2.51`
-<details>
-<summary>详情</summary>
-<pre>
-1.修改ui部件名, 与脚本的新名字保持一致
-2.用刷新替代延迟运行，避免出错
-</pre>
-</details>
-
-#### 2020-12-09  Verision: `2.5`
+#### 2020-12-09  Verision: `2.5x`
 <details>
 <summary>详情</summary>
 <pre>
@@ -27,28 +18,14 @@
 6.修改Ui部件名，确保Ui的唯一性
 7.Fix: 选择控制器时对名字的错误拆分
 8.Fix: 插件报错后，错误信息不消失
+<p align="left">
+  ▽  2020-12-25  Ver_2.51
+1.修改ui部件名, 与脚本的新名字保持一致
+2.用刷新替代延迟运行，避免出错
 </pre>
 </details>
 
-#### 2020-11-20  Verision: `2.42`
-<details>
-<summary>详情</summary>
-<pre>
-1.Fix: 提取曲线时, 尝试居中对齐会报错
-</pre>
-</details>
-
-#### 2020-11-02  Verision: `2.41`
-<details>
-<summary>详情</summary>
-<pre>
-1.精简多余代码
-2.Fix: Maya2016的Ui支持问题
-3.Fix: 生成后直接删除控制器, 不能再次运行的问题
-</pre>
-</details>
-
-#### 2020-10-23  Verision: `2.4`
+#### 2020-10-23  Verision: `2.4x`
 <details>
 <summary>详情</summary>
 <pre>
@@ -59,25 +36,21 @@
 5.选择控制器功能优化
 6.根据新的创建选项，重写了整理函数
 7.Fix: 在关掉动力学时创建曲线, 不生成shape的问题
+<p align="left">
+  ▽  2020-11-02  Ver_2.41
+1.精简多余代码
+2.Fix: Maya2016的Ui支持问题
+3.Fix: 生成后直接删除控制器, 不能再次运行的问题
+<p align="left">
+  ▽  2020-11-20  Ver_2.42
+1.Fix: 提取曲线时, 尝试居中对齐会报错
 </pre>
 </details>
 
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
-#### 2020-12-25  Verision: `0.81 ~ 0.82`
-<details>
-<summary>详情</summary>
-<pre>
-1.使用Api Load权重时, 避免使用eval处理数据，改用字符串处理获取数据
-2.修改Ui部件名, 确保Ui的唯一性
-3.继续优化代码
-4.Fix: 脚本功能不运行时, 选择骨骼列表会报错
-5.Fix: 权重锤运行时报错
-</pre>
-</details>
-
-#### 2020-12-24  Verision: `0.8`
+#### 2020-12-24  Verision: `0.8x`
 <details>
 <summary>详情</summary>
 <pre>
@@ -87,10 +60,23 @@
 3.运行效率优化, 代码优化
 4.Fix: 在空白处右键, 不会弹出菜单的问题
 5.Fix: Api获取蒙皮节点时, 会误判, 改为mel调用获取
+<p align="left">
+  ▽  2020-12-25  Ver_0.81
+1.使用Api Load权重时, 避免使用eval处理数据，改用字符串处理获取数据
+2.继续优化代码
+3.Fix: 脚本功能不运行时, 选择骨骼列表会报错
+<p align="left">
+  ▽  2020-12-25  Ver_0.82
+1.修改Ui部件名, 确保Ui的唯一性
+2.Fix: 权重锤运行时报错
+<p align="left">
+  ▽  2021-01-04  Ver_0.83
+1.Fix: 触发脚本时不会立刻运行的问题
+2.Fix: 列表刷新时, 骨骼锁没被刷新的问题
 </pre>
 </details>
 
-#### 2020-11-26  Verision: `0.7 ~ 0.71`
+#### 2020-11-26  Verision: `0.7x`
 <details>
 <summary>详情</summary>
 <pre>
@@ -103,42 +89,39 @@
 7.Fix: 在空白处右键菜单获取物体为空, 导致的报错
 8.Fix: Save点权重时因为缺少物体而报错
 9.Fix: Load权重时因为有权重锁, 可能导致设置权重失败
-  ▽
+<p align="left">
+  ▽  2020-11-26  Ver_0.81
 1.Fix: 晶格、曲线、曲面的权重调整功能修复
 2.Fix: 使用api Load点权重时，权重完成了点还在循环判断，会报错
 </pre>
 </details>
-    
-#### 2020-10-21  Verision: `0.63`
+
+#### 2020-09  Verision: `0.6x`
 <details>
 <summary>详情</summary>
 <pre>
+1.骨骼列表刷新优化, 刷新权重注释, 不更改列表本身
+<p align="left">
+  ▽  2020-10-21  Ver_0.63
 1.骨骼列表实现层级或平铺, 0权重显示过滤
 2.WeightCheckTool: Load性能优化
 3.WeightCheckTool: Select逻辑修改
 </pre>
 </details>
-    
-#### 2020-09  Verision: `0.62`
-<details>
-<summary>详情</summary>
-<pre>
-1.骨骼列表刷新优化, 刷新权重注释, 不更改列表本身
-</pre>
-</details>
-    
-    
+
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
 
-#### 2020-12-29  Verision: `1.3 ~ 1.31`
+#### 2020-12-29  Verision: `1.3x`
 <details>
 <summary>详情</summary>
 <pre>
 1. 增加向未蒙皮物体拷贝权重的功能
-   --增加向多个未蒙皮物体拷贝权重的功能 (2020-12-31)
 2. 优化流程, 优化代码
 3. Fix: 源组件为物体时, 没有可删除的内容会报黄
-2. Fix: 源组件没有蒙皮时报错
+4. Fix: 源组件没有蒙皮时报错
+<p align="left">
+  ▽  2020-12-31  Ver_1.31
+1.增加向多个未蒙皮物体拷贝权重的功能
 </pre>
 </details>
 
@@ -170,14 +153,15 @@
 </pre>
 </details>
 
-#### 2020-11-11  Verision: `1.1 ~ 1.12`
+#### 2020-11-11  Verision: `1.1x`
 <details>
 <summary>详情</summary>
 <pre>
 1.增加所选物体中心位置的储存
 2.Fix: Get时的判断逻辑
 3.Fix: 临时物体没删除
-  ▽
+<p align="left">
+  ▽  2020-11-11  Ver_1.12
 1.Fix: Get位置时会出现很大的偏移, 全部使用约束定位, 命令对空间的转换有问题
 </pre>
 </details>

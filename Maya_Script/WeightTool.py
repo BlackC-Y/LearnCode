@@ -19,7 +19,7 @@ import decimal
 
 class WeightTool_JellyBean():
 
-    __Verision = 0.82
+    __Verision = 0.83
     
     def ToolUi(self):
         ToolUi = 'WeightTool_JellyBean'
@@ -153,6 +153,7 @@ class WeightTool_JellyBean():
         else:
             self.spJobStart()
             cmds.iconTextCheckBox('refresh_JellyBean', e=1, v=1)
+            self.refreshJointList(0)
     
     def refreshJointList(self, refresh, search = ''):
         seltyp = 0 if cmds.selectType(q=1, ocm=1, pv=1) or cmds.selectType(q=1, ocm=1, lp=1) or cmds.selectType(q=1, ocm=1, cv=1) else 1
@@ -213,6 +214,10 @@ class WeightTool_JellyBean():
         else:
             allItem = cmds.treeView('JointTV_JellyBean', q=1, ch='')
             for j in allItem:
+                if cmds.getAttr(j + '.liw'):
+                    cmds.treeView('JointTV_JellyBean', e=1, i=(j, 1, 'Lock_ON.png'))
+                else:
+                    cmds.treeView('JointTV_JellyBean', e=1, i=(j, 1, 'Lock_OFF_grey.png'))
                 Value = '%.3f' %cmds.skinPercent(clusterName, sel[0], ib=.000000001, q=1, t=j)
                 if not cmds.treeView('JointTV_JellyBean', q=1, dls=1):
                     cmds.treeView('JointTV_JellyBean', e=1, dls=(j, ''))

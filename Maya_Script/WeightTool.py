@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
-#Support Maya2015-2020
 
-'''Roadmap:1.搜索删除最后一个字符后，列表不刷新  暂时输一个空格刷新一下
+'''Roadmap:
 '''
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
@@ -19,7 +18,7 @@ import decimal
 
 class WeightTool_JellyBean():
 
-    __Verision = 0.83
+    __Verision = 0.84
     
     def ToolUi(self):
         ToolUi = 'WeightTool_JellyBean'
@@ -59,7 +58,7 @@ class WeightTool_JellyBean():
         cmds.setParent('..')
         cmds.formLayout('JointTVLayout_JellyBean')
         cmds.treeView('JointTV_JellyBean', nb=1, h=100, scc=self._weightView, pc=(1, self.lock_unLock))
-        cmds.text('savecluster_JellyBean', l='', vis=0)
+        cmds.text('saveData_JellyBean', l='', vis=0)
         cmds.popupMenu()
         #cmds.menuItem(l='Lock All')
         #cmds.menuItem(l='Unlock All')
@@ -161,7 +160,9 @@ class WeightTool_JellyBean():
             self.refreshBoxChange(9)
             return
         sel = cmds.ls(sl=1, fl=1)
-        errorsel = cmds.ls(sl=1, typ='transform') 
+        # ▽ copy权重后会触发刷新, 列表中的第一个可能是shape节点, 所以过滤一下mesh, 但是感觉可能会出现一些问题?
+        #    点的Type也是mesh, 如果出问题可能在这.
+        errorsel = cmds.ls(sl=1, typ=('transform', 'mesh'))
         if not sel or errorsel:
             return
         selobj = cmds.ls(sl=1, o=1)[0]
@@ -173,8 +174,8 @@ class WeightTool_JellyBean():
         jointList = cmds.skinCluster(selobj, q=1, inf=1)   #cmds.skinCluster(selobj, q=1, wi=1)
         siItem = cmds.treeView('JointTV_JellyBean', q=1, si=1)
         _zero = cmds.menuItem('FImeunItem_JellyBean', q=1, cb=1)
-        condition = [cmds.treeView('JointTV_JellyBean', q=1, ch=''), cmds.text('savecluster_JellyBean', q=1, l=1),]
-        if not condition[0] or condition[1] != clusterName or refresh or _zero:
+        saveData = cmds.text('saveData_JellyBean', q=1, l=1).split('|')
+        if refresh or _zero or saveData[0] != clusterName or saveData[1] != str(len(jointList)) or not cmds.treeView('JointTV_JellyBean', q=1, ch=''):
             cmds.treeView('JointTV_JellyBean', e=1, ra=1)
             if search:
                 text = cmds.textField('searchText_JellyBean', q=1, tx=1)
@@ -224,7 +225,7 @@ class WeightTool_JellyBean():
                 if not float(Value):
                     continue
                 cmds.treeView('JointTV_JellyBean', e=1, dls=(j, '   |   %s' %Value))
-        cmds.text('savecluster_JellyBean', e=1, l=clusterName)
+        cmds.text('saveData_JellyBean', e=1, l='%s|%s' %(clusterName, len(jointList)))
             
     def addHItoList(self, i, jointList):
         jointP = cmds.listRelatives(i, p=1)

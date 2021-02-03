@@ -114,6 +114,7 @@
 </pre>
 </details>
 
+
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
 
 #### 2020-12-29  Verision: `1.3x`
@@ -147,6 +148,7 @@
 </pre>
 </details>
 
+
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/DataSaveUi.py)
 
 #### 2020-11-30  Verision: `1.2`
@@ -170,5 +172,16 @@
 1.Fix: Get位置时会出现很大的偏移, 全部使用约束定位, 命令对空间的转换有问题
 </pre>
 </details>
-    
+
 #### 2020-11-10  Verision: `1.0`
+
+
+## [PSDshape `|辅助PSD修型工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/PSDshape.py)
+
+#### 2021-02-04  Verision: `0.8`
+<details>
+<summary>详情</summary>
+<pre>
+1.新工具
+</pre>
+</details>

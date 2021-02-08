@@ -1,11 +1,14 @@
 # -*- coding: UTF-8 -*-
+'''Roadmap:1. mirrorPose优化成BS内进行操作
+           2. Bake Cloth功能构建
+'''
 from maya import cmds, mel
 from maya.api import OpenMaya as om
 
 
 class PSD_PoseUi_KitKat():
 
-    __Verision = 0.8
+    __Verision = 0.81
 
     def ToolUi(self):
         ToolUi = 'PSD_Pose_KitKat'
@@ -23,7 +26,7 @@ class PSD_PoseUi_KitKat():
         cmds.menuItem(l='MirrorName', c=lambda *args: cmds.columnLayout('MirrorName_Ly_KitKat', e=1, vis=1))
         cmds.menu(l='Help')
         cmds.menuItem(l='Help Doc', c=lambda *args: self.helpDoc())
-        cmds.menu(l='             ', en=0)
+        cmds.menu(l='     ', en=0)
         cmds.menu('loadobj_KitKat', l='| Load Object |')
         def _loadObj():
             lslist = cmds.ls(sl=1, o=1, typ='transform')
@@ -41,7 +44,7 @@ class PSD_PoseUi_KitKat():
 
         cmds.rowLayout(nc=3)
         _iconwh = 70
-        cmds.iconTextButton('addPoseButton_KitKat', st='iconAndTextVertical', i='pi-add.png', w=_iconwh, h=_iconwh, l='Add', c=lambda *args: self.AddProc())
+        cmds.iconTextButton('addPoseButton_KitKat', st='iconAndTextVertical', i='pi-add.png', w=_iconwh, h=_iconwh, l='Add', c=lambda *args: self.AddCallBack())
         cmds.popupMenu()
         cmds.menuItem(l='Mirror', c=lambda *args: self.mirrorPose())
         import tempfile
@@ -100,28 +103,47 @@ class PSD_PoseUi_KitKat():
     def helpDoc(self):
         if cmds.window('HelpDoc_KitKat', q=1, ex=1):
             cmds.deleteUI('HelpDoc_KitKat')
-        cmds.window('HelpDoc_KitKat', t='Help Doc', rtf=1, mxb=0, wh=(500, 500))
+        cmds.window('HelpDoc_KitKat', t='Help Doc', rtf=1, s=1, tlb=1, wh=(480, 500))
         _iconwh = 60
-        cmds.columnLayout(cat=('both', 2), rs=2, cw=500)
-
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=480)
+        fn = 'fixedWidthFont'
         cmds.rowLayout(nc=2)
         cmds.iconTextButton(st='iconAndTextVertical', i='pi-add.png', w=_iconwh, h=_iconwh, l='Add')
         cmds.popupMenu()
         cmds.menuItem(l='Mirror', c=lambda *args: self.mirrorPose())
-        cmds.text(l=u'初始化PSD(首次添加): 选择 骨骼 + 控制器 \n 添加Pose: 选择骨骼/控制器 \n 右键菜单: Mirror功能, 可以镜像单个Pose或整个PSD节点', al='left')
+        cmds.text(l=u'*初始化PSD(首次添加): 选择骨骼 + 控制器 \n*添加Pose: 选择骨骼/控制器 \n*右键菜单: Mirror功能, 可以镜像单个Pose或整个PSD节点', al='left', fn=fn)
         cmds.setParent('..')
-
         cmds.rowLayout(nc=2)
         cmds.iconTextButton(st='iconAndTextVertical', i=self.tempIco, w=_iconwh, h=_iconwh, l='Delete')
-        cmds.text(l=u'选择一个PSD节点或多个Pose, 进行删除操作', al='left')
+        cmds.text(l=u'选择一个PSD节点或多个Pose, 进行删除操作', al='left', fn=fn)
         cmds.setParent('..')
-
         cmds.rowLayout(nc=2)
         cmds.iconTextCheckBox(st='iconAndTextVertical', i='animPrefsWndIcon.png', w=_iconwh, h=_iconwh, l='Edit')
-        cmds.text(l=u'未加载模型时: 选择单个Pose, 将跳转到选择的Pose \n 已加载模型时: 选择单个Pose, 调出当前修型开始编辑 \
-                    \n 按钮点亮时: 将当前的修型模型，塞回指定的BS', al='left')
+        cmds.text(l=u'选择单个Pose, 将跳转到选择的Pose \n*选择单个Pose, 调出当前修型开始编辑 \n按钮点亮时: 将当前的修型模型，塞回指定的BS', al='left', fn=fn)
         cmds.setParent('..')
-
+        cmds.rowLayout(nc=2)
+        cmds.iconTextButton(st="textOnly", l='Bake', h=50, w=_iconwh)
+        cmds.text(l=u'*选择一个PSD节点或多个Pose, 提取出修型目标体', al='left', fn=fn)
+        cmds.setParent('..')
+        cmds.rowLayout(nc=2)
+        cmds.iconTextButton(st="textOnly", l='Remake', h=50, w=_iconwh)
+        cmds.text(l=u'*选择一个或多个修型目标体, 根据模型信息新增或修改指定Pose', al='left', fn=fn)
+        cmds.setParent('..')
+        cmds.rowLayout(nc=2)
+        cmds.iconTextButton(st='iconAndTextVertical', i='kinMirrorJoint_S.png', l='Filp Target', w=_iconwh, h=52)
+        cmds.popupMenu()
+        cmds.radioMenuItemCollection()
+        cmds.menuItem(l='X', rb=1)
+        cmds.menuItem(l='Y', rb=0)
+        cmds.menuItem(l='Z', rb=0)
+        cmds.text(l=u'*一般模型: 将选择的模型翻转, 得到一个对称的模型 \n*PSD模型: 将选择的修型目标体翻转, 得到一个对称的可通过Remake按钮\n \
+                    添加Pose的修型目标体 \n右键菜单: 修改翻转对称轴', al='left', fn=fn)
+        cmds.setParent('..')
+        cmds.rowLayout(nc=2)
+        cmds.iconTextButton(st='iconAndTextVertical', i='substGeometry.png', l='Bake Cloth', w=_iconwh, h=52)
+        cmds.text(l=u'*选择一个PSD节点或多个Pose, 将提取出指定Pose时的模型形状?', al='left', fn=fn)
+        cmds.setParent('..')
+        cmds.text(l=u'带 * 表示需要在 | Load Object | (加载模型)的前提下操作', h=50, fn='obliqueLabelFont')
         cmds.showWindow('HelpDoc_KitKat')
 
     def EditCallBack(self, stEd=0, fhEd=0):
@@ -149,7 +171,7 @@ class PSD_PoseUi_KitKat():
                 else:
                     self.EditCallBack(0, 1)
 
-    def AddProc(self, Remake_Data=[]):
+    def AddCallBack(self):
         sllist = cmds.ls(sl=1)
         loadobj = cmds.menu('loadobj_KitKat', q=1, l=1)
         if not sllist or loadobj == '| Load Object |':
@@ -157,40 +179,55 @@ class PSD_PoseUi_KitKat():
         _ConnectInfo = cmds.listConnections(sllist[0], d=0, t='joint')
         if cmds.nodeType(sllist[0]) == 'joint':
             _Joint = sllist[0]
-        elif _ConnectInfo:
-            if cmds.ls('%s.ctrlJnt_Psd' % sllist[0]):
-                _Joint = cmds.listConnections('%s.ctrlJnt_Psd' % sllist[0], d=0, t='joint')[0]
+        elif _ConnectInfo and cmds.ls('%s.ctrlJnt_Psd' % sllist[0]):
+            _Joint = cmds.listConnections('%s.ctrlJnt_Psd' % sllist[0], d=0, t='joint')[0]
+        elif cmds.ls('{}.isPose'.format(sllist[0])):
+            _Joint = cmds.listConnections('{}.message'.format(cmds.listRelatives(sllist[0], p=1)[0]), t='joint')[0]
+            PoseName = sllist[0]
+            self.goToPose(PoseName)
+            _Ctrl = cmds.getAttr('%s.CtrlName' % sllist[0])
+            _jntRotate = cmds.getAttr('%s.JointRotate' % sllist[0])[0]
+            self.AddPoseProc(_Joint, [_Joint, PoseName, _Ctrl, _jntRotate, ''], 1)
+            return
         else:
             return
         if not cmds.listConnections(_Joint, s=0, sh=1, t='poseInterpolator'):
             if len(sllist) < 2:
                 om.MGlobal.displayError('No Select Controller')
                 return
-            _poseI = cmds.poseInterpolator(_Joint, n='%s_poseInterpolator' % _Joint)[0]
-            _poseIShape = cmds.listRelatives(_poseI, s=1, typ="poseInterpolator")[0]
-            cmds.connectAttr('%s.rotate' % sllist[1], '%s.driver[0].driverController[0]' % _poseIShape, f=1)
-            cmds.addAttr(_Joint, ln='Associated_Psd', at="message")
-            cmds.connectAttr('%s.message' % _poseI, '%s.Associated_Psd' % _Joint, f=1)
-            cmds.addAttr(sllist[1], ln='ctrlJnt_Psd', at="message")
-            cmds.connectAttr('%s.message' % _Joint, '%s.ctrlJnt_Psd' % sllist[1], f=1)
-            cmds.poseInterpolator(_poseIShape, e=1, ap="neutral")
-            cmds.setAttr("%s.pose[%s].poseType" % (_poseIShape, cmds.poseInterpolator(_poseIShape, e=1, ap="neutralSwing")), 1)
-            cmds.setAttr("%s.pose[%s].poseType" % (_poseIShape, cmds.poseInterpolator(_poseIShape, e=1, ap="neutralTwist")), 2)
-            self.PoseAttr_add(cmds.group(n="%s_neutralPose" % _Joint, p=_poseI, em=1), 0, [_Joint, sllist[1], 'neutralPose', (0,0,0)])
-            for n in range(3):
-                if cmds.menuItem(self.AxisItem[n], q=1, rb=1):
-                    break
-            cmds.setAttr('%s.driver[0].driverTwistAxis' % _poseIShape, n)
-            cmds.lockNode("%s_neutralPose" % _Joint, l=1)
-            om.MGlobal.displayInfo('Create neutral Pose Finish!')
+            self.AddPoseIProc(_Joint, sllist[1])
             return
-        
+        self.AddPoseProc(_Joint)
+    
+    def AddPoseIProc(self, _Joint, _Ctrl):
+        _poseI = cmds.poseInterpolator(_Joint, n='%s_poseInterpolator' % _Joint)[0]
+        _poseIShape = cmds.listRelatives(_poseI, s=1, typ="poseInterpolator")[0]
+        cmds.connectAttr('%s.rotate' % _Ctrl, '%s.driver[0].driverController[0]' % _poseIShape, f=1)
+        cmds.addAttr(_Joint, ln='Associated_Psd', at="message")
+        cmds.connectAttr('%s.message' % _poseI, '%s.Associated_Psd' % _Joint, f=1)
+        cmds.addAttr(_Ctrl, ln='ctrlJnt_Psd', at="message")
+        cmds.connectAttr('%s.message' % _Joint, '%s.ctrlJnt_Psd' % _Ctrl, f=1)
+        cmds.poseInterpolator(_poseIShape, e=1, ap="neutral")
+        cmds.setAttr("%s.pose[%s].poseType" % (_poseIShape, cmds.poseInterpolator(_poseIShape, e=1, ap="neutralSwing")), 1)
+        cmds.setAttr("%s.pose[%s].poseType" % (_poseIShape, cmds.poseInterpolator(_poseIShape, e=1, ap="neutralTwist")), 2)
+        self.PoseAttr_add(cmds.group(n="%s_neutralPose" % _Joint, p=_poseI, em=1), 0, [_Joint, _Ctrl, 'neutralPose', (0,0,0)])
+        for n in range(3):
+            if cmds.menuItem(self.AxisItem[n], q=1, rb=1):
+                break
+        cmds.setAttr('%s.driver[0].driverTwistAxis' % _poseIShape, n)
+        cmds.lockNode("%s_neutralPose" % _Joint, l=1)
+        om.MGlobal.displayInfo('Create neutral Pose Finish!')
+    
+    def AddPoseProc(self, _Joint, Remake_Data=[], useAgain=''):
+        loadobj = cmds.menu('loadobj_KitKat', q=1, l=1)
         if Remake_Data:
             _Joint = Remake_Data[0]
             PoseName = Remake_Data[1]
             _Ctrl = Remake_Data[2]
             _jntRotate = Remake_Data[3]
             dupObj = Remake_Data[4]
+            if not dupObj:
+                dupObj = self.extractPose(PoseName)
         else:
             _rotateData = []
             _jntRotate = cmds.getAttr('%s.r' % _Joint)[0]
@@ -212,7 +249,7 @@ class PSD_PoseUi_KitKat():
             _dupObjShape = cmds.listRelatives(dupObj, s=1)[0]
             cmds.setAttr('%s.overrideEnabled' % _dupObjShape, 1)
             cmds.setAttr('%s.overrideColor' % _dupObjShape, 20)
-            
+        
         _BsName = ''
         for i in cmds.listHistory(loadobj, il=1, pdo=1):
             if cmds.ls('%s.Use2Psd' % i):
@@ -222,28 +259,31 @@ class PSD_PoseUi_KitKat():
             _BsName = cmds.blendShape(loadobj, n='Psd_BlendShape%s' % (len(cmds.ls('Psd_BlendShape*', typ='blendShape')) + 1))[0]
             cmds.blendShape(_BsName, e=1, automatic=1, g=loadobj)  # ?不明觉厉
             cmds.addAttr(_BsName, ln='Use2Psd', at='bool')
-
-        lsCposeI = cmds.listConnections('%s.Associated_Psd' % _Joint, d=0, t='transform')[0]
-        _lsCposeIShape = cmds.listRelatives(lsCposeI, s=1)[0]
-        self.PoseAttr_add(cmds.group(n=PoseName, p=lsCposeI, em=1), 0, [_Joint, _Ctrl, PoseName, _jntRotate])
-        cmds.lockNode(PoseName, l=1)
-        cmds.addAttr(lsCposeI, ln=PoseName, at='double', min=0, max=1, dv=0)
-        poseAttr = '%s.%s' % (lsCposeI, PoseName)
-
+        
+        if not useAgain:
+            lsCposeI = cmds.listConnections('%s.Associated_Psd' % _Joint, d=0, t='transform')[0]
+            _lsCposeIShape = cmds.listRelatives(lsCposeI, s=1)[0]
+            self.PoseAttr_add(cmds.group(n=PoseName, p=lsCposeI, em=1), 0, [_Joint, _Ctrl, PoseName, _jntRotate])
+            cmds.lockNode(PoseName, l=1)
+            cmds.addAttr(lsCposeI, ln=PoseName, at='double', min=0, max=1, dv=0)
+            poseAttr = '%s.%s' % (lsCposeI, PoseName)
+            _poseId = cmds.poseInterpolator(_lsCposeIShape, e=1, ap=PoseName)
+            cmds.setAttr('%s.pose[%s].poseType' % (_lsCposeIShape, _poseId), 1) #Type默认Swing
+            cmds.connectAttr('%s.output[%s]' % (_lsCposeIShape, _poseId), poseAttr, f=1)
+        else:
+            poseAttr = '%s.%s' % (cmds.listConnections('%s.Associated_Psd' % _Joint, d=0, t='transform')[0], PoseName)
+        
         _newBsId = cmds.getAttr('%s.w' % _BsName, mi=1)
         _newBsId = 0 if not _newBsId else _newBsId[-1] + 1
         cmds.blendShape(_BsName, e=1, tc=1, t=(loadobj, _newBsId, dupObj, 1), w=[_newBsId, 0]) #初始bs开关
         cmds.disconnectAttr('%s.worldMesh[0]' % dupObj, cmds.listConnections('%s.worldMesh[0]' % dupObj, p=1)[0])
         _newBsAttr = '%s.w[%s]' %(_BsName, _newBsId)
         cmds.aliasAttr(PoseName, _newBsAttr)
-        _poseId = cmds.poseInterpolator(_lsCposeIShape, e=1, ap=PoseName)
-        cmds.setAttr('%s.pose[%s].poseType' % (_lsCposeIShape, _poseId), 1) #Type默认Swing
-        cmds.connectAttr('%s.output[%s]' % (_lsCposeIShape, _poseId), poseAttr, f=1)
         cmds.setDrivenKeyframe(_newBsAttr, cd=poseAttr, dv=0, v=0)
         cmds.setDrivenKeyframe(_newBsAttr, cd=poseAttr, dv=1, v=1)
 
         cmds.setAttr(poseAttr, e=1, cb=1, l=1)
-        if not Remake_Data:
+        if not Remake_Data or useAgain:
             self.PoseAttr_add(dupObj, 1, [_Joint, _Ctrl, PoseName, _jntRotate])
             cmds.select(dupObj, r=1)
             cmds.text('editTarget_KitKat', e=1, l=dupObj)
@@ -278,15 +318,13 @@ class PSD_PoseUi_KitKat():
             cmds.delete(name)
             return
         a = cmds.listRelatives(name, p=1)[0]
-        for c in cmds.listConnections('%s.%s' % (a, PoseName))[:-1]:
-            if cmds.ls(c, typ='animCurveUU'):
-                for d in cmds.listConnections('%s.output' % c):
-                    if cmds.ls(d, typ='blendShape'):
-                        for e in cmds.getAttr('%s.w' % d, mi=1):
-                            if PoseName == cmds.aliasAttr('%s.w[%s]' % (d, e), q=1):
-                                break
-                        #_targetId = cmds.ls('%s.inputTarget[0].inputTargetGroup[*]' % d)[e].split('%s.inputTarget[0].inputTargetGroup[' % d)[1][:-1]
-                        mel.eval('blendShapeDeleteTargetGroup %s %s' % (d, e))
+        for c in cmds.listConnections('%s.%s' % (a, PoseName), t='animCurveUU')[:-1]:
+            for d in cmds.listConnections('%s.output' % c, t='blendShape'):
+                for e in cmds.getAttr('%s.w' % d, mi=1):
+                    if PoseName == cmds.aliasAttr('%s.w[%s]' % (d, e), q=1):
+                        break
+                #_targetId = cmds.ls('%s.inputTarget[0].inputTargetGroup[*]' % d)[e].split('%s.inputTarget[0].inputTargetGroup[' % d)[1][:-1]
+                mel.eval('blendShapeDeleteTargetGroup %s %s' % (d, e))
         cmds.setAttr('%s.%s' % (a, PoseName), e=1, cb=1, l=0)
         cmds.deleteAttr(a, at=PoseName)
         cmds.poseInterpolator(cmds.listRelatives(a, s=1, typ='poseInterpolator')[0], e=1, dp=PoseName)
@@ -311,6 +349,8 @@ class PSD_PoseUi_KitKat():
             return 0
         
     def PoseAttr_add(self, transName, _type, _Data_):
+        if not cmds.ls('{}.PoseName'.format(transName)):
+            return
         cmds.addAttr(transName, ln='JointName', dt="string")
         cmds.setAttr('%s.JointName' % transName, _Data_[0], typ='string')
         cmds.addAttr(transName, ln='CtrlName', dt="string")
@@ -327,7 +367,7 @@ class PSD_PoseUi_KitKat():
             cmds.addAttr(transName, ln='isEditMesh', at="bool")
             for i in ['.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz']:
                 cmds.setAttr('%s%s' % (transName, i), l=0)
-            
+    
     def transfer2Bs(self, name):
         if not cmds.ls('%s.isEditMesh' % name):
             om.MGlobal.displayError('Object not exists.')
@@ -379,7 +419,7 @@ class PSD_PoseUi_KitKat():
         if not sllist or loadobj == '| Load Object |':
             return
         self.BakePose(sllist)
-        
+    
     def BakePose(self, data):
         _exPose = []
         if cmds.listRelatives(data, s=1, typ='poseInterpolator'):
@@ -411,8 +451,7 @@ class PSD_PoseUi_KitKat():
             _jntRotate = cmds.getAttr('%s.JointRotate' % i)[0]
             PoseName = cmds.getAttr('%s.PoseName' % i)
             if not cmds.ls('%s.Associated_Psd' % _Joint):
-                cmds.select(_Joint, _Ctrl, r=1)
-                self.AddProc()
+                self.AddPoseIProc(_Joint, _Ctrl)
             elif cmds.ls(PoseName):
                 self.goToPose(i)
                 self.transfer2Bs(i)
@@ -420,7 +459,7 @@ class PSD_PoseUi_KitKat():
                 continue
             cmds.setAttr('%s.r' % _Ctrl, _jntRotate[0], _jntRotate[1], _jntRotate[2])
             cmds.select(_Joint, r=1)
-            self.AddProc([_Joint, PoseName, _Ctrl, _jntRotate, i])
+            self.AddPoseProc(_Joint, [_Joint, PoseName, _Ctrl, _jntRotate, i])
             self.goToPose(cmds.listRelatives(cmds.listRelatives(PoseName, p=1)[0], c=1, typ='transform')[0])
     
     def FilpTarget(self):

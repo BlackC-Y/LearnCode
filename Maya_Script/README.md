@@ -178,10 +178,13 @@
 
 ## [PSDshape `|辅助PSD修型工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/PSDshape.py)
 
-#### 2021-02-04  Verision: `0.8`
+#### 2021-02-04  Verision: `0.8x`
 <details>
 <summary>详情</summary>
 <pre>
-1.新工具
+  ▽  2021-02-08  Ver_0.81
+1.添加帮助文档
+2.Add功能重构, 分解流程
+3.当Pose存在时, 对新模型只进行BS添加, 用旧数值进行控制
 </pre>
 </details>

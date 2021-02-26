@@ -4,7 +4,7 @@ from maya import cmds, mel
 
 class DataSaveUi():
 
-    __Verision = 1.2
+    __Verision = 1.21
 
     def Ui(self):
         self.UiN = 'DataSaveUi'
@@ -29,7 +29,7 @@ class DataSaveUi():
         cmds.button(l='Save', w=120)
         cmds.popupMenu(b=1)
         cmds.menuItem(l=u'名称(用于再次选择)', c=lambda *args: self.saveData('Name', uiNum))
-        cmds.menuItem(l=u'位置(用于选择物体对位)', c=lambda *args: self.saveData('Position', uiNum))
+        cmds.menuItem(l=u'位移和旋转(用于选择物体对位)', c=lambda *args: self.saveData('Position', uiNum))
         cmds.menuItem(l=u'中心位置(用于选择物体对位)', c=lambda *args: self.saveData('CenterPosition', uiNum))
         cmds.button(l='Get', w=120, c=lambda *args: self.getData(uiNum))
         cmds.setParent('..')
@@ -58,7 +58,7 @@ class DataSaveUi():
             _data = '%s \n%s' % (cmds.xform(_temploc_, q=1, ws=1, t=1), cmds.xform(_temploc_, q=1, ws=1, ro=1))
             cmds.delete(_temploc_)
             cmds.text('%s_ComponentData%s' % (UiN, uiNum), e=1, l=_data)
-            cmds.text('%s_ComponentText%s' % (UiN, uiNum), e=1, l=u'已储存 位置')
+            cmds.text('%s_ComponentText%s' % (UiN, uiNum), e=1, l=u'已储存 位移和旋转')
         elif Type == 'CenterPosition':
             slList = cmds.ls(sl=1)
             if not slList:
@@ -75,11 +75,11 @@ class DataSaveUi():
         lsList = cmds.ls(sl=1)
         if not data or not typString:
             return
-        print(data)
+        #print(data)
         if typString == u'已储存 名称':
             rlist = [i[2:-1] for i in data[1:-1].split(', ')] if ', ' in data else [data[3:-2]]
             cmds.select(rlist, add=1)
-        elif typString == u'已储存 位置':
+        elif typString == u'已储存 位移和旋转':
             if not lsList:
                 return
             rlist = []
@@ -90,7 +90,7 @@ class DataSaveUi():
             cmds.xform(_temploc_, ws=1, t=rlist[0])
             cmds.xform(_temploc_, ws=1, ro=rlist[1])
             for i in lsList:
-                cmds.delete(cmds.pointConstraint(_temploc_, i, w=1))
+                cmds.delete(cmds.parentConstraint(_temploc_, i, w=1))
             cmds.delete(_temploc_)
         elif typString == u'已储存 中心位置':
             if not lsList:

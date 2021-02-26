@@ -151,12 +151,16 @@
 
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/DataSaveUi.py)
 
-#### 2020-11-30  Verision: `1.2`
+#### 2020-11-30  Verision: `1.2x`
 <details>
 <summary>详情</summary>
 <pre>
 1.更改数据读取方式, 不再使用Py的eval, 可能导致Maya发生循环错误
 2.Fix: 获取位置时, 选择为空没有及时停止运行
+<p align="left">
+  ▽  2021-02-26  Ver_1.21
+1.修改功能描述
+1.Fix: Get位移和旋转时只获得了位置的问题
 </pre>
 </details>
 

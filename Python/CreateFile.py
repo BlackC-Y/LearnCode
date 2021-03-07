@@ -5,7 +5,7 @@ def main():
     topath = 'D:/下载/明日方舟'
     for root, dirs, files in os.walk(spath):
         for f in files:
-            with open('%s/%s' % (topath, f), 'w') as of:
+            with open(f'{topath}/{f}', 'w') as of:
                 of.write('Null')
                 print(f)
 

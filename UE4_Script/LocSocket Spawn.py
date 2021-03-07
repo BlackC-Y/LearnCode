@@ -15,7 +15,7 @@ def main():
         container_path = os.path.splitext(asset.get_path_name())[0]
         container = unreal.load_asset(Socket_Path)
         if not container:
-            print("失败路径 -> {}".format(container_path))
+            print(f"失败路径 -> {container_path}")
             return
         container = level_lib.spawn_actor_from_object(container,unreal.Vector(0.0, 0.0, 0.0))
         r = unreal.AttachmentRule.SNAP_TO_TARGET

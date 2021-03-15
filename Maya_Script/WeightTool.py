@@ -18,7 +18,7 @@ import decimal
 
 class WeightTool_JellyBean():
 
-    __Verision = 0.84
+    __Verision = 0.85
 
     def ToolUi(self):
         ToolUi = 'WeightTool_JellyBean'
@@ -30,6 +30,7 @@ class WeightTool_JellyBean():
         cmds.menuItem(l='Save', c=lambda *args: self.vtxSave_api())
         cmds.menuItem(l='Load', c=lambda *args: self.vtxLoad_api())
         cmds.menuItem(d=1)
+        cmds.menuItem(l='WeightCheck', c=lambda *args: WeightCheckTool_JellyBean().ToolUi())
         cmds.menuItem(l='reset SkinPose', c=lambda *args: self.resetSkinPose())
         cmds.menu(l='RigT', to=1)
         cmds.menuItem(l='Create', c=lambda *args: self.createSelect())
@@ -442,8 +443,9 @@ class WeightTool_JellyBean():
                 line = vwfile.readline()
 
         jntList = cmds.skinCluster(selobj, q=1, inf=1)
-        jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
+        jntLock = []
         for j in jntList:
+            jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
         #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
@@ -583,8 +585,9 @@ class WeightTool_JellyBean():
             self.vtxLoad_Mel()
             return
 
-        jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
+        jntLock = []
         for j in infNameList:
+            jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         vertIter = Om.MItGeometry(MObject)
         _Num = 0
@@ -691,8 +694,9 @@ class WeightTool_JellyBean():
             self.vtxLoad_Mel()
             return
 
-        jntLock = [cmds.getAttr(j + '.liw') for j in infNameList]
+        jntLock = []
         for j in infNameList:
+            jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         vertIter = om.MItMeshVertex(MObject)
         _Num = 0
@@ -924,9 +928,15 @@ class WeightCheckTool_JellyBean():
 
     def selectVtx(self):
         vtxList = cmds.textScrollList('vtxList_JellyBean', q=1, si=1)
+        if not vtxList:
+            cmds.select(cmds.polyListComponentConversion(self.saveShape, ff=1, fe=1, fuv=1, fvf=1, tv=1), r=1)
+            cmds.hilite(self.saveShape)
+            return
         if not '.' in vtxList[0]:
             _shapeN = cmds.text('shapeInfo_JellyBean', q=1, l=1)
             vtxList = ['%s.%s' % (_shapeN, i) for i in vtxList]
+        else:
+            _shapeN = cmds.ls(vtxList[0], o=1)
         cmds.hilite(_shapeN)
         cmds.select(vtxList, r=1)
 
@@ -935,13 +945,15 @@ class WeightCheckTool_JellyBean():
         if not selVtx or not clusterName:
             return
         jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
-        jntLock = [cmds.getAttr(j + '.liw') for j in jntList]
+        jntLock = []
+        for j in jntList:
+            jntLock.append(cmds.getAttr(j + '.liw'))
+            cmds.setAttr(j + '.liw', 0)
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
-        _decimal = '%.%sf' % cmds.intField('DecimalInt_JellyBean', q=1, v=1)
+        _decimal = '%.'+ str(cmds.intField('DecimalInt_JellyBean', q=1, v=1)) +'f'
         for i in selVtx:
             transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
-            for j in transList:
-                cmds.setAttr(j + '.liw', 0)
+            _tv = []
             for j in transList:
                 # mel.eval('global proc float _rounding(float $f, int $n){float $N = pow(10, ($n));float $a = $f%(1/$N)*$N;float $B;     \
                 #            if($a>0.5)$B = ceil($f*$N)/$N;else$B = floor($f*$N/$N);return $B;}')     #精度问题?
@@ -950,27 +962,29 @@ class WeightCheckTool_JellyBean():
                                   quantize(decimal.Decimal(_decimal % 1))).rstrip('0').rstrip('.'))
                 # if Value == 0:
                 #    continue
-                cmds.skinPercent(clusterName, i, tv=(j, Value))
-                cmds.setAttr(j + '.liw', 1)
+                _tv.append([j, Value])
+            num = 0
+            for n in _tv:
+                num += n[1]
+            _tv[-1][1] = float(str(decimal.Decimal(str(_tv[-1][1] + 1 - num)).quantize(decimal.Decimal(_decimal % 1))).rstrip('0').rstrip('.'))
+            cmds.skinPercent(clusterName, i, tv=_tv)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
 
     def RemoveMin(self):
-        if not self.Number:
+        selVtx, clusterName = self.getSel()
+        if not selVtx or not clusterName:
             return
-        obj = cmds.ls(self.Number[0], o=1)[0]
-        clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
-        if not clusterName:
-            om.MGlobal.displayError('Select No Skin')
-            return
-        for v in self.Number:
+        jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
+        jntLock = []
+        for j in jntList:
+            jntLock.append(cmds.getAttr(j + '.liw'))
+            cmds.setAttr(j + '.liw', 0)
+        Influence = cmds.intField('InfluenceInt_JellyBean', q=1, v=1)
+        for v in selVtx:
             transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
-            jntLock = []
-            for j in transList:
-                jntLock.append(cmds.getAttr(j + '.liw'))
-                cmds.setAttr(j + '.liw', 0)
-            while len(transList) > cmds.intField('InfluenceInt_JellyBean', q=1, v=1):
+            while len(transList) > Influence:
                 valueList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, v=1)
                 tvdic = {}
                 for w, j in zip(valueList, transList):
@@ -978,8 +992,8 @@ class WeightCheckTool_JellyBean():
                 tvList = sorted(tvdic.items(), key=lambda item: item[1])
                 cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0))
                 transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
-            for j, l in zip(transList, jntLock):
-                cmds.setAttr(j + '.liw', l)
+        for j, l in zip(transList, jntLock):
+            cmds.setAttr(j + '.liw', l)
         self.Load()
 
     def RemoveValue(self):
@@ -1004,4 +1018,4 @@ class WeightCheckTool_JellyBean():
 
 
 WeightTool_JellyBean().ToolUi()
-# WeightCheckTool_JellyBean().ToolUi()
+#WeightCheckTool_JellyBean().ToolUi()

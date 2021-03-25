@@ -4,7 +4,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    __Verision = 1.31
+    __Verision = 1.32
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'
@@ -37,6 +37,7 @@ class CopyWeightTool():
         if cmds.objectType(targeObj[0], i='mesh'):
             targeObj = cmds.listRelatives(targeObj[0], p=1)
         same = 1 if soureObj == targeObj[0] else 0
+
         soureSkCluster = mel.eval('findRelatedSkinCluster("%s")' % soureObj)
         if not soureSkCluster:
             cmds.error('Soure No Skin')
@@ -45,9 +46,13 @@ class CopyWeightTool():
             sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, fv=1, fe=1, fuv=1, fvf=1, tf=1), fl=1)
         infJointList = cmds.skinCluster(soureObj, q=1, inf=1)
         jntLock = [cmds.getAttr(j + '.liw') for j in infJointList]
+        
         if same:
             _TempObj_ = cmds.duplicate(soureObj, rr=1)[0]
-            _list_ = ['%s.f[%s]' % (_TempObj_, i) for i in range(cmds.polyEvaluate(_TempObj_, f=1)) if not '%s.f[%s]' % (soureObj, i) in set(sourelist)]
+            allList = ['%s.f[%s]' % (soureObj, i) for i in range(cmds.polyEvaluate(_TempObj_, f=1))]
+            _difflist_ = list(set(allList).difference(set(sourelist)))
+            _list_ = [i.replace(soureObj, _TempObj_) for i in _difflist_]
+            #_list_ = ['%s.f[%s]' % (_TempObj_, i) for i in range(cmds.polyEvaluate(_TempObj_, f=1)) if not '%s.f[%s]' % (soureObj, i) in set(sourelist)]
             if cmds.ls(_list_):
                 cmds.delete(_list_)
             cmds.skinCluster(infJointList, _TempObj_, tsb=1, dr=4)

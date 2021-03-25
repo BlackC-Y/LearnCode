@@ -1,0 +1,46 @@
+{
+	"folders": [
+        {
+            "path": ".."
+        },
+        {
+            "path": "..\\..\\..\\..\\Users\\Documents\\maya\\scripts\\RigToolDev"
+        }
+    ],
+    "settings": {
+        "python.autoComplete.extraPaths": 
+        [
+            "c:\\Users\\Black\\.vscode\\extensions\\fxtd-odyssey.mayapy-1.0.4\\mayaSDK",
+            //"C:/Program Files/Autodesk/Maya2018/devkit/other/pymel/extras/completion/py",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\Lib",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\python27.zip",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\DLLs",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\plat-win",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\lib-tk",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64",
+            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\site-package",
+            "D:\\Users\\Documents\\Unreal Projects\\CJ_A1\\Intermediate\\PythonStub"
+        ],
+        "workbench.colorTheme": "One Dark Pro",
+        "editor.suggestSelection": "first",
+        "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+        
+        "editor.formatOnType": true, // 输入时就进行格式化，默认触发字符较少，分号可以触发
+        "editor.snippetSuggestions": "top", // snippets代码优先显示补全
+
+        "update.enableWindowsBackgroundUpdates": false,
+        "git.enabled": false,
+        "oneDarkPro.italic": false,
+        "editor.fontFamily": "Consolas,Sarasa Mono SC",
+        "editor.fontSize": 15,
+        "extensions.ignoreRecommendations": false,
+        "local-history.maxDisplay": 5,
+        "local-history.saveDelay": 120,
+        "vsintellicode.features.python.deepLearning": "enabled",
+        "python.languageServer": "Microsoft",
+		"python.formatting.autopep8Args": [
+            "--max-line-length=165"
+        ],
+	}
+}

@@ -8,7 +8,7 @@ from maya.api import OpenMaya as om
 
 class PSD_PoseUi_KitKat():
 
-    __Verision = 0.81
+    __Verision = 0.82
 
     def ToolUi(self):
         ToolUi = 'PSD_Pose_KitKat'
@@ -180,9 +180,10 @@ class PSD_PoseUi_KitKat():
         if cmds.nodeType(sllist[0]) == 'joint':
             _Joint = sllist[0]
         elif _ConnectInfo and cmds.ls('%s.ctrlJnt_Psd' % sllist[0]):
+            #如果有链接信息 和 .ctrlJnt_Psd属性 说明选择的是个控制器
             _Joint = cmds.listConnections('%s.ctrlJnt_Psd' % sllist[0], d=0, t='joint')[0]
-        elif cmds.ls('{}.isPose'.format(sllist[0])):
-            _Joint = cmds.listConnections('{}.message'.format(cmds.listRelatives(sllist[0], p=1)[0]), t='joint')[0]
+        elif cmds.ls('%s.isPose' % sllist[0]):
+            _Joint = cmds.listConnections('%s.message' % cmds.listRelatives(sllist[0], p=1)[0], t='joint')[0]
             PoseName = sllist[0]
             self.goToPose(PoseName)
             _Ctrl = cmds.getAttr('%s.CtrlName' % sllist[0])
@@ -318,13 +319,15 @@ class PSD_PoseUi_KitKat():
             cmds.delete(name)
             return
         a = cmds.listRelatives(name, p=1)[0]
-        for c in cmds.listConnections('%s.%s' % (a, PoseName), t='animCurveUU')[:-1]:
-            for d in cmds.listConnections('%s.output' % c, t='blendShape'):
-                for e in cmds.getAttr('%s.w' % d, mi=1):
-                    if PoseName == cmds.aliasAttr('%s.w[%s]' % (d, e), q=1):
-                        break
-                #_targetId = cmds.ls('%s.inputTarget[0].inputTargetGroup[*]' % d)[e].split('%s.inputTarget[0].inputTargetGroup[' % d)[1][:-1]
-                mel.eval('blendShapeDeleteTargetGroup %s %s' % (d, e))
+        for c in cmds.listConnections('%s.%s' % (a, PoseName))[:-1]:
+            if cmds.ls(c, typ='animCurveUU'):
+                for d in cmds.listConnections('%s.output' % c):
+                    if cmds.ls(d, typ='blendShape'):
+                        for e in cmds.getAttr('%s.w' % d, mi=1):
+                            if PoseName == cmds.aliasAttr('%s.w[%s]' % (d, e), q=1):
+                                break
+                        #_targetId = cmds.ls('%s.inputTarget[0].inputTargetGroup[*]' % d)[e].split('%s.inputTarget[0].inputTargetGroup[' % d)[1][:-1]
+                        mel.eval('blendShapeDeleteTargetGroup %s %s' % (d, e))
         cmds.setAttr('%s.%s' % (a, PoseName), e=1, cb=1, l=0)
         cmds.deleteAttr(a, at=PoseName)
         cmds.poseInterpolator(cmds.listRelatives(a, s=1, typ='poseInterpolator')[0], e=1, dp=PoseName)
@@ -349,8 +352,8 @@ class PSD_PoseUi_KitKat():
             return 0
         
     def PoseAttr_add(self, transName, _type, _Data_):
-        if not cmds.ls('{}.PoseName'.format(transName)):
-            return
+        #if not cmds.ls('{}.PoseName'.format(transName)): 导致错误
+        #    return
         cmds.addAttr(transName, ln='JointName', dt="string")
         cmds.setAttr('%s.JointName' % transName, _Data_[0], typ='string')
         cmds.addAttr(transName, ln='CtrlName', dt="string")
@@ -492,7 +495,7 @@ class PSD_PoseUi_KitKat():
                 self.PoseAttr_add(filpObj, 1, [_Joint.replace(_old, _new), _Ctrl.replace(_old, _new), PoseName.replace(_old, _new), _jntRotate])
                 _filpPose.append(filpObj)
             else:
-                cmds.duplicate(sourceObj[0], n='{}_Filp'.format(i))
+                cmds.duplicate(sourceObj[0], n='%s_Filp' % i)
             cmds.delete(sourceObj, dupObj)
         cmds.select(_filpPose, r=1)
         return _filpPose

@@ -193,9 +193,16 @@
 <details>
 <summary>详情</summary>
 <pre>
+New Tool
+<p align="left">
   ▽  2021-02-08  Ver_0.81
 1.添加帮助文档
 2.Add功能重构, 分解流程
 3.当Pose存在时, 对新模型只进行BS添加, 用旧数值进行控制
+<p align="left">
+  ▽  2021-04-02  Ver_0.82
+1.Fix:解决上版本致命错误
+2.Fix:添加属性时的错误判断
+3.Fix:删除Pose时的错误循环
 </pre>
 </details>

@@ -1,6 +1,6 @@
 allline = [
-'https://www.bilibili.com/video/BV1Ch411C721',
-'https://www.bilibili.com/video/BV1Fh411k7cw',
+'https://www.bilibili.com/video/BV1QZ4y1T7mH',
+'',
 
 
 
@@ -14,7 +14,7 @@ import you_get
 def download():
     for i in allline:
         if not i: continue
-        sys.argv = ['you-get', '-o', 'D:/下载/下载/灯泡', '--playlist', i]
+        sys.argv = ['you-get', '-o', 'D:/下载/方舟OST', '--playlist', i]
         you_get.main()
  
 if __name__ == '__main__':

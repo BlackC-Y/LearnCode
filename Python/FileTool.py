@@ -19,7 +19,6 @@ class FileTool_BlackC_Ui(QMainWindow):
         if not self.objectName():
             self.setFocus()
             self.setupUi()
-            print('have')
 
     def setupUi(self):
         self.setObjectName(self.UiName)
@@ -39,12 +38,13 @@ class FileTool_BlackC_Ui(QMainWindow):
         uiItem['tabWidget'] = self.tabWidget = QTabWidget(self.Mainwidget)
         self.tabWidget.setObjectName("tabWidget")
         self.tabWidget.setMinimumSize(QSize(300, 380))
+
+        #Page 1 reName
         self.reNameTab = QWidget()
         self.reNameTab.setObjectName("reNameTab")
         self.reNamePageVLayout = QVBoxLayout(self.reNameTab)
         self.reNamePageVLayout.setObjectName("reNamePageVLayout")
         
-        #Page 1 reName
         self.createText, _tempHLayout = self.coustomTextLine('H', self.reNameTab)
         self.reNamePageVLayout.addLayout(_tempHLayout)
 
@@ -137,17 +137,31 @@ class FileTool_BlackC_Ui(QMainWindow):
         _tempHLayout = QHBoxLayout()
         self.TextLoclabelC = QLabel(self.reNameTab)
         _tempHLayout.addWidget(self.TextLoclabelC)
-        uiItem['endLocationSB'] = self.endLocationSB = QSpinBox(self.reNameTab)
-        self.endLocationSB.setObjectName("endLocationSB")
-        self.endLocationSB.setMinimumSize(QSize(45, 20))
-        self.endLocationSB.setMinimum(1)
-        _tempHLayout.addWidget(self.endLocationSB)
+        uiItem['numLocationSB'] = self.numLocationSB = QSpinBox(self.reNameTab)
+        self.numLocationSB.setObjectName("numLocationSB")
+        self.numLocationSB.setMinimumSize(QSize(45, 20))
+        self.numLocationSB.setMinimum(1)
+        _tempHLayout.addWidget(self.numLocationSB)
         self.TextLoclabelD = QLabel(self.reNameTab)
         _tempHLayout.addWidget(self.TextLoclabelD)
         _tempHLayout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         _tempVLayout.addLayout(_tempHLayout)
         self.reNamePageVLayout.addLayout(_tempVLayout)
         
+        _tempHLayout = QHBoxLayout()
+        uiItem['endLocationCB'] = self.endLocationCB = QCheckBox(self.reNameTab)
+        self.endLocationCB.setObjectName("endLocationCB")
+        _tempHLayout.addWidget(self.endLocationCB)
+        uiItem['endNumLocationSB'] = self.endNumLocationSB = QSpinBox(self.reNameTab)
+        self.endNumLocationSB.setObjectName("endNumLocationSB")
+        self.endNumLocationSB.setMinimumSize(QSize(45, 20))
+        self.endNumLocationSB.setMinimum(1)
+        _tempHLayout.addWidget(self.endNumLocationSB)
+        self.TextLoclabelE = QLabel(self.reNameTab)
+        _tempHLayout.addWidget(self.TextLoclabelE)
+        _tempHLayout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.reNamePageVLayout.addLayout(_tempHLayout)
+
         self.reNamebutton = QPushButton(self.reNameTab)
         self.reNamebutton.setMinimumSize(QSize(80, 26))
         self.reNamebutton.setObjectName("reNamebutton")
@@ -163,10 +177,26 @@ class FileTool_BlackC_Ui(QMainWindow):
         self.tabWidget.addTab(self.reNameTab, "")
 
         #Page 2 File
-        self.fileTab = QWidget()
-        self.fileTab.setObjectName("fileTab")
+        self.FileProcTab = QWidget()
+        self.FileProcTab.setObjectName("fileTab")
+        self.FileProcPageVLayout = QVBoxLayout(self.FileProcTab)
+        self.FileProcPageVLayout.setObjectName("FileProcPageVLayout")
+
+        _tempHLayout = QHBoxLayout()
+        _tempHLayout.setSpacing(10)
+        self.createNulllabel = QLabel(self.FileProcTab)
+        _tempHLayout.addWidget(self.createNulllabel)
+        uiItem['createNullTextEdit'] = self.createNullTextEdit = QLineEdit(self.FileProcTab)
+        self.createNullTextEdit.setObjectName("createNullTextEdit")
+        _tempHLayout.addWidget(self.createNullTextEdit)
+        self.createNullButton = QPushButton(self.FileProcTab)
+        self.createNullButton.setObjectName("createNullButton")
+        _tempHLayout.addWidget(self.createNullButton)
+        _tempHLayout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.FileProcPageVLayout.addLayout(_tempHLayout)
         
-        self.tabWidget.addTab(self.fileTab, "")
+        self.FileProcPageVLayout.addItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        self.tabWidget.addTab(self.FileProcTab, "")
         self.tabWidget.setCurrentIndex(0)
         self.MainHLayout.addWidget(self.tabWidget)
 
@@ -217,14 +247,14 @@ class FileTool_BlackC_Ui(QMainWindow):
 
         self.setWindowTitle(self.UiName)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.reNameTab), "重命名")
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.fileTab), "File")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.FileProcTab), "File")
         self.tabWidget.currentChanged.connect(self.changeTab)
         self.createText.setText('添加/替换')
         self.rulesNameCB.setText("规则命名")
         self.rulesNameCB.clicked.connect(self.refreshTreeWeight)
         self.rulesNameTextEdit.setPlaceholderText('xxx_#1^')
         self.rulesNameTextEdit.setToolTip('#代表字符数量\n接初始序号 再用+号可添加步进或步减\n^进行结尾\n \
-                                            \neg:aa_###1+2^_zz  =  aa_001_zz/aa_003_zz \neg:aa_##10+-2^_zz  =  aa_10_zz/aa_08_zz')
+                                            \neg:  aa_###1+2^_zz  =  aa_001_zz/aa_003_zz \neg: aa_##10+-2^_zz  =  aa_10_zz/aa_08_zz')
         self.rulesNameTextEdit.textEdited.connect(self.textConfirm)
         self.prefixCB.setText("前缀名  ")
         self.prefixCB.clicked.connect(self.refreshTreeWeight)
@@ -250,11 +280,19 @@ class FileTool_BlackC_Ui(QMainWindow):
         self.startLocationSB.valueChanged.connect(self.refreshTreeWeight)
         self.TextLoclabelB.setText("个字符开始")
         self.TextLoclabelC.setText("   删除 ")
-        self.endLocationSB.valueChanged.connect(self.refreshTreeWeight)
+        self.numLocationSB.valueChanged.connect(self.refreshTreeWeight)
         self.TextLoclabelD.setText("个字符")
+        self.endLocationCB.setText("从结尾删除")
+        self.endLocationCB.clicked.connect(self.refreshTreeWeight)
+        self.endNumLocationSB.valueChanged.connect(self.refreshTreeWeight)
+        self.TextLoclabelE.setText("个字符")
         self.reNamebutton.setText("重命名")
         self.reNamebutton.clicked.connect(lambda *args: FileTool_BlackC().reNameProc())
         
+        self.createNulllabel.setText("创建同名空文件")
+        self.createNullTextEdit.setPlaceholderText('目标路径')
+        self.createNullButton.setText("Run")
+
         self.FiletreeWidget.setHeaderLabels(['源文件名', '预览文件名']) #First
         self.unDobutton.setText('<-')
         self.unDobutton.clicked.connect(lambda *args: FileTool_BlackC().unDo())
@@ -303,9 +341,11 @@ class FileTool_BlackC_Ui(QMainWindow):
         #index = self.tabWidget.currentIndex()
         self.FiletreeWidget.clear()
         if index := self.tabWidget.currentIndex():
+            self.unDobutton.setVisible(0)
             self.FiletreeWidget.setColumnCount(3)
             self.FiletreeWidget.setHeaderLabels(['名称', '大小', '修改日期'])
         else:
+            self.unDobutton.setVisible(1)
             self.FiletreeWidget.setColumnCount(2)
             self.FiletreeWidget.setHeaderLabels(['源文件名', '预览文件名'])
             
@@ -371,7 +411,7 @@ class FileTool_BlackC_Ui(QMainWindow):
             
             if self.toLocationCB.isChecked():
                 stValue = self.startLocationSB.value() - 1
-                edValue = self.endLocationSB.value()
+                edValue = self.numLocationSB.value()
                 for i in range(len(fileList)):
                     _item = fileList[i]
                     if not stValue:
@@ -380,7 +420,13 @@ class FileTool_BlackC_Ui(QMainWindow):
                         fileList[i] = f'{_item[:stValue]}{_item[stValue + edValue:]}'
                     if not fileList[i]:
                         fileList[i] = _item[-1]
-            
+            if self.endLocationCB.isChecked():
+                numValue = self.endNumLocationSB.value()
+                for i in range(len(fileList)):
+                    _item = fileList[i][:-numValue]
+                    #if not _item:
+                    #    _item = fileList[i][:1]
+                    fileList[i] = _item
             for i, f in zip(itemList, fileList):
                 i.setText(1, f)
     

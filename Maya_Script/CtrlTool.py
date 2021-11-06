@@ -7,7 +7,7 @@ import os
 
 class My_CtrllTool():
 
-    #Version = 1.0.1
+    #Version = 1.01
 
     def Ui(self):
         ToolWinUIname = "MZ_CtrlTool"

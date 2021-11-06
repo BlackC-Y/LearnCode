@@ -3,6 +3,19 @@
 <h3 align="center">  </h3>
 <p align="center">
 
+## [CtrlTool `|控制器工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CtrlTool.py)
+
+#### 2021-02-04  Verision: `1.0x`
+<details>
+<summary>详情</summary>
+<pre>
+控制器创建和修改
+<p align="left">
+  ▽  2021-11-06  Ver_1.01
+1.增加控制器形状保存功能
+</pre>
+</details>
+
 ## [cur2IK_FX `|动力学曲线工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/cur2IK_FX.py)
 
 #### 2020-12-09  Verision: `2.5x`
@@ -120,6 +133,16 @@
 
 
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
+
+#### 2021-11-06  Verision: `1.4`
+<details>
+<summary>详情</summary>
+<pre>
+1.增加向Surface面拷贝的功能
+2.优化运行效率
+3.Fix: 源选择为点线面时, 没有正确传权重的问题
+</pre>
+</details>
 
 #### 2020-12-29  Verision: `1.3x`
 <details>

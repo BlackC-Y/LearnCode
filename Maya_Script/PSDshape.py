@@ -8,7 +8,7 @@ from maya.api import OpenMaya as om
 
 class PSD_PoseUi_KitKat():
 
-    __Verision = 0.82
+    #__Verision = 0.82
 
     def ToolUi(self):
         ToolUi = 'PSD_Pose_KitKat'

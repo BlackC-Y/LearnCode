@@ -3,7 +3,7 @@ from maya import cmds, mel
 import maya.OpenMaya as Om
 import re
 
-cRivet__Verision = 1.0
+#cRivet__Verision = 1.0
 
 def cRivet(mode):
     slmesh = cmds.ls(sl=1, o=1, typ='mesh')

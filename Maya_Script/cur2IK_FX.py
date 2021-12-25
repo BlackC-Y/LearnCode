@@ -4,7 +4,7 @@
 try:
     from PySide2 import QtCore, QtGui, QtWidgets
     import shiboken2
-except ImportError:
+except ImportError:      #2016以下兼容
     from PySide import QtGui as QtWidgets
     from PySide import QtGui
     from PySide import QtCore
@@ -302,7 +302,7 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
         if int(cmds.about(v=1)) > 2016:
             self.SelectHairSystem.currentTextChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
             self.SelectNucleus.currentTextChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
-        else:
+        else:   #2016以下兼容
             self.SelectHairSystem.currentIndexChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
             self.SelectNucleus.currentIndexChanged.connect(lambda *args: Dynamic_ApplePie().Acondition())
         self.BuildCtrl.setText(u"Build")

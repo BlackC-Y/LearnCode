@@ -17,11 +17,12 @@ from DataSaveUi import *
 from PSDshape import *
 from Rivet import *
 from WeightTool import *
+from MirrorDriverKey import *
 
 
 class MayaToolsBox_BlackC():
 
-    #__Verision = 1.1
+    #__Verision = 1.2
     
     def ToolUi(self):
         Info = [
@@ -41,7 +42,8 @@ class MayaToolsBox_BlackC():
             [u'Rivet', u'Rivet铆钉', 'cRivet("follicle")'],
             [u'权重工具_Ui', u'点权重调整 \nSave/Load权重', 'WeightTool_JellyBean().ToolUi()'],
             [u'权重检查工具_Ui', u'权重最大影响值检查 清理', 'WeightCheckTool_JellyBean().ToolUi()'],
-            [u'控制器Pro_Ui', u'权哥 控制器生成', 'My_CtrllTool().Ui()']
+            [u'控制器Pro_Ui', u'权哥 控制器生成', 'My_CtrllTool().Ui()'],
+            [u'镜像驱动关键帧_Ui', u'依次选择 做好的驱动者，做好的被驱动者\n没做的驱动者，没做的被驱动者', 'MirrorDriverKey().Ui()']
         ]
         self.Info = sorted(Info, key=lambda item: item[0])
 

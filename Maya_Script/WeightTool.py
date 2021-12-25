@@ -1,24 +1,17 @@
 # -*- coding: UTF-8 -*-
-
 '''Roadmap:
 '''
-try:
-    from PySide2 import QtCore, QtGui, QtWidgets
-    import shiboken2
-except ImportError:
-    from PySide import QtGui as QtWidgets
-    from PySide import QtCore
-    import shiboken as shiboken2
+from PySide2 import QtCore, QtGui, QtWidgets
+import shiboken2
 from maya import cmds, mel
 from maya import OpenMaya as Om, OpenMayaAnim as OmAni, OpenMayaUI as OmUI
 from maya.api import OpenMaya as om, OpenMayaAnim as omAni
 import decimal
-#import time
 
 
 class WeightTool_JellyBean():
 
-    __Verision = 0.85
+    #__Verision = 0.85
 
     def ToolUi(self):
         ToolUi = 'WeightTool_JellyBean'
@@ -124,7 +117,7 @@ class WeightTool_JellyBean():
             vertexCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"vertex\\\", 0);")'
             faceCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"facet\\\", 0);")'
             objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  # python (\\\"WeightTool_JellyBean().refreshBoxChange(9)\\\");
-        else:
+        else:   #2017以下兼容
             edgeCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"edge\\\");")'
             vertexCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"vertex\\\");")'
             faceCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"facet\\\");")'

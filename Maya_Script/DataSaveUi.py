@@ -4,7 +4,7 @@ from maya import cmds, mel
 
 class DataSaveUi():
 
-    __Verision = 1.21
+    #__Verision = 1.21
 
     def Ui(self):
         self.UiN = 'DataSaveUi'

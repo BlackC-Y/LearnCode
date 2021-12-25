@@ -4,7 +4,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    __Verision = 1.4
+    #__Verision = 1.4
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'

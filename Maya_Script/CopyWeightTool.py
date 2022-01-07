@@ -4,7 +4,7 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    #__Verision = 1.4
+    #__Verision = 1.41
 
     def Ui(self):
         ToolUi = 'CopyWeightTool'
@@ -29,8 +29,7 @@ class CopyWeightTool():
         cmds.button(l='Help', w=40, c=lambda *args: _tVis())
         cmds.button(l='Run', w=255, c=lambda *args: self.runProc())
         cmds.setParent('..')
-        cmds.text('helpDoc_CopyWeight', l=u'源：整个模型 - 模型的点/线/面\n\n目标：源模型的点/线/面\n     单个有蒙皮模型的点/线/面\n     多个无蒙皮模型\n     单个无蒙皮Surface曲面模型\n', 
-                    al='left', fn='fixedWidthFont', vis=0)
+        cmds.text('helpDoc_CopyWeight', l=u'源：整个模型 - 模型的点/线/面\n\n目标：源模型的点/线/面\n     单个有蒙皮模型的点/线/面\n     多个无蒙皮模型\n     单个无蒙皮Surface曲面模型\n', al='left', fn='fixedWidthFont', vis=0)
         cmds.showWindow(ToolUi)
 
     def runProc(self):
@@ -118,6 +117,11 @@ class CopyWeightTool():
         cmds.delete(_StPObj, _cPOMNode)
 
     def strProc(self, Onestr):
-        return [i[2:-1] for i in Onestr[1:-1].split(', ')] if ', ' in Onestr else [Onestr[3:-2]]
+        if ', ' in Onestr:
+            return [i[2:-1] for i in Onestr[1:-1].split(', ')]
+        elif int(cmds.about(v=1)) >= 2022:
+            return [Onestr[2:-2]]
+        else:
+            return [Onestr[3:-2]]
 
 CopyWeightTool().Ui()

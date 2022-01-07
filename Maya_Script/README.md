@@ -134,13 +134,16 @@
 
 ## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
 
-#### 2021-11-06  Verision: `1.4`
+#### 2021-11-06  Verision: `1.4x`
 <details>
 <summary>详情</summary>
 <pre>
 1.增加向Surface面拷贝的功能
 2.优化运行效率
 3.Fix: 源选择为点线面时, 没有正确传权重的问题
+<p align="left">
+  ▽  2022-01-05  Ver_1.41
+1.添加maya2022支持
 </pre>
 </details>
 

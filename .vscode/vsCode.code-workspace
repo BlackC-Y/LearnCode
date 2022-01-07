@@ -3,23 +3,15 @@
         {
             "path": ".."
         },
-        {
-            "path": "..\\..\\..\\..\\Users\\Documents\\maya\\scripts\\RigToolDev"
-        }
     ],
     "settings": {
         "python.autoComplete.extraPaths": 
         [
-            "c:\\Users\\Black\\.vscode\\extensions\\fxtd-odyssey.mayapy-1.0.4\\mayaSDK",
-            //"C:/Program Files/Autodesk/Maya2018/devkit/other/pymel/extras/completion/py",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\Lib",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\python27.zip",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\DLLs",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\plat-win",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\lib-tk",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64",
-            //"C:\\Program Files\\Epic Games\\UE_4.24\\Engine\\Binaries\\ThirdParty\\Python\\Win64\\lib\\site-package",
+            "c:\\Users\\BlackC_Desk\\.vscode\\extensions\\fxtd-odyssey.mayapy-1.0.4\\mayaSDK",
+            "D:\\Users\\Documents\\Unreal Projects\\CJ_A1\\Intermediate\\PythonStub"
+        ],
+        "python.analysis.extraPaths": [
+            "c:\\Users\\BlackC_Desk\\.vscode\\extensions\\fxtd-odyssey.mayapy-1.0.4\\mayaSDK",
             "D:\\Users\\Documents\\Unreal Projects\\CJ_A1\\Intermediate\\PythonStub"
         ],
         "workbench.colorTheme": "One Dark Pro",
@@ -40,10 +32,6 @@
         "vsintellicode.features.python.deepLearning": "enabled",
 		"python.formatting.autopep8Args": [
             "--max-line-length=165"
-        ],
-        "python.analysis.extraPaths": [
-            "c:\\Users\\Black\\.vscode\\extensions\\fxtd-odyssey.mayapy-1.0.4\\mayaSDK",
-            "D:\\Users\\Documents\\Unreal Projects\\CJ_A1\\Intermediate\\PythonStub"
         ],
         "editor.minimap.renderCharacters": false,
 	}

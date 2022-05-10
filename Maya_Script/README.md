@@ -63,6 +63,19 @@
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
+#### 2022-05-10  Verision: `0.9x`
+<details>
+<summary>详情</summary>
+<pre>
+1.增加了deformerWeights处理权重功能(虽然MEL命令 但很快奥)
+  --deformerWeights 只能处理Mesh模型
+2.代码结构调整, Save/Load单列一类
+3.打印Save/Load操作时间
+4.报错换成中文
+5.添加Python3支持
+</pre>
+</details>
+
 #### 2020-12-24  Verision: `0.8x`
 <details>
 <summary>详情</summary>
@@ -143,7 +156,7 @@
 3.Fix: 源选择为点线面时, 没有正确传权重的问题
 <p align="left">
   ▽  2022-01-05  Ver_1.41
-1.添加maya2022支持
+1.添加Python3支持, 版本之间字符串处理规则不同
 </pre>
 </details>
 

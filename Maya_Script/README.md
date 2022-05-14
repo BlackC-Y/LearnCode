@@ -73,6 +73,14 @@
 3.打印Save/Load操作时间
 4.报错换成中文
 5.添加Python3支持
+<p align="left">
+  ▽  2020-05-15  Ver_0.91
+1.添加Python3支持
+2.优化代码效率
+3.Fix: 文件选择时间被记入处理时间
+4.Fix: 在不使用dW方式时, 批量模式提供了xml后缀
+5.Fix: MayaUI项shiboken2 (long型 变为 int型)
+6.Fix: 报绿在没有窗口的情况下报错
 </pre>
 </details>
 

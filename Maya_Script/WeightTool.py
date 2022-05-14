@@ -12,13 +12,12 @@ import time
 
 class WeightTool_JellyBean():
 
-    #__Verision = 0.9
-
     def ToolUi(self):
+        Verision = '0.91'
         ToolUi = 'WeightTool_JellyBean'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t='WeightTool', rtf=1, mb=1, mxb=0, wh=(230, 500))
+        cmds.window(ToolUi, t='WeightTool%s' %Verision, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='SkinT', to=1)
         cmds.menuItem(d=1, dl="S/L")
         cmds.menuItem(l='Save', c=lambda *args: WeightSL_JellyBean().SLcheck('Save'))
@@ -417,9 +416,8 @@ class WeightTool_JellyBean():
 
 class WeightSL_JellyBean():
 
-    def SLcheck(self, mode, allInPath=''):
+    def SLcheck(self, mode, allInPath=''):   #单独调用时filePath为列表
         num = 1
-        st = time.time()
         if allInPath:
             allsel = cmds.ls(sl=1, o=1)
             num = len(allsel)
@@ -452,11 +450,11 @@ class WeightSL_JellyBean():
                             self.vtxLoad_dW(filePath)
                 elif seltyp == 'nurbsCurve' or seltyp == 'nurbsSurface' or seltyp == 'subdiv' or seltyp == 'lattice':   #整个其他
                     if mode == 'Save':
-                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                         if filePath:
                             self.vtxSave_Mel(filePath)
                     else:
-                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2, fm=1) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                         if filePath:
                             self.vtxLoad_Mel(filePath)
                 else:
@@ -464,29 +462,28 @@ class WeightSL_JellyBean():
                     return
             elif cmds.filterExpand(sel, sm=[31]):                                                                        #mesh点
                 if mode == 'Save':
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                     if filePath:
                         self.vtxSave_api(filePath)
                 else:
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2, fm=1) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                     if filePath:
                         self.vtxLoad_api(filePath)
             elif cmds.filterExpand(sel, sm=[28, 36, 40, 46]):                                                            #其他点
                 if mode == 'Save':
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                     if filePath:
                         self.vtxSave_Mel(filePath)
                 else:
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight *.sdd)', ds=2, fm=1) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
                     if filePath:
                         self.vtxLoad_Mel(filePath)
             else:
                 om.MGlobal.displayError(u'选择的点不支持')
                 return
-        print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
 
     def vtxSave_Mel(self, filePath):
+        st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         selVtx = cmds.filterExpand(cmds.ls(sl=1, fl=1), sm=[28, 31, 36, 40, 46])
         if not selVtx:
@@ -515,39 +512,41 @@ class WeightSL_JellyBean():
                     allWeight += valueList[w]
                 valueList[-1] += (1.0 - allWeight)
                 tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
-                wtStr = '%s--%s\r\n' % (i.split('.')[-1], tvList)
+                wtStr = '%s--%s\n' % (i.split('.')[-1], tvList)
                 vwfile.write(wtStr)
             #cmds.progressBar(gMainProgressBar, e=1, ep=1)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def vtxLoad_Mel(self, filePath):
+        st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
-        allLine = []
-        allLineapp = allLine.append
-        with open(filePath[0], 'r') as vwfile:
-            line = vwfile.readline()
-            while line:
-                allLineapp(line)
-                line = vwfile.readline()
-
         jntList = cmds.skinCluster(selobj, q=1, inf=1)
         jntLock = []
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
-        #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-        #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
-        for i in allLine:
-            #cmds.progressBar(gMainProgressBar, e=1, s=1)
-            strsplit = i.split('--')
-            vtx = strsplit[0].strip()
-            tvList = strsplit[-1].strip()
-            exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+        with open(filePath[0], 'r') as vwfile:
+            line = vwfile.readline()
+            #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
+            #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
+            while line:
+                #cmds.progressBar(gMainProgressBar, e=1, s=1)
+                strsplit = line.split('--')
+                vtx = strsplit[0].strip()
+                tvList = strsplit[-1].strip()
+                exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+                line = vwfile.readline()
         #cmds.progressBar(gMainProgressBar, e=1, ep=1)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
+    ''' 有报错 仅供参考
     def vtxSave_Oapi(self, filePath):
+        st = time.time()
         selList = Om.MSelectionList()
         Om.MGlobal.getActiveSelectionList(selList)
         #_prselList = []
@@ -596,10 +595,12 @@ class WeightSL_JellyBean():
         # fn = Om.MFnDependencyNode(MDagPath.node())   #获取MDagPath的内容?
         # print fn.name()   #获取 MFnDependencyNode 内容
 
-        #fileLine = []
-        #Lineapp = fileLine.append
         # component组件不为空（点）,线和面会强制转为点
-        vertIter = om.MItMeshVertex(MObject) if MItcomponent.isNull() else om.MItMeshVertex(MItDagPath, MItcomponent)
+        if MItcomponent.isNull():   #有报错
+            vertIter = om.MItMeshVertex(MObject)
+        else:
+            vertIter = om.MItMeshVertex(MItDagPath, MItcomponent)
+
         with open(filePath[0], 'w') as vwfile:
             while not vertIter.isDone():
                 infCount = Om.MScriptUtil()
@@ -609,15 +610,14 @@ class WeightSL_JellyBean():
                 skinNode.getWeights(MDagPath, vertIter.currentItem(), weights, infCountPtr)
 
                 tvList = self.zeroWeightData_Save(weights, infNameList)
-                vwfile.write('%s[%s]--%s\r\n' % (suf, vertIter.index(), tvList))
-                #wtStr = '%s[%s]--%s\r\n' % (suf, vertIter.index(), tvList)
-                #Lineapp(wtStr)
+                vwfile.write('%s[%s]--%s\n' % (suf, vertIter.index(), tvList))
                 vertIter.next()
-        #with open(filePath[0], 'w') as vwfile:
-        #    for i in fileLine:
-        #        vwfile.write(i)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
+    '''
 
     def vtxLoad_Oapi(self, filePath):
+        st = time.time()
         selList = Om.MSelectionList()
         Om.MGlobal.getActiveSelectionList(selList)
         MDagPath = Om.MDagPath()  # 存储所选物体的路径
@@ -666,8 +666,11 @@ class WeightSL_JellyBean():
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def vtxSave_api(self, filePath):
+        st = time.time()
         selList = om.MGlobal.getActiveSelectionList()
         MDagPath = selList.getDagPath(0)  # 存储所选物体的路径
         MObject = selList.getDependNode(0)  # 存储所选物体的组件的列表
@@ -686,8 +689,6 @@ class WeightSL_JellyBean():
         infs = skinNode.influenceObjects()
         infNameList = [infs[i].partialPathName() for i in range(len(infs))]  # 骨骼列表
 
-        #fileLine = []
-        #Lineapp = fileLine.append
         # component组件不为空（点）,线和面会强制转为点
         vertIter = om.MItMeshVertex(MObject) if MItcomponent.isNull() else om.MItMeshVertex(MItDagPath, MItcomponent)
         with open(filePath[0], 'w') as vwfile:
@@ -695,21 +696,19 @@ class WeightSL_JellyBean():
                 weights = skinNode.getWeights(MDagPath, vertIter.currentItem())[0]
 
                 tvList = self.zeroWeightData_Save(weights, infNameList)
-                vwfile.write('vtx[%s]--%s\r\n' % (vertIter.index(), tvList))
-                #wtStr = 'vtx[%s]--%s\r\n' % (vertIter.index(), tvList)
-                #Lineapp(wtStr)
+                vwfile.write('vtx[%s]--%s\n' % (vertIter.index(), tvList))
                 vertIter.next()
-        #with open(filePath[0], 'w') as vwfile:
-        #    for i in fileLine:
-        #        vwfile.write(i)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def vtxLoad_api(self, filePath):
+        st = time.time()
         selList = om.MGlobal.getActiveSelectionList()
         MDagPath = selList.getDagPath(0)  # 存储所选物体的路径
         MObject = selList.getDependNode(0)  # 存储所选物体的组件的列表
 
-        _selType = MDagPath.apiType()
-        _selShapeType = MDagPath.extendToShape().apiType()
+        #_selType = MDagPath.apiType()
+        #_selShapeType = MDagPath.extendToShape().apiType()
 		
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % MDagPath.partialPathName())
         selList.add(skCluster)
@@ -745,16 +744,22 @@ class WeightSL_JellyBean():
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def vtxSave_dW(self, filePath):
+        st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
         
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
         attributes = ['envelope', 'skinningMethod', 'normalizeWeights', 'deformUserNormals', 'useComponents']
         cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], ex=1, vc=1, attribute=attributes, deformer=[skCluster])
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def vtxLoad_dW(self, filePath):
+        st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
 
@@ -770,6 +775,8 @@ class WeightSL_JellyBean():
 
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
+        print(u'处理时间: %s' %(time.time()-st))
+        DisplayYes().showMessage('Process Finish!')
 
     def zeroWeightData_Save(self, weights, infNameList, source=0):
         #去除0权重数据, source为1则输出源数据
@@ -794,29 +801,36 @@ class WeightSL_JellyBean():
         _allappend = allLine.append
         with open(path, 'r') as vwfile:
             line = vwfile.readline()
+            py3 = 1 if not '[u\'' in line else 0   #没有[u'说明是py3存的文件
             while line:
                 strsplit = line.split('--')
                 if '][' in strsplit[0]:
                     return 'toMel'
-                vtx = strsplit[0].split('[')[-1].split(']')[0]
+                vtx = strsplit[0].split('[', 1)[-1][:-1]
                 _data = strsplit[-1].strip()
                 if '], [' in _data:
                     jointList = []
                     _jointListapp = jointList.append
                     weightList = []
                     _weightListapp = weightList.append
-                    for i in _data[2:-2].split('], ['):
-                        _str = i.split(', ')
-                        _jointListapp(_str[0][2:-1])
-                        _weightListapp(float(_str[1]))
-                    _allappend([vtx, jointList, weightList])
+                    if py3:
+                        for i in _data[2:-2].split('], ['):
+                            _str = i.split(', ')
+                            _jointListapp(_str[0][1:-1])
+                            _weightListapp(float(_str[1]))
+                        _allappend([vtx, jointList, weightList])
+                    else:
+                        for i in _data[2:-2].split('], ['):
+                            _str = i.split(', ')
+                            _jointListapp(_str[0][2:-1])
+                            _weightListapp(float(_str[1]))
+                        _allappend([vtx, jointList, weightList])
                 else:
                     _str = _data[2:-2].split(', ')
-                    _allappend([vtx, [_str[0][2:-1]], [float(_str[1])]])
-                # for item in eval(_data):
-                #    jointList.append(item[0])
-                #    weightList.append(item[1])
-                #_allappend([vtx, jointList, weightList])
+                    if py3:
+                        _allappend([vtx, [_str[0][1:-1]], [float(_str[1])]])
+                    else:
+                        _allappend([vtx, [_str[0][2:-1]], [float(_str[1])]])
                 line = vwfile.readline()
             _allappend([-1, None, None])
         return allLine
@@ -829,18 +843,16 @@ class DisplayYes():  # 报绿
 
     def showMessage(self, message):
         if int(cmds.about(v=1)) >= 2022:
-            widget = shiboken2.wrapInstance(OmUI.MQtUtil.findControl(self.gCommandLine), QtWidgets.QWidget)
+            widget = shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
         else:
             widget = shiboken2.wrapInstance(long(OmUI.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
         widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
         cmds.select('time1', r=1)
-        WeightTool_JellyBean().refreshBoxChange(9)
-        cmds.text('spJobReLine_DisplayYes', p='FiristcL_JellyBean', vis=0)   # p = Layout
-        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p='spJobReLine_DisplayYes')
+        WeightTool_JellyBean().refreshBoxChange(9)   #脚本兼容
+        self.sJNum = cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p=self.gCommandLine)
         Om.MGlobal.displayInfo(message)
 
     def resetLine(self):
-        cmds.deleteUI('spJobReLine_DisplayYes', ctl=1)
         cmds.deleteUI(self.gCommandLine.rsplit('|', 1)[0])
         mel.eval('source "initCommandLine.mel"')
 

@@ -13,11 +13,11 @@ import time
 class WeightTool_JellyBean():
 
     def ToolUi(self):
-        Verision = '0.91'
+        Verision = '0.92'
         ToolUi = 'WeightTool_JellyBean'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t='WeightTool%s' %Verision, rtf=1, mb=1, mxb=0, wh=(230, 500))
+        cmds.window(ToolUi, t='WeightTool %s' %Verision, rtf=1, mb=1, mxb=0, wh=(230, 500))
         cmds.menu(l='SkinT', to=1)
         cmds.menuItem(d=1, dl="S/L")
         cmds.menuItem(l='Save', c=lambda *args: WeightSL_JellyBean().SLcheck('Save'))
@@ -416,71 +416,67 @@ class WeightTool_JellyBean():
 
 class WeightSL_JellyBean():
 
-    def SLcheck(self, mode, allInPath=''):   #单独调用时filePath为列表
-        num = 1
-        if allInPath:
-            allsel = cmds.ls(sl=1, o=1)
-            num = len(allsel)
-        for i in range(num):
-            if allInPath:
-                cmds.select(allsel[i], r=1)
-            sel = cmds.ls(sl=1, fl=1)
-            if not sel:
-                om.MGlobal.displayError(u'什么都没选诶 这我很难办啊')
-                return
-            selobj = cmds.ls(sl=1, o=1)
-            if mode == 'Load' and len(selobj) > 1:
-                om.MGlobal.displayError(u'只能选择一个物体')
-                return
-            selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
-            skCluster = mel.eval('findRelatedSkinCluster("%s")' %selobj[0])
-            if not skCluster:
-                om.MGlobal.displayError(u'选择的物体没有蒙皮')
-                return
-            if not selVtx:   #选的是整个物体
-                seltyp = cmds.objectType(cmds.listRelatives(selobj[0], s=1, f=1)[0])
-                if seltyp == 'mesh':                                                                                    #整个mesh
-                    if mode == 'Save':
-                        filePath = cmds.fileDialog2(ff='WeightXml (*.xml)', ds=2) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
-                        if filePath:
-                            self.vtxSave_dW(filePath)
-                    else:
-                        filePath = cmds.fileDialog2(ff='WeightXml (*.xml)', ds=2, fm=1) if not allInPath else ['%s/%s.xml' %(allInPath, selobj[0])] 
-                        if filePath:
+    def SLcheck(self, mode):   #单独调用时filePath为列表
+        sel = cmds.ls(sl=1, fl=1)
+        if not sel:
+            om.MGlobal.displayError(u'什么都没选诶 这我很难办啊')
+            return
+        selobj = cmds.ls(sl=1, o=1)
+        if mode == 'Load' and len(selobj) > 1:
+            om.MGlobal.displayError(u'只能选择一个物体')
+            return
+        selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
+        skCluster = mel.eval('findRelatedSkinCluster("%s")' %selobj[0])
+        if not skCluster:
+            om.MGlobal.displayError(u'选择的物体没有蒙皮')
+            return
+        if not selVtx:   #选的是整个物体
+            seltyp = cmds.objectType(cmds.listRelatives(selobj[0], s=1, f=1)[0])
+            if seltyp == 'mesh':                                                                                    #整个mesh
+                if mode == 'Save':
+                    filePath = cmds.fileDialog2(ff='Xml (*.xml)', ds=2) #['%s/%s.xml' %(allInPath, selobj[0])]
+                    if filePath:
+                        self.vtxSave_dW(filePath)
+                else:
+                    filePath = cmds.fileDialog2(ff='File (*.xml *.Weight)', ds=2, fm=1)
+                    if filePath:
+                        if filePath[0].rsplit('.', 1)[1] == 'xml':
                             self.vtxLoad_dW(filePath)
-                elif seltyp == 'nurbsCurve' or seltyp == 'nurbsSurface' or seltyp == 'subdiv' or seltyp == 'lattice':   #整个其他
-                    if mode == 'Save':
-                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
-                        if filePath:
-                            self.vtxSave_Mel(filePath)
-                    else:
-                        filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
-                        if filePath:
-                            self.vtxLoad_Mel(filePath)
-                else:
-                    om.MGlobal.displayError(u'选择的物体不支持')
-                    return
-            elif cmds.filterExpand(sel, sm=[31]):                                                                        #mesh点
+                        elif filePath[0].rsplit('.', 1)[1] == 'Weight':
+                            self.vtxLoad_api(filePath)
+            elif seltyp == 'nurbsCurve' or seltyp == 'nurbsSurface' or seltyp == 'subdiv' or seltyp == 'lattice':   #整个其他
                 if mode == 'Save':
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
-                    if filePath:
-                        self.vtxSave_api(filePath)
-                else:
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
-                    if filePath:
-                        self.vtxLoad_api(filePath)
-            elif cmds.filterExpand(sel, sm=[28, 36, 40, 46]):                                                            #其他点
-                if mode == 'Save':
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
                     if filePath:
                         self.vtxSave_Mel(filePath)
                 else:
-                    filePath = cmds.fileDialog2(ff='WeightFile (*.Weight)', ds=2, fm=1) if not allInPath else ['%s/%s.Weight' %(allInPath, selobj[0])] 
+                    filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
                     if filePath:
                         self.vtxLoad_Mel(filePath)
             else:
-                om.MGlobal.displayError(u'选择的点不支持')
+                om.MGlobal.displayError(u'选择的物体不支持')
                 return
+        elif cmds.filterExpand(sel, sm=[31]):                                                                        #mesh点
+            if mode == 'Save':
+                filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
+                if filePath:
+                    self.vtxSave_api(filePath)
+            else:
+                filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
+                if filePath:
+                    self.vtxLoad_api(filePath)
+        elif cmds.filterExpand(sel, sm=[28, 36, 40, 46]):                                                            #其他点
+            if mode == 'Save':
+                filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
+                if filePath:
+                    self.vtxSave_Mel(filePath)
+            else:
+                filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
+                if filePath:
+                    self.vtxLoad_Mel(filePath)
+        else:
+            om.MGlobal.displayError(u'选择的点不支持')
+            return
 
     def vtxSave_Mel(self, filePath):
         st = time.time()
@@ -518,7 +514,7 @@ class WeightSL_JellyBean():
         print(u'处理时间: %s' %(time.time()-st))
         DisplayYes().showMessage('Process Finish!')
 
-    def vtxLoad_Mel(self, filePath):
+    def vtxLoad_Mel(self, filePath, selectpoint=0):
         st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
@@ -528,16 +524,25 @@ class WeightSL_JellyBean():
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         with open(filePath[0], 'r') as vwfile:
+            if selectpoint:
+                selVtx = [i.split('.', 1)[-1] for i in cmds.ls(sl=1, fl=1)]
             line = vwfile.readline()
             #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
             #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
+            num = 0
             while line:
                 #cmds.progressBar(gMainProgressBar, e=1, s=1)
                 strsplit = line.split('--')
                 vtx = strsplit[0].strip()
                 tvList = strsplit[-1].strip()
-                exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
-                line = vwfile.readline()
+                if selectpoint:
+                    if vtx == selVtx[num]:
+                        num += 1
+                        exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+                    line = vwfile.readline()
+                else:
+                    exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+                    line = vwfile.readline()
         #cmds.progressBar(gMainProgressBar, e=1, ep=1)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)

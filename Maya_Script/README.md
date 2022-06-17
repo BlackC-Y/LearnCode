@@ -81,6 +81,10 @@
 4.Fix: 在不使用dW方式时, 批量模式提供了xml后缀
 5.Fix: MayaUI项shiboken2 (long型 变为 int型)
 6.Fix: 报绿在没有窗口的情况下报错
+<p align="left">
+  ▽  2020-06-18  Ver_0.92
+1.去掉S/L批量模式, 修改支持的文件后缀
+2.增加功能 仅恢复选择点的权重
 </pre>
 </details>
 

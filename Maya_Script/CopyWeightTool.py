@@ -4,41 +4,47 @@ from maya import cmds, mel
 
 class CopyWeightTool():
 
-    #__Verision = 1.41
-
     def Ui(self):
-        ToolUi = 'CopyWeightTool'
+        self.UiComponents = {}
+        self.ComponentData = {'source':'', 'targe':''}
+        Ver = 1.42
+        ToolUi = 'CopyWeightTool_Yang'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(300, 85))
+        cmds.window(ToolUi, t='%s %s' %(ToolUi, Ver), rtf=1, mb=1, mxb=0, wh=(300, 85))
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
-        cmds.textFieldButtonGrp('sourceText', l='soure', bl='Select', adj=2, ed=0, cw3=[40, 200, 60],
-                                bc=lambda *args: cmds.textFieldButtonGrp('sourceText', e=1, tx=str(cmds.ls(sl=1))))
+        self.UiComponents['sourceText'] = cmds.textFieldButtonGrp(l='soure', bl='Select', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: self.select(1))
         cmds.popupMenu()
-        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.strProc(cmds.textFieldButtonGrp('sourceText', q=1, tx=1)), r=1))
-        cmds.textFieldButtonGrp('targeText', l='targe', bl='Select', adj=2, ed=0, cw3=[40, 200, 60],
-                                bc=lambda *args: cmds.textFieldButtonGrp('targeText', e=1, tx=str(cmds.ls(sl=1))))
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.ComponentData['source'], r=1))
+        self.UiComponents['targeText'] = cmds.textFieldButtonGrp(l='targe', bl='Select', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: self.select(0))
         cmds.popupMenu()
-        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.strProc(cmds.textFieldButtonGrp('targeText', q=1, tx=1)), r=1))
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.ComponentData['targe'], r=1))
         cmds.rowLayout(nc=2)
-        def _tVis():
-            if cmds.text('helpDoc_CopyWeight', q=1, vis=1):
-                cmds.text('helpDoc_CopyWeight', e=1, vis=0)
-            else:
-                cmds.text('helpDoc_CopyWeight', e=1, vis=1)
         cmds.button(l='Help', w=40, c=lambda *args: _tVis())
         cmds.button(l='Run', w=255, c=lambda *args: self.runProc())
         cmds.setParent('..')
-        cmds.text('helpDoc_CopyWeight', l=u'源：整个模型 - 模型的点/线/面\n\n目标：源模型的点/线/面\n     单个有蒙皮模型的点/线/面\n     多个无蒙皮模型\n     单个无蒙皮Surface曲面模型\n', al='left', fn='fixedWidthFont', vis=0)
+        helpDoc = cmds.text(l=u'源：整个模型 - 模型的点/线/面\n\n目标：源模型的点/线/面\n     单个有蒙皮模型的点/线/面\n     多个无蒙皮模型\n     单个无蒙皮Surface曲面模型\n', al='left', fn='fixedWidthFont', vis=0)
+        def _tVis():
+            if cmds.text(helpDoc, q=1, vis=1):
+                cmds.text(helpDoc, e=1, vis=0)
+                cmds.window(ToolUi, e=1, rtf=1, wh=(300, 85))
+            else:
+                cmds.text(helpDoc, e=1, vis=1)
         cmds.showWindow(ToolUi)
+    
+    def select(self, mode):
+        if mode:
+            self.ComponentData['source'] = lsList = cmds.ls(sl=1)
+            cmds.textFieldButtonGrp(self.UiComponents['sourceText'], e=1, tx=str(lsList))
+        else:
+            self.ComponentData['targe'] = lsList = cmds.ls(sl=1)
+            cmds.textFieldButtonGrp(self.UiComponents['targeText'], e=1, tx=str(lsList))
 
     def runProc(self):
-        _temp1_ = cmds.textFieldButtonGrp('sourceText', q=1, tx=1)
-        _temp2_ = cmds.textFieldButtonGrp('targeText', q=1, tx=1)
-        if not _temp1_ or not _temp2_:
+        if not self.ComponentData['source'] or not self.ComponentData['targe']:
             return
-        sourelist = cmds.ls(self.strProc(_temp1_), fl=1)
-        targelist = cmds.ls(self.strProc(_temp2_), fl=1)
+        sourelist = cmds.ls(self.ComponentData['source'], fl=1)
+        targelist = cmds.ls(self.ComponentData['targe'], fl=1)
         soureObj = cmds.ls(sourelist, o=1)[0]
         targeObj = cmds.ls(targelist, o=1)
         Extract = 0
@@ -57,8 +63,7 @@ class CopyWeightTool():
         soureSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % soureObj)
         if not soureSkinCluster:
             cmds.error('Soure object No Skin')
-        if not '.f[' in _temp1_:
-            sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, fv=1, fe=1, fuv=1, fvf=1, tf=1), fl=1)
+        sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, fv=1, fe=1, fuv=1, fvf=1, tf=1), fl=1)
         infJointList = cmds.skinCluster(soureObj, q=1, inf=1)   #所有骨骼
         jntLock = [cmds.getAttr('%s.liw' %j) for j in infJointList]
 
@@ -83,8 +88,7 @@ class CopyWeightTool():
                     cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)
                     targelist = i
                 else:
-                    if not '.vtx[' in _temp2_:
-                        targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fe=1, fuv=1, fvf=1, tv=1), fl=1)
+                    targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fe=1, fuv=1, fvf=1, tv=1), fl=1)
                 cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=('oneToOne', 'closestJoint'), nr=1)
         if Extract:
             cmds.delete(_TempObj_)
@@ -115,7 +119,7 @@ class CopyWeightTool():
             tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (targeSkinCluster, i, tvList))
         cmds.delete(_StPObj, _cPOMNode)
-
+    '''
     def strProc(self, Onestr):
         if ', ' in Onestr:
             return [i[2:-1] for i in Onestr[1:-1].split(', ')]
@@ -123,5 +127,6 @@ class CopyWeightTool():
             return [Onestr[2:-2]]
         else:
             return [Onestr[3:-2]]
+    '''
 
 CopyWeightTool().Ui()

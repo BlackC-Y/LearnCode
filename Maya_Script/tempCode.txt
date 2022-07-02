@@ -28,10 +28,39 @@ cmds.select(jointlist,r=1)
 
 #选择在蒙皮上移动过的点
 
-num = []
-for i in range(cmds.polyEvaluate(v=1)):
-	if cmds.getAttr('tweak4.vlist[0].vertex[%s].xVertex' %i)   \
-    or cmds.getAttr('tweak4.vlist[0].vertex[%s].yVertex' %i)   \
-	or cmds.getAttr('tweak4.vlist[0].vertex[%s].zVertex' %i):
-        num.append('lilanzhou.vtx[%s]' %i)
-cmds.select(num, r=1)
+def testOut():
+    sl = cmds.ls(sl=1)
+    if not sl:
+        return
+    tweak = cmds.listConnections('%s.tweakLocation' %sl[0], s=1)[0]
+
+    vtxList = []
+    for i in range(cmds.polyEvaluate(sl[0], v=1)):
+        ax = cmds.getAttr('%s.vlist[0].vertex[%s].xVertex' %(tweak, i))
+        if ax:
+            vtxList.append(['.vlist[0].vertex[%s].xVertex' %i, ax])
+        ay = cmds.getAttr('%s.vlist[0].vertex[%s].yVertex' %(tweak, i))
+        if ay:
+            vtxList.append(['.vlist[0].vertex[%s].yVertex' %i, ay])
+        az = cmds.getAttr('%s.vlist[0].vertex[%s].zVertex' %(tweak, i))
+        if az:
+            vtxList.append(['.vlist[0].vertex[%s].zVertex' %i, az])
+    print(vtxList)
+
+testOut()
+
+
+
+def testIn():
+    aaa = 替换数据
+    
+    sl = cmds.ls(sl=1)
+    if not sl:
+        cmds.error()
+    cmds.undoInfo(ock=1)
+    tweak = cmds.listConnections('%s.tweakLocation' %sl[0], s=1)[0]
+    for i in aaa:
+        cmds.setAttr('%s%s' %(tweak, i[0]), i[1])
+    cmds.undoInfo(cck=1)
+	
+testIn()

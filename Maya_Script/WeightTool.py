@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 '''Roadmap:
 '''
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtWidgets import *
 import shiboken2
 from maya import cmds, mel
 from maya import OpenMaya as Om, OpenMayaAnim as OmAni, OpenMayaUI as OmUI
@@ -13,7 +13,7 @@ import time
 class WeightTool_JellyBean():
 
     def ToolUi(self):
-        Verision = '0.92'
+        Verision = '1.00'
         ToolUi = 'WeightTool_JellyBean'
         if cmds.window(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
@@ -37,11 +37,6 @@ class WeightTool_JellyBean():
         cmds.popupMenu()
         cmds.menuItem('OFFmeunItem_JellyBean', l='OFF', cb=0)
         cmds.textField('searchText_JellyBean', h=22, tcc=lambda *args: self.refreshJointList(1, cmds.textField('searchText_JellyBean', q=1, tx=1)))
-        cmds.popupMenu()
-        cmds.radioMenuItemCollection()
-        cmds.menuItem('HImeunItem_JellyBean', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(1))
-        cmds.menuItem('AImeunItem_JellyBean', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(1))
-        cmds.menuItem('FImeunItem_JellyBean', l='Filter Zero', cb=0, c=lambda *args: self.refreshJointList(1))
         # cmds.iconTextButton(i='expandInfluenceList.png', w=20, h=20,
         #    c=lambda *args: cmds.treeView('JointTV_JellyBean', e=1, h=cmds.treeView('JointTV_JellyBean', q=1, h=1) + 20))
         # cmds.iconTextButton(i='retractInfluenceList.png', w=20, h=20,
@@ -52,6 +47,11 @@ class WeightTool_JellyBean():
         cmds.setParent('..')
         cmds.formLayout('JointTVLayout_JellyBean')
         cmds.treeView('JointTV_JellyBean', nb=1, h=100, scc=self._weightView, pc=(1, self.lock_unLock))
+        cmds.popupMenu()
+        cmds.radioMenuItemCollection()
+        cmds.menuItem('HImeunItem_JellyBean', l='Hierarchy', rb=1, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('AImeunItem_JellyBean', l='Alphabetically', rb=0, c=lambda *args: self.refreshJointList(1))
+        cmds.menuItem('FImeunItem_JellyBean', l='Filter Zero', cb=0, c=lambda *args: self.refreshJointList(1))
         cmds.text('saveData_JellyBean', l='', vis=0)
         cmds.popupMenu()
         #cmds.menuItem(l='Lock All')
@@ -512,7 +512,7 @@ class WeightSL_JellyBean():
                 vwfile.write(wtStr)
             #cmds.progressBar(gMainProgressBar, e=1, ep=1)
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def vtxLoad_Mel(self, filePath, selectpoint=0):
         st = time.time()
@@ -538,16 +538,16 @@ class WeightSL_JellyBean():
                 if selectpoint:
                     if vtx == selVtx[num]:
                         num += 1
-                        exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+                        exec('cmds.skinPercent("%s", "%s.%s", tv=%s, nrm=1)' % (skCluster, selobj, vtx, tvList))
                     line = vwfile.readline()
                 else:
-                    exec('cmds.skinPercent("%s", "%s.%s", tv=%s)' % (skCluster, selobj, vtx, tvList))
+                    exec('cmds.skinPercent("%s", "%s.%s", tv=%s, nrm=1)' % (skCluster, selobj, vtx, tvList))
                     line = vwfile.readline()
         #cmds.progressBar(gMainProgressBar, e=1, ep=1)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     ''' 有报错 仅供参考
     def vtxSave_Oapi(self, filePath):
@@ -618,7 +618,7 @@ class WeightSL_JellyBean():
                 vwfile.write('%s[%s]--%s\n' % (suf, vertIter.index(), tvList))
                 vertIter.next()
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
     '''
 
     def vtxLoad_Oapi(self, filePath):
@@ -666,13 +666,13 @@ class WeightSL_JellyBean():
             for i in range(len(allLine[_Num][1])):
                 jntindexapp(infNameList.index(allLine[_Num][1][i]))
                 weightsapp(allLine[_Num][2][i])
-            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, False)  # False规格化开关默认为True
+            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)  # False规格化开关默认为True
             _Num += 1
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def vtxSave_api(self, filePath):
         st = time.time()
@@ -704,7 +704,7 @@ class WeightSL_JellyBean():
                 vwfile.write('vtx[%s]--%s\n' % (vertIter.index(), tvList))
                 vertIter.next()
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def vtxLoad_api(self, filePath):
         st = time.time()
@@ -744,13 +744,13 @@ class WeightSL_JellyBean():
             for i in range(len(allLine[_Num][1])):
                 jntindexapp(infNameList.index(allLine[_Num][1][i]))
                 weightsapp(allLine[_Num][2][i])
-            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, False)  # False规格化开关默认为True
+            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)  # False规格化开关默认为True
             _Num += 1
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def vtxSave_dW(self, filePath):
         st = time.time()
@@ -759,9 +759,9 @@ class WeightSL_JellyBean():
         
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
         attributes = ['envelope', 'skinningMethod', 'normalizeWeights', 'deformUserNormals', 'useComponents']
-        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], ex=1, vc=1, attribute=attributes, deformer=[skCluster])
+        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], ex=1, vc=1, wp=6, attribute=attributes, deformer=[skCluster])
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def vtxLoad_dW(self, filePath):
         st = time.time()
@@ -781,7 +781,7 @@ class WeightSL_JellyBean():
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         print(u'处理时间: %s' %(time.time()-st))
-        DisplayYes().showMessage('Process Finish!')
+        DisplayYes().showMessage(u'处理完成!')
 
     def zeroWeightData_Save(self, weights, infNameList, source=0):
         #去除0权重数据, source为1则输出源数据
@@ -847,11 +847,8 @@ class DisplayYes():  # 报绿
         self.gCommandLine = mel.eval('$tmp = $gCommandLine')
 
     def showMessage(self, message):
-        if int(cmds.about(v=1)) >= 2022:
-            widget = shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
-        else:
-            widget = shiboken2.wrapInstance(long(OmUI.MQtUtil.findControl(self.gCommandLine)), QtWidgets.QWidget)
-        widget.findChild(QtWidgets.QLineEdit).setStyleSheet('background-color:rgb(10,200,15);' + 'color:black;')
+        widget = shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(self.gCommandLine)), QWidget)
+        widget.findChild(QLineEdit).setStyleSheet('background-color:rgb(100,200,100);' + 'color:black;')
         cmds.select('time1', r=1)
         WeightTool_JellyBean().refreshBoxChange(9)   #脚本兼容
         self.sJNum = cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], p=self.gCommandLine)
@@ -865,39 +862,48 @@ class DisplayYes():  # 报绿
 class WeightCheckTool_JellyBean():
 
     def ToolUi(self):
+        self.UiComponents = {}
         ToolUi = 'WeightCheckTool_JellyBean'
-        if cmds.window(ToolUi, q=1, ex=1):
+        if cmds.dockControl(ToolUi, q=1, ex=1):
             cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t='WeightCheckTool', rtf=1, mb=1, wh=(500, 300))
-        cmds.formLayout('MainformLayout_JellyBean')
-        cmds.paneLayout('ListLayout_JellyBean', cn='vertical3', ps=(1, 1, 1))
-        cmds.textScrollList('vtxList_JellyBean', ams=1, sc=lambda *args:
-                            cmds.textScrollList('weightList_JellyBean', e=1, da=1, sii=cmds.textScrollList('vtxList_JellyBean', q=1, sii=1)))
-        cmds.popupMenu()
-        cmds.menuItem('SNmenuItem_JellyBean', l='View Object Name', cb=0, c=lambda *args: self.Load())
-        cmds.textScrollList('weightList_JellyBean', ams=1, sc=lambda *args:
-                            cmds.textScrollList('vtxList_JellyBean', e=1, da=1, sii=cmds.textScrollList('weightList_JellyBean', q=1, sii=1)))
+        mayaWindow = cmds.window(rtf=1)
+        MainformLayout = cmds.formLayout()
+        self.UiComponents['vtxList'] = cmds.textScrollList(ams=1, w=100, vis=0, sc=lambda *args: cmds.textScrollList(self.UiComponents['weightList'], e=1, da=1, 
+                                                                                                    sii=cmds.textScrollList(self.UiComponents['vtxList'], q=1, sii=1)))
+        self.UiComponents['weightList'] = cmds.textScrollList(ams=1, vis=0, sc=lambda *args: cmds.textScrollList(self.UiComponents['vtxList'], e=1, da=1, 
+                                                                                                sii=cmds.textScrollList(self.UiComponents['weightList'], q=1, sii=1)))
+        self.UiComponents['un_fold'] = cmds.button(l='>', w=20, c=lambda *args: Switchfold())
+        def Switchfold():
+            if cmds.button(self.UiComponents['un_fold'], q=1, l=1) == '<':
+                cmds.button(self.UiComponents['un_fold'], e=1, l='>')
+                cmds.textScrollList(self.UiComponents['vtxList'], e=1, vis=0)
+                cmds.textScrollList(self.UiComponents['weightList'], e=1, vis=0)
+                cmds.dockControl(ToolUi, e=1, w=165, h=350)
+            else:
+                cmds.button(self.UiComponents['un_fold'], e=1, l='<')
+                cmds.textScrollList(self.UiComponents['vtxList'], e=1, vis=1)
+                cmds.textScrollList(self.UiComponents['weightList'], e=1, vis=1)
+                cmds.window(mayaWindow, e=1, rtf=1, w=400, h=350)
+        cLayout = cmds.columnLayout(cat=('left', 3), h=300, w=140, rs=2)
+        cmds.button(l=u'加载', w=80, h=26, c=lambda *args: self.Load())
+        cmds.button(l=u'清理', w=80, h=26, c=lambda *args: self.Clean())
+        cmds.button(l=u'选择', w=80, h=26, c=lambda *args: self.selectVtx()) 
+        radiocollection = cmds.radioCollection()
+        self.UiComponents['DecimalText'] = cmds.radioButton(l=u'小数点精度', h=22)
+        self.UiComponents['DecimalInt'] = cmds.intField(w=80, v=3)
+        self.UiComponents['InfluenceText'] = cmds.radioButton(l=u'骨骼影响值', h=22)
+        self.UiComponents['InfluenceInt'] = cmds.intField(w=80, v=4)
+        cmds.radioCollection(radiocollection, e=1, sl=self.UiComponents['InfluenceText'])
         cmds.setParent('..')
-        cmds.columnLayout('cLayout_JellyBean', cat=('right', 5), cw=100)
-        cmds.text(l='', h=3)
-        cmds.button(l='Load', w=80, h=26, c=lambda *args: self.Load())
-        cmds.button(l='Clean', w=80, h=26, c=lambda *args: self.Clean())
-        cmds.button(l='Remove Min', w=80, h=26, c=lambda *args: self.RemoveMin())
-        cmds.popupMenu()
-        cmds.menuItem(l='Remove as Value', c=lambda *args: self.RemoveValue())
-        cmds.button(l='Select', w=80, h=26, c=lambda *args: self.selectVtx())
-        cmds.text(l='Decimal', h=20)
-        cmds.intField('DecimalInt_JellyBean', v=3)
-        cmds.text(l='Influence', h=20)
-        cmds.intField('InfluenceInt_JellyBean', v=3)
-        cmds.text('ViewNum_JellyBean', vis=0, h=20)
-        cmds.text('shapeInfo_JellyBean', vis=0)
-
-        cmds.formLayout('MainformLayout_JellyBean', e=1, af=[('ListLayout_JellyBean', 'top', 0), ('ListLayout_JellyBean', 'bottom', 0),
-                                                             ('ListLayout_JellyBean', 'left', 3), ('cLayout_JellyBean', 'right', 3)])
-        cmds.formLayout('MainformLayout_JellyBean', e=1, ac=('ListLayout_JellyBean', 'right', 3, 'cLayout_JellyBean'))
-        cmds.showWindow(ToolUi)
-
+        cmds.formLayout(MainformLayout, e=1, af=[(self.UiComponents['vtxList'], 'top', 3),(self.UiComponents['vtxList'], 'bottom', 3), (self.UiComponents['vtxList'], 'left', 3), 
+                                                    (self.UiComponents['weightList'], 'top', 3),(self.UiComponents['weightList'], 'bottom', 3), 
+                                                    (self.UiComponents['un_fold'], 'top', 3), (self.UiComponents['un_fold'], 'bottom', 3), 
+                                                    (cLayout, 'top', 3), (cLayout, 'right', 3)])
+        cmds.formLayout(MainformLayout, e=1, ac=[(self.UiComponents['weightList'], 'left', 3, self.UiComponents['vtxList']), 
+                                                    (self.UiComponents['weightList'], 'right', 3, self.UiComponents['un_fold']), (self.UiComponents['un_fold'], 'right', 3, cLayout)])
+        cmds.showWindow(mayaWindow)
+        cmds.dockControl(ToolUi, l='WeightCheckTool', area='left', content=mayaWindow, fl=1, w=180, h=350)   #小型窗口栏   mov=0隐藏标题栏
+    
     def getSel(self):
         sel = cmds.ls(sl=1, fl=1)
         if not sel:
@@ -905,7 +911,7 @@ class WeightCheckTool_JellyBean():
             return None, None
         selVtx = cmds.filterExpand(sel, sm=[28, 31, 36, 40, 46])
         selobj = cmds.ls(sl=1, o=1)[0]
-        self.saveShape = selobj
+        self.saveObj = selobj
         if not selVtx:
             if not selobj:
                 return None, None
@@ -925,94 +931,136 @@ class WeightCheckTool_JellyBean():
             return None, None
         return selVtx, clusterName
 
-    def Load(self):
-        cmds.text('ViewNum_JellyBean', e=1, vis=0)
+    def Load(self, mode=0):
+        cmds.radioButton(self.UiComponents['DecimalText'], e=1, l=u'小数点精度')
+        cmds.radioButton(self.UiComponents['InfluenceText'], e=1, l=u'骨骼影响值')
+        listVis = 0 if cmds.button(self.UiComponents['un_fold'], q=1, l=1) == '>' else 1
         selVtx, clusterName = self.getSel()
         if not selVtx or not clusterName:
             return
-        cmds.textScrollList('vtxList_JellyBean', e=1, ra=1)
-        cmds.textScrollList('weightList_JellyBean', e=1, ra=1)
-        self.Number = []
-        for i in selVtx:
-            valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
-            transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
-            tvStr = ''
-            if len(valueList) > cmds.intField('InfluenceInt_JellyBean', q=1, v=1):
-                self.Number.append(i)
-            for w, j in zip(valueList, transList):
-                Value = str(w).rstrip('0').rstrip('.')
-                tvStr += '%s ~ %s @ ' % (j, Value)
-            if not cmds.menuItem('SNmenuItem_JellyBean', q=1, cb=1):
-                i = i.split('.')[1]
-            cmds.textScrollList('vtxList_JellyBean', e=1, a=i)
-            cmds.textScrollList('weightList_JellyBean', e=1, a=tvStr)
-        if self.Number:
-            cmds.text('ViewNum_JellyBean', e=1, vis=1, l='Number: %s' % len(self.Number))
-            if not cmds.menuItem('SNmenuItem_JellyBean', q=1, cb=1):
-                _tempSl = [i.split('.')[1] for i in self.Number]
-                cmds.textScrollList('vtxList_JellyBean', e=1, si=_tempSl)
+        cmds.textScrollList(self.UiComponents['vtxList'], e=1, ra=1)
+        cmds.textScrollList(self.UiComponents['weightList'], e=1, ra=1)
+        self.BadList = []
+        self.LoadInfo = 0
+        if cmds.radioButton(self.UiComponents['InfluenceText'], q=1, sl=1):
+            self.LoadInfo = 1   #Influence
+            maxValue = cmds.intField(self.UiComponents['InfluenceInt'], q=1, v=1)
+            for i in selVtx:
+                valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
+                transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
+                if len(valueList) > maxValue:
+                    self.BadList.append(i)
+                tvStr = ''
+                for w, j in zip(valueList, transList):
+                    tvStr += '%s ~ %s @ ' % (j, w)
+                if not mode and listVis:
+                    cmds.textScrollList(self.UiComponents['vtxList'], e=1, a=i.split('.')[1])
+                    cmds.textScrollList(self.UiComponents['weightList'], e=1, a=tvStr)
+            if self.BadList:
+                cmds.radioButton(self.UiComponents['InfluenceText'], e=1, l='超影响值的数量: %s' %len(self.BadList))
+                if not mode and listVis:
+                    cmds.textScrollList(self.UiComponents['vtxList'], e=1, si=[i.split('.')[1] for i in self.BadList])
+                    cmds.textScrollList(self.UiComponents['weightList'], e=1, sii=cmds.textScrollList(self.UiComponents['vtxList'], q=1, sii=1))
+        else:
+            self.LoadInfo = 2   #Decimal
+            maxValue = cmds.intField(self.UiComponents['DecimalInt'], q=1, v=1) + 2   #加上0.两位
+            for i in selVtx:
+                valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
+                transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
+                tvStr = ''
+                addTag = 0
+                for w, j in zip(valueList, transList):
+                    tvStr += '%s ~ %s @ ' % (j, w)
+                    if not addTag and len(str(w)) > maxValue:
+                        addTag = 1
+                if addTag:
+                    self.BadList.append(i)
+                if not mode and listVis:
+                    cmds.textScrollList(self.UiComponents['vtxList'], e=1, a=i.split('.')[1])
+                    cmds.textScrollList(self.UiComponents['weightList'], e=1, a=tvStr)
+            if self.BadList:
+                cmds.radioButton(self.UiComponents['DecimalText'], e=1, l='超小数点的数量: %s' %len(self.BadList))
+                if not mode and listVis:
+                    cmds.textScrollList(self.UiComponents['vtxList'], e=1, si=[i.split('.')[1] for i in self.BadList])
+                    cmds.textScrollList(self.UiComponents['weightList'], e=1, sii=cmds.textScrollList(self.UiComponents['vtxList'], q=1, sii=1))
+
+    def Clean(self):
+        if cmds.radioButton(self.UiComponents['InfluenceText'], q=1, sl=1):
+            if cmds.ls(sl=1, o=1)[0] == self.saveObj and self.LoadInfo == 1:
+                self.RemoveInfluence()
             else:
-                cmds.textScrollList('vtxList_JellyBean', e=1, si=self.Number)
-            cmds.textScrollList('weightList_JellyBean', e=1, sii=cmds.textScrollList('vtxList_JellyBean', q=1, sii=1))
-        cmds.text('shapeInfo_JellyBean', e=1, l=self.saveShape)
+                self.Load(1)   #不刷新界面
+                self.RemoveInfluence()
+        else:
+            if cmds.ls(sl=1, o=1)[0] == self.saveObj and self.LoadInfo == 2:
+                self.CleanDecimal()
+            else:
+                self.Load(1)   #不刷新界面
+                self.CleanDecimal()
 
     def selectVtx(self):
-        vtxList = cmds.textScrollList('vtxList_JellyBean', q=1, si=1)
+        vtxList = cmds.textScrollList(self.UiComponents['vtxList'], q=1, si=1)
         if not vtxList:
-            cmds.select(cmds.polyListComponentConversion(self.saveShape, ff=1, fe=1, fuv=1, fvf=1, tv=1), r=1)
-            cmds.hilite(self.saveShape)
             return
-        if not '.' in vtxList[0]:
-            _shapeN = cmds.text('shapeInfo_JellyBean', q=1, l=1)
-            vtxList = ['%s.%s' % (_shapeN, i) for i in vtxList]
-        else:
-            _shapeN = cmds.ls(vtxList[0], o=1)
+        _shapeN = self.saveObj
+        vtxList = ['%s.%s' % (_shapeN, i) for i in vtxList]
         cmds.hilite(_shapeN)
         cmds.select(vtxList, r=1)
 
-    def Clean(self):
-        selVtx, clusterName = self.getSel()
-        if not selVtx or not clusterName:
+    def CleanDecimal(self):
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % self.saveObj)
+        if not self.BadList:
+            om.MGlobal.displayInfo(u'没有需要清理的顶点')
             return
-        jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
+        if not clusterName:
+            return
+        jntList = cmds.skinCluster(self.saveObj, q=1, inf=1)
         jntLock = []
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
-        _decimal = '%.'+ str(cmds.intField('DecimalInt_JellyBean', q=1, v=1)) +'f'
-        for i in selVtx:
+        _decimalInt = cmds.intField(self.UiComponents['DecimalInt'], q=1, v=1)
+        cmds.skinPercent(clusterName, prw=(10**-_decimalInt)-(10**(-_decimalInt-1)))   #生成小数点后10**-n位
+        _decimalStr = "{:.%sf}" %_decimalInt
+        _decimal = decimal.Decimal(_decimalStr.format(1))
+        _decimal1 = decimal.Decimal('1.0')
+        for i in self.BadList:
             transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
             _tv = []
+            _Num = 0
             for j in transList:
                 # mel.eval('global proc float _rounding(float $f, int $n){float $N = pow(10, ($n));float $a = $f%(1/$N)*$N;float $B;     \
                 #            if($a>0.5)$B = ceil($f*$N)/$N;else$B = floor($f*$N/$N);return $B;}')     #精度问题?
                 #Value = mel.eval('_rounding(%s, %s)' %(cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
-                Value = float(str(decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=j))).
-                                  quantize(decimal.Decimal(_decimal % 1))).rstrip('0').rstrip('.'))
-                # if Value == 0:
-                #    continue
-                _tv.append([j, Value])
-            num = 0
-            for n in _tv:
-                num += n[1]
-            _tv[-1][1] = float(str(decimal.Decimal(str(_tv[-1][1] + 1 - num)).quantize(decimal.Decimal(_decimal % 1))).rstrip('0').rstrip('.'))
-            cmds.skinPercent(clusterName, i, tv=_tv)
+                Value = decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=j))).quantize(_decimal)
+                if Value == 1:
+                    _tv.append([j, 1])
+                    break
+                if Value == 0:
+                    continue
+                _Num += Value
+                _tv.append([j, round(float(Value), _decimalInt)])
+            _tv[-1][1] = round(float(decimal.Decimal(str(_tv[-1][1])) + _decimal1 - _Num), _decimalInt)
+            cmds.skinPercent(clusterName, i, tv=_tv, nrm=1)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
 
-    def RemoveMin(self):
-        selVtx, clusterName = self.getSel()
-        if not selVtx or not clusterName:
+    def RemoveInfluence(self):
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % self.saveObj)
+        if not self.BadList:
+            om.MGlobal.displayInfo(u'没有需要清理的顶点')
             return
-        jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
+        if not clusterName:
+            return
+        jntList = cmds.skinCluster(self.saveObj, q=1, inf=1)
         jntLock = []
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
-        Influence = cmds.intField('InfluenceInt_JellyBean', q=1, v=1)
-        for v in selVtx:
+        Influence = cmds.intField(self.UiComponents['InfluenceInt'], q=1, v=1)
+        for v in self.BadList:
             transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
             while len(transList) > Influence:
                 valueList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, v=1)
@@ -1020,32 +1068,11 @@ class WeightCheckTool_JellyBean():
                 for w, j in zip(valueList, transList):
                     tvdic[j] = w
                 tvList = sorted(tvdic.items(), key=lambda item: item[1])
-                cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0))
+                cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0), nrm=1)
                 transList = cmds.skinPercent(clusterName, v, ib=.000000001, q=1, t=None)
         for j, l in zip(transList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
 
-    def RemoveValue(self):
-        if cmds.promptDialog(t='RemoveValue', m='Value', tx='0.001', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':
-            reValue = float(cmds.promptDialog(q=1, tx=1))
-            selVtx, clusterName = self.getSel()
-            if not selVtx or not clusterName:
-                return
-            jntList = cmds.skinCluster(cmds.ls(selVtx[0], o=1)[0], q=1, inf=1)
-            jntLock = []
-            for j in jntList:
-                jntLock.append(cmds.getAttr(j + '.liw'))
-                cmds.setAttr(j + '.liw', 0)
-            for i in selVtx:
-                valueList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=.000000001, q=1, t=None)
-                reTvList = [(j, 0) for w, j in zip(valueList, transList) if w <= reValue]
-                cmds.skinPercent(clusterName, i, tv=reTvList)
-            for j, l in zip(jntList, jntLock):
-                cmds.setAttr(j + '.liw', l)
-            self.Load()
-
-
-WeightTool_JellyBean().ToolUi()
+#WeightTool_JellyBean().ToolUi()
 #WeightCheckTool_JellyBean().ToolUi()

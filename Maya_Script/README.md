@@ -13,6 +13,10 @@
 <p align="left">
   ▽  2021-11-06  Ver_1.01
 1.增加控制器形状保存功能
+<p align="left">
+  ▽  2022-06-06  Ver_1.02
+1.修改颜色选择器样式
+2.添加名字前后缀修改
 </pre>
 </details>
 
@@ -35,6 +39,9 @@
   ▽  2020-12-25  Ver_2.51
 1.修改ui部件名, 与脚本的新名字保持一致
 2.用刷新替代延迟运行，避免出错
+<p align="left">
+  ▽  2022-06-26  Ver_2.52
+1.增加maya2022以上版本兼容
 </pre>
 </details>
 
@@ -63,6 +70,18 @@
 
 ## [WeightTool `|包含点调整.Save/Load.最大影响值检查|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
+#### 2022-07-02  Verision: `1.00`
+<details>
+<summary>详情</summary>
+<pre>
+1.修改列表筛选菜单
+2.优化权重导入的归一化参数和精度
+3.优化报绿颜色及内容
+4.Check: 修改窗口样式
+5.Check: 优化所有功能
+</pre>
+</details>
+
 #### 2022-05-10  Verision: `0.9x`
 <details>
 <summary>详情</summary>
@@ -74,7 +93,7 @@
 4.报错换成中文
 5.添加Python3支持
 <p align="left">
-  ▽  2020-05-15  Ver_0.91
+  ▽  2022-05-15  Ver_0.91
 1.添加Python3支持
 2.优化代码效率
 3.Fix: 文件选择时间被记入处理时间
@@ -82,7 +101,7 @@
 5.Fix: MayaUI项shiboken2 (long型 变为 int型)
 6.Fix: 报绿在没有窗口的情况下报错
 <p align="left">
-  ▽  2020-06-18  Ver_0.92
+  ▽  2022-06-18  Ver_0.92
 1.去掉S/L批量模式, 修改支持的文件后缀
 2.增加功能 仅恢复选择点的权重
 </pre>
@@ -169,6 +188,9 @@
 <p align="left">
   ▽  2022-01-05  Ver_1.41
 1.添加Python3支持, 版本之间字符串处理规则不同
+<p align="left">
+  ▽  2022-07-02  Ver_1.42
+1.停止使用字符串处理规则
 </pre>
 </details>
 
@@ -218,7 +240,12 @@
 <p align="left">
   ▽  2021-02-26  Ver_1.21
 1.修改功能描述
-1.Fix: Get位移和旋转时只获得了位置的问题
+2.Fix: Get位移和旋转时只获得了位置的问题
+<p align="left">
+  ▽  2020-06-25  Ver_1.22
+1.添加所选物体蒙皮骨骼的存储
+2.将脚本内的数据存储处理方式改字典
+  (当时怎么就傻乎乎的用字符串存了再拿呢???)
 </pre>
 </details>
 
@@ -226,7 +253,7 @@
 <details>
 <summary>详情</summary>
 <pre>
-1.增加所选物体中心位置的储存
+1.添加所选物体中心位置的储存
 2.Fix: Get时的判断逻辑
 3.Fix: 临时物体没删除
 <p align="left">

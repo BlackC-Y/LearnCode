@@ -7,14 +7,16 @@ import os
 
 class My_CtrllTool():
 
-    #Version = 1.01
-
     def Ui(self):
+        Ver = 1.02
         ToolWinUIname = "MZ_CtrlTool"
         if cmds.window(ToolWinUIname, q=1, ex=1):
             cmds.deleteUI(ToolWinUIname)
-        cmds.window(ToolWinUIname, title="CtrlTool", s=1, mb=1, bgc=[.2, .2, .2], widthHeight=(305, 430))
-        cmds.columnLayout(rs=3, adj=1)
+        cmds.window(ToolWinUIname, title="CtrlTool %s" %Ver, s=1, mb=1, bgc=[.2, .2, .2], widthHeight=(305, 430))
+        cmds.columnLayout(rs=3)
+        cmds.colorSliderGrp('MZ_colorChoose', l=u'控制器颜色', h=25, cw3=[100, 170, 0], cl3=['center', 'center', 'center'], 
+                                hsv=(239.363, 1, 0.117), cc=lambda *args: self.ObjShapeColor())   #cc=松手时调用 dc=拖动时调用
+        '''
         cmds.rowColumnLayout(nc=3, columnWidth=[(1, 80), (2, 8), (3, 200)])
         cmds.canvas('MZ_SColorView', rgb=(.5, .5, .5), pc=lambda *args: self.ObjShapeColor())
         cmds.text(l='')
@@ -22,6 +24,7 @@ class My_CtrllTool():
                             "cmds.canvas('MZ_SColorView', e=1, rgbValue=cmds.colorIndex(cmds.intSlider('MZ_SColorInt', q=1, v=1), q=1))")
         cmds.setParent('..')
         cmds.canvas('MZ_SColorView', e=1, rgbValue=cmds.colorIndex(5, q=1))
+        '''
         '''
         cmds.gridLayout(nc=10, cellWidthHeight=(29.1, 30), w=298)
         for ii in range(1,32):
@@ -82,6 +85,9 @@ class My_CtrllTool():
         cmds.button(label=u"X轴旋转90", h=25, bgc=[1, .35, .35], c=lambda *args: self.MZ_curScale_Rot("X90"))
         cmds.button(label=u"Y轴旋转90", h=25, bgc=[.35, 1, .35], c=lambda *args: self.MZ_curScale_Rot("Y90"))
         cmds.button(label=u"Z轴旋转90", h=25, bgc=[.35, .35, 1], c=lambda *args: self.MZ_curScale_Rot("Z90"))
+        cmds.button(label=u"添加前缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.MZ_addNamefix('Pre'))
+        cmds.button(label=u"添加后缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.MZ_addNamefix('Suf'))
+        cmds.button(label=u"名字替换", h=25, bgc=[.36, .36, .36], c=lambda *args: cmds.SearchAndReplaceNames())
         cmds.setParent('..')
 
         cmds.showWindow(ToolWinUIname)
@@ -276,12 +282,14 @@ class My_CtrllTool():
         SelObj = cmds.ls(sl=1, typ=["transform", "joint"])
         if not SelObj:
             return
-        c_Index = cmds.intSlider('MZ_SColorInt', q=1, v=1)
+        rgbValue = cmds.colorSliderGrp('MZ_colorChoose', q=1, rgb=1)
+        #c_Index = cmds.intSlider('MZ_SColorInt', q=1, v=1)
         for mz_everyObj in SelObj:
             mz_objShape = cmds.listRelatives(mz_everyObj, children=1, s=1)
             for mz_everyShape in mz_objShape:
                 cmds.setAttr("%s.overrideEnabled" %mz_everyShape, 1)
-                cmds.setAttr("%s.overrideColor" %mz_everyShape, int(c_Index))
+                cmds.setAttr("%s.overrideRGBColors" %mz_everyShape, 1)
+                cmds.setAttr("%s.overrideColorRGB" %mz_everyShape, rgbValue[0], rgbValue[1], rgbValue[2])
         cmds.select(SelObj)
 
     def CreateCtrlCur(self, local , Input):
@@ -482,5 +490,21 @@ class My_CtrllTool():
                     cmds.select(allShape, r=1)
                     cmds.scale(1, 1, -1, r=1, ocp=1, p=(piv[0], piv[1], piv[2]))
         cmds.select(sel)
+
+    def MZ_addNamefix(self, mode):
+        sllist = cmds.ls(sl=1, l=1, typ="transform")
+        if not sllist:
+            om.MGlobal.displayError(u"这什么都没选, 这让我很难办鸭")
+            return
+        if mode == 'Pre':
+            if cmds.promptDialog(t=u'添加前缀', tx='prefix_', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':
+                text = cmds.promptDialog(q=1, t=1)
+                for i in reversed(sllist):
+                    cmds.rename(i, '%s%s' %(text, i.rsplit('|', 1)[-1]))
+        elif mode == 'Suf':
+            if cmds.promptDialog(t=u'添加后缀', tx='_suffix', b=['OK', 'Cancel'], db='OK', cb='Cancel', ds='Cancel') == 'OK':
+                text = cmds.promptDialog(q=1, t=1)
+                for i in reversed(sllist):
+                    cmds.rename(i, '%s%s' %(i.rsplit('|', 1)[-1], text))
 
 My_CtrllTool().Ui()

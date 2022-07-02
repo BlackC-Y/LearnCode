@@ -20,13 +20,13 @@ ui_variable = {}
 class cur2IK_FX_Ui(QtWidgets.QWidget):
 
     def __init__(self):
-        self._cur2IK_FX_Verision = 2.51
-        super(cur2IK_FX_Ui, self).__init__(shiboken2.wrapInstance(long(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
-        self.UiName = 'cur2IK_FX'
+        super(cur2IK_FX_Ui, self).__init__(shiboken2.wrapInstance(int(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         # self.setFocus()
         self.setupUi()
 
     def setupUi(self):
+        Ver = 2.52
+        self.UiName = 'cur2IK_FX'
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         self.setObjectName(self.UiName)
@@ -333,8 +333,8 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
         #self.setParent(shiboken2.wrapInstance(long(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
         # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)   #置顶
-        self.setWindowTitle('pTCIK by_Y')
-        ui_variable['Statusbar'].showMessage('Ver %s' % self._cur2IK_FX_Verision)
+        self.setWindowTitle('cur2IK_FX %s' %Ver)
+        ui_variable['Statusbar'].showMessage(u'欢迎使用')
         self.show()
 
     def eventFilter(self, object, event):  # 鼠标移动就会触发...淦

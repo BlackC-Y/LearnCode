@@ -1,86 +1,12 @@
 # -*- coding: UTF-8 -*-
-'''Roadmap:
-'''
 from maya import cmds, mel
 from maya.api import OpenMaya as om
-import sys
 import os
-#try:
-#    from importlib import reload
-#except :
-
-sys.path.append('%s/MyToolBox' %os.getenv('ALLUSERSPROFILE'))
-from CopyWeightTool import *
-from CtrlTool import *
-from cur2IK_FX import *
-from DataSaveUi import *
-from PSDshape import *
-from Rivet import *
-from WeightTool import *
-from MirrorDriverKey import *
 
 
-class MayaToolsBox_BlackC():
-
-    #__Verision = 1.2
-    
-    def ToolUi(self):
-        Info = [
-            [u'创建Locator', u'在选择物体的位置创建Locator', 'self.createLocator()'],
-            [u'从模型提取曲线', u'批量提取曲线 - 仅适用于单片模型', 'self.polytoCurve()'],
-            [u'movevtx_Ui', u'修型时传递点 \n选择要传递的点 填写被传递的模型', 'self.movevtx_UI()'],
-            [u'samevtx_Ui', u'移动点达到对称修形 \n选择原模型上要对称的点 分别填写模型', 'self.samevtx_UI()'],
-            [u'修型骨骼xu', u'创建修型骨骼(高自定义) \n选择要修型的骨骼', 'self.xiuxingJoint()'],
-            [u'修型骨骼Hang', u'创建修型骨骼(航少版) \n选择要修型的骨骼', 'self.xiuxingJointHang()'],
-            [u'传递UV', u'传递UV \n选择UV模型+要传递的模型', 'self.TransferUV()'],
-            [u'曲面上创建毛囊和骨骼_Ui', u'在surface曲面上创建毛囊和骨骼', 'self.createFollicleOnsurface_UI()'],
-            [u'ngRelax', u'ngRelax权重', 'self.doPlugin("ngRelax")'],
-            [u'拷贝权重工具_Ui', u'拷贝权重工具', 'CopyWeightTool().Ui()'],
-            [u'动力学曲线 IK_Ui', u'动力学曲线 IK', 'cur2IK_FX_Ui()'],
-            [u'临时储存物体或位置_Ui', u'临时储存物体或位置', 'DataSaveUi().Ui()'],
-            [u'PSD修型_Ui', u'PSD修型', 'PSD_PoseUi_KitKat().ToolUi()'],
-            [u'Rivet', u'Rivet铆钉', 'cRivet("follicle")'],
-            [u'权重工具_Ui', u'点权重调整 \nSave/Load权重', 'WeightTool_JellyBean().ToolUi()'],
-            [u'权重检查工具_Ui', u'权重最大影响值检查 清理', 'WeightCheckTool_JellyBean().ToolUi()'],
-            [u'控制器Pro_Ui', u'权哥 控制器生成', 'MZ_CtrllTool().Ui()'],
-            [u'镜像驱动关键帧_Ui', u'依次选择 做好的驱动者，做好的被驱动者\n没做的驱动者，没做的被驱动者', 'MirrorDriverKey().Ui()']
-        ]
-        self.Info = sorted(Info, key=lambda item: item[0])
-
-        ToolUi = 'MaYaToolsBox'
-        if cmds.window(ToolUi, q=1, ex=1):
-            cmds.deleteUI(ToolUi)
-        cmds.window(ToolUi, t=ToolUi, rtf=1, mb=1, mxb=0, wh=(230, 500))
-        cmds.columnLayout('MainCL', cat=('both', 2), rs=2, cw=220, adj=1)
-        cmds.textField('searchText', h=24, tcc=lambda *args: self.refreshToolList(cmds.textField('searchText', q=1, tx=1)))
-        cmds.textScrollList('ToolList', ams=0, h=250, sc=lambda *args:self.changeToolInfo())
-        cmds.columnLayout('EditCL', cat=('both', 2), rs=2, cw=220, adj=1)
-        cmds.setParent('..')
-        cmds.text('detailText', p='EditCL', h=100, l=u'说明:')
-        cmds.button(l=u'执行', c=lambda *args: self.doProc())
-        for i in self.Info:
-            cmds.textScrollList('ToolList', e=1, a=i[0])
-        cmds.showWindow(ToolUi)
-
-    def changeToolInfo(self):
-        slitem = cmds.textScrollList('ToolList', q=1, si=1)[0]
-        for i in self.Info:
-            if slitem == i[0]:
-                cmds.text('detailText', e=1, l=i[1])
-
-    def refreshToolList(self, string):
-        cmds.textScrollList('ToolList', e=1, ra=1)
-        Istr = string.lower()
-        for i in self.Info:
-            if Istr in i[0].lower() or Istr in i[1].lower():
-                cmds.textScrollList('ToolList', e=1, a=i[0])
-
-    def doProc(self):
-        slitem = cmds.textScrollList('ToolList', q=1, si=1)[0]
-        for i in self.Info:
-            if slitem == i[0]:
-                cmd = i[2]
-                exec(cmd)
+class otherTools():
+     
+    #Ver = 1.00
 
     def doPlugin(self, File):
         if File == 'ngRelax':
@@ -93,9 +19,12 @@ class MayaToolsBox_BlackC():
                 return
             plugName = '%s%s.mll' %(File, ver)
             if not cmds.pluginInfo(plugName, q=1, l=1):
-                cmds.loadPlugin('%s/MyToolBox/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
+                cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
             cmds.ngSkinRelax()
 
+    def FixRedlook(self):
+        mel.eval('outlinerEditor -e -sec "" outlinerPanel1')
+        
     def createLocator(self):
         alist = cmds.ls(sl=1, fl=1)
         for i in alist:
@@ -107,7 +36,7 @@ class MayaToolsBox_BlackC():
         for i in blist:
             vnum = cmds.polyEvaluate(i, v=1)
             for v in range(vnum):
-                enum = cmds.ls(cmds.polyListComponentConversion(i + '.vtx[' + str(v) + ']', fv=1, ff=1, fuv=1, fvf=1, te=1), fl=1)
+                enum = cmds.ls(cmds.polyListComponentConversion('%s.vtx[%s]' %(i, v), fv=1, ff=1, fuv=1, fvf=1, te=1), fl=1)
                 if len(enum) == 4:
                     break
             arclen = []
@@ -118,63 +47,9 @@ class MayaToolsBox_BlackC():
                     earclen += cmds.arclen(el)
                 arclen.append(earclen)
             cmds.polySelectSp(enum[arclen.index(max(arclen))], loop=1)
-            cname = cmds.rename(cmds.polyToCurve(
-                ch=0, form=2, degree=3), i + '_Cur')
-            if cmds.xform(cname + '.cv[0]', q=1, ws=1, t=1)[1] < cmds.xform(cname + '.cv[' + str(cmds.getAttr(cname + ".controlPoints", size=1)) + ']', q=1, ws=1, t=1)[1]:
+            cname = cmds.rename(cmds.polyToCurve(ch=0, form=2, degree=3), i + '_Cur')
+            if cmds.xform('%s.cv[0]', q=1, ws=1, t=1)[1] %cname < cmds.xform('%s.cv[%s]' %(cname, cmds.getAttr("%s.controlPoints", size=1) %cname), q=1, ws=1, t=1)[1]:
                 cmds.reverseCurve(cname, ch=0, rpo=1)
-
-    def movevtx_UI(self):
-        ui = 'ToolsBoxUI1'
-        try:
-            cmds.deleteUI(ui)
-        except:
-            pass
-        cmds.window(ui, t='movevtx')
-        cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('UI1objTextFieldGrp', l=u'模型', h=28, cw2=(30, 130))
-        cmds.button('UI1RunButton', l="Run", h=28, w=100, c=lambda*args: self.movevtx(cmds.textFieldGrp('UI1objTextFieldGrp', q=1, tx=1)))
-        cmds.window(ui, e=True, wh=(180, 100))
-        cmds.showWindow(ui)
-
-    def movevtx(self, obj=''):
-        # UI
-        clist = cmds.ls(sl=1, fl=1)
-        for i in clist:
-            flo = []
-            targe = obj + '.vtx[' + i.split('[', 1)[1]
-            for u in range(3):
-                flo.append(cmds.xform(i, q=1, t=1, ws=1)[u] - cmds.xform(targe, q=1, t=1, ws=1)[u])
-            cmds.select(targe, r=1)
-            cmds.move(flo[0], flo[1], flo[2], r=1, os=1, wd=1)
-        cmds.select(cl=1)
-
-    def samevtx_UI(self):
-        # UI
-        ui = 'ToolsBoxUI2'
-        try:
-            cmds.deleteUI(ui)
-        except:
-            pass
-        cmds.window(ui, t='samevtx')
-        cmds.columnLayout(rowSpacing=3)
-        cmds.textFieldGrp('UI2obj1TextFieldGrp',l=u'已修形模型', h=28, cw2=(60, 150))
-        cmds.textFieldGrp('UI2obj2TextFieldGrp',l=u'要对称模型', h=28, cw2=(60, 150))
-        cmds.button('RunButton', l="Run", h=28, w=100, c=lambda *args:
-                    self.samevtx(cmds.textFieldGrp('UI2obj1TextFieldGrp', q=1, tx=1), cmds.textFieldGrp('UI2obj2TextFieldGrp', q=1, tx=1)))
-        cmds.window(ui, e=True, wh=(220, 100))
-        cmds.showWindow(ui)
-
-    def samevtx(self, obj1='', obj2=''):
-        list = cmds.ls(sl=1, fl=1)
-        obj = list[0].split('.', 1)[0]
-        mel.eval("reflectionSetMode objectx;")
-        for i in list:
-            lvtxT = cmds.xform(obj1+'.'+i.split('.', 1)[1], q=1, os=1, t=1)
-            cmds.select(i, sym=1, r=1)
-            dvtx = cmds.ls(sl=1, fl=1)
-            del dvtx[dvtx.index(i)]
-            cmds.xform(obj2+'.'+dvtx[0].split('.', 1)[1], os=1, t=(lvtxT[0]*-1, lvtxT[1], lvtxT[2]))
-        mel.eval("reflectionSetMode none;")
 
     def xiuxingJoint(self):
         Raxial = 'Y'     #Z
@@ -277,7 +152,7 @@ class MayaToolsBox_BlackC():
         else:
             cmds.polyTransfer(dobj[1], uv=1, ao=dobj[0])
 
-    def createFollicleOnsurface_UI(self):
+    def createFollicleOnsurface_ToolUi(self):
         ui = 'ToolsBoxUI3'
         try:
             cmds.deleteUI(ui)
@@ -290,9 +165,10 @@ class MayaToolsBox_BlackC():
         cmds.flowLayout(columnSpacing=5)
         cmds.checkBox('UI3JointcheckBox', l=u'创建骨骼', w=80)
         cmds.button('UI3RunButton', l="Run", h=28, w=80, c=lambda *args: self.createFollicleOnsurface(
-                    cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1),
-                    cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1),
-                    cmds.checkBox('UI3JointcheckBox', q=1, v=1)))
+                cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1),
+                cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1),
+                cmds.checkBox('UI3JointcheckBox', q=1, v=1))
+        )
         cmds.setParent('..')
         cmds.showWindow(ui)
 
@@ -334,5 +210,3 @@ class MayaToolsBox_BlackC():
         for i in follList:
             cmds.parent(i[0], Follicle_Grp)
             cmds.parent(i[1], Joint_Grp)
-
-MayaToolsBox_BlackC().ToolUi()

@@ -1,13 +1,16 @@
 # -*- coding: UTF-8 -*-
 from maya import cmds
 import maya.OpenMaya as Om
-import decimal, re, math
+import decimal
+import re
+import math
 
 def MFCreateUi():
+    Ver = 1.1
     MFCreateUi = 'MFCreate'
     if cmds.window(MFCreateUi, q=1, ex=1):
-            cmds.deleteUI(MFCreateUi)
-    cmds.window(MFCreateUi, t=MFCreateUi + '_v1.1', wh=(120, 60), tlb=1)
+        cmds.deleteUI(MFCreateUi)
+    cmds.window(MFCreateUi, t='%s%s' %(MFCreateUi, Ver), wh=(120, 60), tlb=1)
     cmds.columnLayout(cat=('both', 2), rs=2, cw=120)
     cmds.button('CreateMFButton', l='Create_MF', c=lambda *args: createMF())
     if cmds.ls('master_MF'):
@@ -168,11 +171,12 @@ class MFAni():
             tM[0][1] = -sina
             tM[1][0] = sina
             tM[2][2] = 1
-        multFinish = \
-            [inM[0]*tM[0][0]+inM[1]*tM[1][0]+inM[2]*tM[2][0], inM[0]*tM[0][1]+inM[1]*tM[1][1]+inM[2]*tM[2][1], inM[0]*tM[0][2]+inM[1]*tM[1][2]+inM[2]*tM[2][2], inM[3],
-             inM[4]*tM[0][0]+inM[5]*tM[1][0]+inM[6]*tM[2][0], inM[4]*tM[0][1]+inM[5]*tM[1][1]+inM[6]*tM[2][1], inM[4]*tM[0][2]+inM[5]*tM[1][2]+inM[6]*tM[2][2], inM[7],
-             inM[8]*tM[0][0]+inM[9]*tM[1][0]+inM[10]*tM[2][0], inM[8]*tM[0][1]+inM[9]*tM[1][1]+inM[10]*tM[2][1], inM[8]*tM[0][2]+inM[9]*tM[1][2]+inM[10]*tM[2][2], inM[11],
-             inM[12]*tM[0][0]+inM[13]*tM[1][0]+inM[14]*tM[2][0], inM[12]*tM[0][1]+inM[13]*tM[1][1]+inM[14]*tM[2][1], inM[12]*tM[0][2]+inM[13]*tM[1][2]+inM[14]*tM[2][2], inM[15]]
+        multFinish = [
+            inM[0]  * tM[0][0] + inM[1]  * tM[1][0] + inM[2]  * tM[2][0], inM[0]  * tM[0][1] + inM[1]  * tM[1][1] + inM[2]  * tM[2][1], inM[0]  * tM[0][2] + inM[1]  * tM[1][2] + inM[2]  * tM[2][2], inM[3],
+            inM[4]  * tM[0][0] + inM[5]  * tM[1][0] + inM[6]  * tM[2][0], inM[4]  * tM[0][1] + inM[5]  * tM[1][1] + inM[6]  * tM[2][1], inM[4]  * tM[0][2] + inM[5]  * tM[1][2] + inM[6]  * tM[2][2], inM[7],
+            inM[8]  * tM[0][0] + inM[9]  * tM[1][0] + inM[10] * tM[2][0], inM[8]  * tM[0][1] + inM[9]  * tM[1][1] + inM[10] * tM[2][1], inM[8]  * tM[0][2] + inM[9]  * tM[1][2] + inM[10] * tM[2][2], inM[11],
+            inM[12] * tM[0][0] + inM[13] * tM[1][0] + inM[14] * tM[2][0], inM[12] * tM[0][1] + inM[13] * tM[1][1] + inM[14] * tM[2][1], inM[12] * tM[0][2] + inM[13] * tM[1][2] + inM[14] * tM[2][2], inM[15]
+        ]
         return multFinish
         #multMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 2, 2, 2, 1], '.ry', 90)
 

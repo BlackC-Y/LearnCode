@@ -7,7 +7,7 @@ import re
 
 class setProjectTool():
 
-    __Verision = 1.2  # 在maya文件夹中创建一个ProjectList文件
+    #Ver = 1.2  # 在maya文件夹中创建一个ProjectList文件
 
     def __init__(self):
         self.filePath = os.path.expanduser("~") + '/maya/ProjectList'

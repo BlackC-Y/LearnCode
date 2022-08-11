@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 
+
 def system():
     sel = cmds.ls(sl=1)
     loc = ''
@@ -84,6 +85,7 @@ def system():
     cmds.setAttr (loc+'_ctrl.offset',e=1,keyable=1)
     cmds.connectAttr(loc+'_ctrl.offset',loc+'.ty')
     '''
+
 def dimian():
     sel = cmds.ls(sl=1)
     if cmds.nodeType(cmds.listRelatives(sel[0],s=1)[0]) == 'mesh':

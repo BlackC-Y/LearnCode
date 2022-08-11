@@ -17,15 +17,15 @@ import re
 ui_variable = {}
 
 
-class cur2IK_FX_Ui(QtWidgets.QWidget):
+class cur2IKFX_Tool(QtWidgets.QWidget):
 
     def __init__(self):
-        super(cur2IK_FX_Ui, self).__init__(shiboken2.wrapInstance(int(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
+        super(cur2IKFX_Tool, self).__init__(shiboken2.wrapInstance(int(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         # self.setFocus()
         self.setupUi()
 
     def setupUi(self):
-        Ver = 2.52
+        Ver = 2.53
         self.UiName = 'cur2IK_FX'
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
@@ -191,6 +191,11 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
         self.BuildCtrl.setObjectName("BuildCtrl")
         self.child1verLayout.addWidget(self.BuildCtrl)
 
+        self.SelCtrlCurve = QtWidgets.QPushButton(self.child1)
+        self.SelCtrlCurve.setMinimumSize(QtCore.QSize(100, 26))
+        self.SelCtrlCurve.setObjectName("SelCtrlCurve")
+        self.child1verLayout.addWidget(self.SelCtrlCurve)
+
         child1spacerItem0 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.child1verLayout.addItem(child1spacerItem0)
 
@@ -200,73 +205,6 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
         self.child1verLayout.addWidget(self.PoseEdit)
 
         self.tabWidget.addTab(self.child1, "")
-
-        self.child2 = QtWidgets.QWidget()
-        self.child2.setObjectName("child2")
-        self.child2verLayout = QtWidgets.QVBoxLayout(self.child2)
-        self.child2verLayout.setObjectName("child2verticalLayout")
-        self.child2verLayout.setSpacing(8)
-        self.child2verLayout.setContentsMargins(8, 5, 8, 3)
-
-        self.SelCtrlCurve = QtWidgets.QPushButton(self.child2)
-        self.SelCtrlCurve.setMinimumSize(QtCore.QSize(100, 26))
-        self.SelCtrlCurve.setObjectName("SelCtrlCurve")
-        self.child2verLayout.addWidget(self.SelCtrlCurve)
-
-        self.CShape = QtWidgets.QPushButton(self.child2)
-        self.CShape.setMinimumSize(QtCore.QSize(100, 26))
-        self.CShape.setObjectName("CShape")
-        self.child2verLayout.addWidget(self.CShape)
-
-        self.horizontalLayoutF = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutF.setObjectName("horizontalLayout")
-        self.horizontalLayoutF.setSpacing(3)
-        self.RotX = QtWidgets.QPushButton(self.child2)
-        self.RotX.setMinimumSize(QtCore.QSize(75, 26))
-        self.RotX.setObjectName("RotX")
-        self.RotY = QtWidgets.QPushButton(self.child2)
-        self.RotY.setMinimumSize(QtCore.QSize(75, 26))
-        self.RotY.setObjectName("RotY")
-        self.RotZ = QtWidgets.QPushButton(self.child2)
-        self.RotZ.setMinimumSize(QtCore.QSize(75, 26))
-        self.RotZ.setObjectName("RotZ")
-        self.horizontalLayoutF.addWidget(self.RotX)
-        self.horizontalLayoutF.addWidget(self.RotY)
-        self.horizontalLayoutF.addWidget(self.RotZ)
-        self.child2verLayout.addLayout(self.horizontalLayoutF)
-
-        self.horizontalLayoutG = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutG.setObjectName("horizontalLayout")
-        self.horizontalLayoutG.setSpacing(3)
-        self.ScaleAdd = QtWidgets.QPushButton(self.child2)
-        self.ScaleAdd.setMinimumSize(QtCore.QSize(100, 26))
-        self.ScaleAdd.setObjectName("ScaleAdd")
-        self.ScaleSub = QtWidgets.QPushButton(self.child2)
-        self.ScaleSub.setMinimumSize(QtCore.QSize(100, 26))
-        self.ScaleSub.setObjectName("ScaleSub")
-        self.horizontalLayoutG.addWidget(self.ScaleAdd)
-        self.horizontalLayoutG.addWidget(self.ScaleSub)
-        self.child2verLayout.addLayout(self.horizontalLayoutG)
-
-        self.horizontalLayoutH = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutH.setObjectName("horizontalLayout")
-        self.horizontalLayoutH.setSpacing(3)
-        self.SColorview = QtWidgets.QPushButton(self.child2)
-        self.SColorview.setMinimumSize(QtCore.QSize(80, 26))
-        self.SColorview.setObjectName("SColorview")
-        self.horizontalLayoutH.addWidget(self.SColorview)
-        ui_variable['SColorInt'] = self.SColorInt = QtWidgets.QSlider(self.child2)
-        self.SColorInt.setMinimum(1)
-        self.SColorInt.setMaximum(31)
-        self.SColorInt.setOrientation(QtCore.Qt.Horizontal)
-        self.SColorInt.setObjectName("SColorInt")
-        self.horizontalLayoutH.addWidget(self.SColorInt)
-        self.child2verLayout.addLayout(self.horizontalLayoutH)
-
-        child2spacerItem0 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.child2verLayout.addItem(child2spacerItem0)
-
-        self.tabWidget.addTab(self.child2, "")
         self.MainverticalLayout.addWidget(self.tabWidget)
 
         ui_variable['Statusbar'] = self.Statusbar = QtWidgets.QStatusBar(self)
@@ -313,22 +251,6 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
 
         self.SelCtrlCurve.setText(u'选择控制器')
         self.SelCtrlCurve.clicked.connect(lambda *args: cur2IK_ApplePie().SelCurve())
-        self.CShape.setText(u"换个形状")
-        self.CShape.clicked.connect(lambda *args: cur2IK_ApplePie().cShape())
-        self.RotX.setText(u"RotX")
-        self.RotX.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RX'))
-        self.RotY.setText(u"RotY")
-        self.RotY.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RY'))
-        self.RotZ.setText(u"RotZ")
-        self.RotZ.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('RZ'))
-        self.ScaleAdd.setText(u"放大曲线")
-        self.ScaleAdd.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('SA'))
-        self.ScaleSub.setText(u"缩小曲线")
-        self.ScaleSub.clicked.connect(lambda *args: cur2IK_ApplePie().RSCurve('SS'))
-        self.SColorInt.valueChanged.connect(lambda*args: self.changeSColorInt())
-        self.SColorview.setText(u"更改颜色")
-        self.SColorview.clicked.connect(lambda *args: cur2IK_ApplePie().ChangeCurveColor())
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.child2), u"曲线DLC")
 
         #self.setParent(shiboken2.wrapInstance(long(OmUI.MQtUtil.mainWindow()), QtWidgets.QMainWindow))
         self.setWindowFlags(QtCore.Qt.Window)
@@ -344,11 +266,11 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
             # if event.type() == QtCore.QEvent.MouseButtonDblClick:
             #    if event.button() == QtCore.Qt.RightButton:
             #        pass
-            return super(cur2IK_FX_Ui, self).eventFilter(object, event)
+            return super(cur2IKFX_Tool, self).eventFilter(object, event)
         elif object == self.SelectNucleus:
             if event.type() == QtCore.QEvent.MouseButtonPress:
                 Dynamic_ApplePie().Ready_GetNode('Nucleus')
-            return super(cur2IK_FX_Ui, self).eventFilter(object, event)
+            return super(cur2IKFX_Tool, self).eventFilter(object, event)
 
     def setdisable(self):
         if self.OnlyFXCurvebox.isChecked():
@@ -376,12 +298,6 @@ class cur2IK_FX_Ui(QtWidgets.QWidget):
             self.FromJointWar.setVisible(False)
             self.SkinCtrlbox.setEnabled(True)
             self.JointInt.setEnabled(True)
-
-    def changeSColorInt(self):
-        ColorInt = int(self.SColorInt.value())
-        ColorIndex = [i*255 for i in cmds.colorIndex(ColorInt, q=1)]
-        self.SColorview.setStyleSheet('background-color:rgb(%s,%s,%s)' % (ColorIndex[0], ColorIndex[1], ColorIndex[2]))
-        #cmds.canvas('CCanvas', e=1, rgbValue=(ColorIndex[0], ColorIndex[1], ColorIndex[2]))
 
 
 class cur2IK_ApplePie(object):
@@ -581,31 +497,6 @@ class cur2IK_ApplePie(object):
                 _tempcon = cmds.parentConstraint("%s_control%s_Ctrl" % (i, n + 1), "%s_control%s_Ctrl_grp" % (i, n + 2), mo=1)[0]
                 cmds.connectAttr(lastCtrl + ".IKFK", '%s.%s' % (_tempcon, cmds.listAttr(_tempcon, st='*W0')[0]), f=1)
 
-    def cShape(self):
-        curSample = [
-            [((-.5, .5, .5), (-.5, .5, -.5), (.5, .5, -.5), (.5, .5, .5), (-.5, .5, .5), (-.5, -.5, .5), (-.5, -.5, -.5), (-.5, .5, -.5), (-.5, .5, .5), (-.5, -.5, .5), (.5, -.5, .5), (.5, .5, .5), (.5, .5, -.5), (.5, -.5, -.5), (.5, -.5, .5), (.5, -.5, -.5), (-.5, -.5, -.5)), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)],
-            [((0, 1, 0), (0, 0.92388, 0.382683), (0, 0.707107, 0.707107), (0, 0.382683, 0.92388), (0, 0, 1), (0, -0.382683, 0.92388), (0, -0.707107, 0.707107), (0, -0.92388, 0.382683), (0, -1, 0), (0, -0.92388, -0.382683), (0, -0.707107, -0.707107), (0, -0.382683, -0.92388), (0, 0, -1), (0, 0.382683, -0.92388), (0, 0.707107, -0.707107), (0, 0.92388, -0.382683), (0, 1, 0), (0.382683, 0.92388, 0), (0.707107, 0.707107, 0), (0.92388, 0.382683, 0), (1, 0, 0), (0.92388, -0.382683, 0), (0.707107, -0.707107, 0), (0.382683, -0.92388, 0), (0, -1, 0), (-0.382683, -0.92388, 0), (-0.707107, -0.707107, 0), (-0.92388, -0.382683, 0), (-1, 0, 0), (-0.92388, 0.382683, 0), (-0.707107, 0.707107, 0), (-0.382683, 0.92388, 0), (0, 1, 0), (0, 0.92388, -0.382683), (0, 0.707107, -0.707107), (0, 0.382683, -0.92388), (0, 0, -1), (-0.382683, 0, -0.92388), (-0.707107, 0, -0.707107), (-0.92388, 0, -0.382683), (-1, 0, 0), (-0.92388, 0, 0.382683), (-0.707107, 0, 0.707107), (-0.382683, 0, 0.92388), (0, 0, 1), (0.382683, 0, 0.92388), (0.707107, 0, 0.707107), (0.92388, 0, 0.382683), (1, 0, 0), (0.92388, 0, -0.382683), (0.707107, 0, -0.707107), (0.382683, 0, -0.92388), (0, 0, -1)), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52)],
-            [((-1.6, -6.4, 0), (-1.6, -1.6, 0), (-6.4, -1.6, 0), (-6.4, 1.6, 0), (-1.6, 1.6, 0), (-1.6, 6.4, 0), (1.6, 6.4, 0), (1.6, 1.6, 0), (6.4, 1.6, 0), (6.4, -1.6, 0), (1.6, -1.6, 0), (1.6, -6.4, 0), (-1.6, -6.4, 0)), (0, 4.8, 9.6, 12.8, 17.6, 22.4, 25.6, 30.4, 35.2, 38.4, 43.2, 48, 51.2)],
-        ]
-        if cur2IK_ApplePie.curveShape == 4:
-            cur2IK_ApplePie.curveShape = 0
-        getlist = self.checkCurve()
-        if not getlist:
-            return
-        cmds.undoInfo(ock=1)
-        if cur2IK_ApplePie.curveShape == 3:
-            cmds.circle(n='__temp_Shape')
-        else:
-            cmds.curve(d=1, p=curSample[cur2IK_ApplePie.curveShape][0], k=curSample[cur2IK_ApplePie.curveShape][1], n='__temp_Shape')
-        for i in getlist:
-            cmds.connectAttr('__temp_Shape.worldSpace[0]', cmds.listRelatives(i, s=1, type="nurbsCurve")[0] + '.create', f=1)
-        cur2IK_ApplePie.curveShape += 1
-        cmds.select(getlist, r=1)
-        cmds.refresh()
-        cmds.delete('__temp_Shape')
-        # cmds.evalDeferred("cmds.delete('__temp_Shape')")  #延迟执行
-        cmds.undoInfo(cck=1)
-
     def SelCurve(self):
         getlist = self.checkCurve()
         if not getlist:
@@ -621,37 +512,6 @@ class cur2IK_ApplePie(object):
                 cmds.select(i.rsplit('_', 2)[0] + '_control*_Ctrl', add=1)
             else:
                 return
-        cmds.undoInfo(cck=1)
-
-    def RSCurve(self, mode):
-        getlist = self.checkCurve()
-        if not getlist:
-            return
-        cmds.undoInfo(ock=1)
-        cmds.select(cl=True)
-        for c in getlist:
-            cmds.select(c + ".controlPoints[*]", add=1)
-        if mode == 'RX':
-            cmds.rotate(90, 0, 0, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        elif mode == 'RY':
-            cmds.rotate(0, 90, 0, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        elif mode == 'RZ':
-            cmds.rotate(0, 0, 90, r=1, ocp=1, os=1, xc='edge', xn=1, fo=1)
-        elif mode == 'SA':
-            cmds.scale(1.2, 1.2, 1.2, r=1)
-        elif mode == 'SS':
-            cmds.scale(.8, .8, .8, r=1)
-        cmds.select(getlist, r=1)
-        cmds.undoInfo(cck=1)
-
-    def ChangeCurveColor(self):
-        ColorNum = int(ui_variable['SColorInt'].value())
-        selCurve = cmds.ls(sl=1)
-        cmds.undoInfo(ock=1)
-        for n in range(len(selCurve)):
-            CurShape = cmds.listRelatives(selCurve[n], c=1, s=1)
-            cmds.setAttr(CurShape[0] + ".overrideEnabled", 1)
-            cmds.setAttr(CurShape[0] + ".overrideColor", ColorNum)
         cmds.undoInfo(cck=1)
 
     def CurveToIK(self, curveN):   # 来自张老师
@@ -931,4 +791,4 @@ class Dynamic_ApplePie(object):
         cmds.undoInfo(cck=1)
 
 
-cur2IK_FX_Ui()
+#cur2IKFX_Tool()

@@ -855,31 +855,3 @@ class ApplePieB_BuildJoint(object):
             cmds.connectAttr(reNo+'.outputX', parentCA[0]+'.'+LoR[i]+'_FootIK_pos_rootW1',f=1)
 
 IKFKWin()
-
-'''
-    class MyThread(threading.Thread):
-        def __init__(self,n):
-            super(MyThread,self).__init__()
-            self.n = n
-        def run(self):
-            threads = []
-            th1 = threading.Thread(target=self.buildL_IKLegA,args='L')
-            threads.append(th1)
-            th2 = threading.Thread(target=self.buildL_IKLegA,args='R')
-            threads.append(th2)
-
-    for t in threads:
-        t.setDaemon(True)
-        t.start()
-    t.join()
-    ---------------------------------
-    def buildL_IKLeg(self):
-        pro = []
-        pp1 = multiprocessing.Process(target=lambda*args:buildL_IKLegA,args='L')
-        pro.append(pp1)
-        pp2 = multiprocessing.Process(target=lambda*args:buildL_IKLegA,args='R')
-        pro.append(pp2)
-        for p in pro:
-            p.start()
-        p.join()
-'''

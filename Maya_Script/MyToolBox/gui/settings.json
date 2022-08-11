@@ -1,0 +1,27 @@
+{
+    "version" : "",
+    "information" : "",
+    "theme_name" : "default",
+    "custom_title_bar": true,
+    "startup_size": [600, 540],
+    "minimum_size": [600, 500],
+    "left_menu_size" : {
+        "minimum" : 50,
+        "maximum" : 150
+    },
+    "left_menu_content_margins" : 3,
+    "left_column_size" : {
+        "minimum" : 0,
+        "maximum" : 200
+    },
+    "right_column_size" : {
+        "minimum" : 0,
+        "maximum" : 200
+    },
+    "time_animation" : 1000,
+    "font_family": "Sarasa Gothic SC",
+    "font" : {
+        "title_size" : 10,
+        "text_size" : 8
+    }
+}

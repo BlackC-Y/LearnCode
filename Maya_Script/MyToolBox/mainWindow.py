@@ -16,8 +16,8 @@ from .gui.widgets import *
 # ///////////////////////////////////////////////////////////////
 #os.environ["QT_FONT_DPI"] = "96"
 # IF IS 4K MONITOR ENABLE 'os.environ["QT_SCALE_FACTOR"] = "2"'
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+#QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+#QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
 # 安装字体
 if Functions.check_font("sarasa-gothic-sc-regular.ttf"):   #查询字体存在
@@ -435,7 +435,7 @@ class MainWindow(QMainWindow):
         )
         self.toolButton_R1.clicked.connect(lambda *args: otherTools().createFollicleOnsurface_ToolUi())
         self.toolButton_R2.clicked.connect(lambda *args: CopyWeightTool().ToolUi())
-        self.toolButton_R3.clicked.connect(lambda *args: cur2IKFX_Tool())
+        self.toolButton_R3.clicked.connect(lambda *args: cur2IKFX_ToolUi())
         self.toolButton_R4.clicked.connect(lambda *args: DataSaveUi().ToolUi())
         self.toolButton_R5.clicked.connect(lambda *args: PSD_PoseUi().ToolUi())
         self.toolButton_R6.clicked.connect(lambda *args: MZ_CtrllTool().ToolUi())

@@ -34,7 +34,7 @@ class MayaToolsBox_BbBB():
             [u'权重检查工具', u'权重影响值/精度 检查和清理', 'WeightCheckTool_BbBB().ToolUi()'],
             [u'拷贝权重工具', u'拷贝权重工具', 'CopyWeightTool().ToolUi()'],
             [u'数据临时储存', u'临时储存物体或位置', 'DataSaveUi().ToolUi()'],
-            [u'动力学曲线 IK', u'动力学曲线 IK', 'cur2IKFX_Tool()'],
+            [u'动力学曲线 IK', u'动力学曲线 IK', 'cur2IKFX_ToolUi()'],
             [u'镜像驱动关键帧', u'依次选择 做好的驱动者，做好的被驱动者\n没做的驱动者, 没做的被驱动者', 'MirrorDriverKey().ToolUi()']
         ]
         #self.Info = sorted(Info, key=lambda item: item[0])

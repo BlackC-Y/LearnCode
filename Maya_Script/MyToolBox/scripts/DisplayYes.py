@@ -1,4 +1,5 @@
-from PySide2.QtWidgets import *
+# -*- coding: UTF-8 -*-
+from PySide2.QtWidgets import QWidget, QLineEdit
 import shiboken2
 from maya import cmds, mel
 from maya import OpenMayaUI as OmUI
@@ -12,9 +13,9 @@ class DisplayYes():
         self.widget = shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(gCommandLine)), QWidget)
 
     def showMessage(self, message):
-        self.widget.findChild(QLineEdit).setStyleSheet('background-color:rgb(223,246,221); color:black;')
+        self.widget.findChild(QLineEdit).setStyleSheet('background-color: #a1c17e; color:black;')
         cmds.select('time1', r=1)
-        cmds.scriptJob(e=['SelectionChanged', 'DisplayYes().resetLine()'], ro=1)
+        cmds.scriptJob(e=['SelectionChanged', lambda *args: self.resetLine()], ro=1)
         om.MGlobal.displayInfo(message)
 
     def resetLine(self):

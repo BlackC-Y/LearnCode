@@ -4,14 +4,15 @@
 from maya import cmds, mel
 from maya import OpenMaya as Om, OpenMayaAnim as OmAni
 from maya.api import OpenMaya as om, OpenMayaAnim as omAni
+from .DisplayYes import *
 import decimal
 import time
-from .DisplayYes import *
+
 
 class WeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.01'
+        Ver = '1.02'
         self.ToolUi = 'WeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
@@ -28,7 +29,7 @@ class WeightTool_BbBB():
         cmds.menuItem(l='Get', c=lambda *args: self.getSelect())
         cmds.columnLayout('FiristcL_BbBB', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.text('spJobchangeVtx_BbBB', p='FiristcL_BbBB', vis=0)
-        cmds.scriptJob(e=['SelectTypeChanged', 'WeightTool_BbBB().refreshBoxChange(None)'], p='spJobchangeVtx_BbBB')
+        cmds.scriptJob(e=['SelectTypeChanged', lambda *args: self.refreshBoxChange(None)], p='spJobchangeVtx_BbBB')
         cmds.rowLayout(nc=6, adj=2)
         cmds.iconTextCheckBox('refresh_BbBB', i='refresh.png', w=20, h=20,
                               onc=lambda *args: self.spJobStart(), ofc=lambda *args: self.refreshBoxChange(9))
@@ -104,10 +105,10 @@ class WeightTool_BbBB():
         if cmds.text('spJobVtxParent_BbBB', q=1, ex=1):
             return
         cmds.text('spJobVtxParent_BbBB', p='FiristcL_BbBB', vis=0)
-        cmds.scriptJob(e=['Undo', 'WeightTool_BbBB().refreshJointList(0)'], p='spJobVtxParent_BbBB')
-        cmds.scriptJob(e=['SelectionChanged', 'WeightTool_BbBB().refreshJointList(0)'], p='spJobVtxParent_BbBB')
+        cmds.scriptJob(e=['Undo', lambda *args: self.refreshJointList(0)], p='spJobVtxParent_BbBB')
+        cmds.scriptJob(e=['SelectionChanged', lambda *args: self.refreshJointList(0)], p='spJobVtxParent_BbBB')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent_BbBB')
-        cmds.scriptJob(uid=['WeightTool_BbBB', 'WeightTool_BbBB().refreshBoxChange(9)'])
+        cmds.scriptJob(uid=['WeightTool_BbBB', lambda *args: self.refreshBoxChange(9)])
 
         PaintSkinCmd = '"ArtPaintSkinWeightsToolOptions;"'
         if int(cmds.about(v=1)) > 2017:
@@ -121,12 +122,13 @@ class WeightTool_BbBB():
             vertexCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"vertex\\\");")'
             faceCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"facet\\\");")'
             objModeCmd = '"changeSelectMode -component;changeSelectMode -object;"'
+        #string $selCmd + WeightTool_BbBB()._weightView()
         mel.eval(
             'global proc dagMenuProc(string $parent, string $object){ \
             if(!size($object)){ \
             string $lsList[] = `ls -sl -o`; if(!size($lsList)){return;} else{$object = $lsList[0];}} \
             if(objectType($object) == "joint"){ \
-            string $selCmd = "python(\\\"cmds.treeView(\'JointTV_BbBB\', e=1, cs=1);cmds.treeView(\'JointTV_BbBB\', e=1, si=(\'" + $object + "\', 1));WeightTool_BbBB()._weightView()\\\")"; \
+            string $selCmd = "python(\\\"cmds.treeView(\'JointTV_BbBB\', e=1, cs=1);cmds.treeView(\'JointTV_BbBB\', e=1, si=(\'" + $object + "\', 1));\\\")"; \
             menuItem -l "Select Influence" -ec true -c $selCmd -rp "N" -p $parent; \
             }else{ \
             menuItem -l "Paint Skin Weights Tool" -ec true -c %s -rp "NW" -p $parent; \
@@ -841,8 +843,6 @@ class WeightSL_BbBB():
         return allLine
 
 #WeightTool_BbBB().refreshBoxChange(9)   #报绿脚本兼容
-
-
 
 class WeightCheckTool_BbBB():
 

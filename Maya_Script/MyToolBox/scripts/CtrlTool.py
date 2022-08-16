@@ -199,8 +199,8 @@ class MZ_CtrllTool():
     def ReadJsonData(self, fileName):
         DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')
         with open('%s%s' %(DataLoc, fileName), 'r') as jsFile:
-            Readdata = json.load(jsFile)
-        return Readdata['degree'], Readdata['points'], Readdata['knot']
+            readData = json.load(jsFile)
+        return readData['degree'], readData['points'], readData['knot']
 
     def DeleteCtrlData(self, fileN):
         DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')

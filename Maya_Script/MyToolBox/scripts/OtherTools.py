@@ -6,8 +6,6 @@ import os
 
 class otherTools():
      
-    #Ver = 1.00
-
     def doPlugin(self, File):
         if File == 'ngRelax':
             ver = int(cmds.about(v=1))
@@ -21,9 +19,6 @@ class otherTools():
             if not cmds.pluginInfo(plugName, q=1, l=1):
                 cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
             cmds.ngSkinRelax()
-
-    def FixRedlook(self):
-        mel.eval('outlinerEditor -e -sec "" outlinerPanel1')
         
     def createLocator(self):
         alist = cmds.ls(sl=1, fl=1)
@@ -210,3 +205,28 @@ class otherTools():
         for i in follList:
             cmds.parent(i[0], Follicle_Grp)
             cmds.parent(i[1], Joint_Grp)
+
+
+class FixError():
+
+    def ToolUi(self):
+        self.Ui = 'FixError_ToolUi'
+        if cmds.window(self.Ui, q=1, ex=1):
+            cmds.deleteUI(self.Ui)
+        cmds.window(self.Ui, t='FixError', rtf=1, mb=1, tlb=1, wh=(300, 85))
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=2)
+        cmds.text(l=u'鼠标放在按钮上 查看使用说明', h=40, fn='fixedWidthFont')
+        cmds.scrollLayout(hst=16, vsb=16)
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=290)
+        cmds.button(l=u'大纲look爆红', c=lambda *args: self.FixRed_look(), 
+                    ann=u'解决在大纲选择物体时Maya爆红"look"的问题')
+        cmds.button(l=u'开关文件爆红', c=lambda *args: self.FixRed_uiConfigScriptNode(), 
+                    ann=u'解决在打开文件或新建文件时爆红的问题\n请重开maya, 在打开问题文件时取消勾选右上角的"Execute script nodes"\n打开文件后运行此工具, 然后保存')
+        cmds.showWindow(self.Ui)
+    
+    def FixRed_look(self):
+        mel.eval('outlinerEditor -e -sec "" outlinerPanel1')
+
+    def FixRed_uiConfigScriptNode(self):
+        if cmds.ls('uiConfigurationScriptNode', typ='script'):
+            cmds.delete('uiConfigurationScriptNode')

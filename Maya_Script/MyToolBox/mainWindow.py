@@ -279,19 +279,6 @@ class MainWindow(QMainWindow):
             minHeight=28,
             tooltip_text = u'Rivet铆钉'
         )
-        self.toolButton_L8 = cusPushButton(
-            text=u"解决look爆红",
-            radius=4,
-            color=self.themes["app_color"]["text_foreground"],
-            bg_color=self.themes["app_color"]["dark_one"],
-            bg_color_hover=self.themes["app_color"]["dark_three"],
-            bg_color_pressed=self.themes["app_color"]["dark_four"],
-            parent = self,
-            app_parent = self.ui.central_widget,
-            font = self.settings["font_family"],
-            minHeight=28,
-            tooltip_text = u'解决在大纲选择物体时Maya爆红"look"的问题'
-        )
         
         self.toolButton_L1.clicked.connect(lambda *args: otherTools().createLocator())
         self.toolButton_L2.clicked.connect(lambda *args: otherTools().polytoCurve())
@@ -300,7 +287,6 @@ class MainWindow(QMainWindow):
         self.toolButton_L5.clicked.connect(lambda *args: otherTools().TransferUV())
         self.toolButton_L6.clicked.connect(lambda *args: otherTools().doPlugin("ngRelax"))
         self.toolButton_L7.clicked.connect(lambda *args: cRivet("follicle"))
-        self.toolButton_L8.clicked.connect(lambda *args: otherTools().FixRedlook())
         
         self.ui.load_pages.left_tool_layout.addWidget(self.leftTool_lableLine)
         self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L7)
@@ -309,7 +295,6 @@ class MainWindow(QMainWindow):
         self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L4)
         self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L3)
         self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L1)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L8)
         self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L2)
         self.left_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.ui.load_pages.left_tool_layout.addItem(self.left_VSpacer)
@@ -433,6 +418,20 @@ class MainWindow(QMainWindow):
             minHeight=28,
             tooltip_text = u'权重影响值/精度 检查和清理'
         )
+        self.toolButton_R10 = cusPushButton(
+            text=u"解决Maya报错问题",
+            radius=4,
+            color=self.themes["app_color"]["text_foreground"],
+            bg_color=self.themes["app_color"]["dark_one"],
+            bg_color_hover=self.themes["app_color"]["dark_three"],
+            bg_color_pressed=self.themes["app_color"]["dark_four"],
+            parent = self,
+            app_parent = self.ui.central_widget,
+            font = self.settings["font_family"],
+            minHeight=28,
+            tooltip_text = u'解决报错的清单界面'
+        )
+
         self.toolButton_R1.clicked.connect(lambda *args: otherTools().createFollicleOnsurface_ToolUi())
         self.toolButton_R2.clicked.connect(lambda *args: CopyWeightTool().ToolUi())
         self.toolButton_R3.clicked.connect(lambda *args: cur2IKFX_ToolUi())
@@ -442,6 +441,7 @@ class MainWindow(QMainWindow):
         self.toolButton_R7.clicked.connect(lambda *args: MirrorDriverKey().ToolUi())
         self.toolButton_R8.clicked.connect(lambda *args: WeightTool_BbBB().ToolUi())
         self.toolButton_R9.clicked.connect(lambda *args: WeightCheckTool_BbBB().ToolUi())
+        self.toolButton_R10.clicked.connect(lambda *args: FixError().ToolUi())
 
         self.ui.load_pages.right_tool_layout.addWidget(self.rightTool_lableLine)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R5)
@@ -453,6 +453,7 @@ class MainWindow(QMainWindow):
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R4)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R3)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R7)
+        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R10)
         self.right_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.ui.load_pages.right_tool_layout.addItem(self.right_VSpacer)
 """

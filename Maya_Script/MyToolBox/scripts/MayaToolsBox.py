@@ -12,6 +12,7 @@ from .Rivet import *
 from .WeightTool import *
 from .MirrorDriverKey import *
 from .OtherTools import *
+from .ngSk2Weight import *
 
 
 class MayaToolsBox_BbBB():
@@ -34,6 +35,7 @@ class MayaToolsBox_BbBB():
             [u'拷贝权重工具', u'拷贝权重工具', 'CopyWeightTool().ToolUi()'],
             [u'数据临时储存', u'临时储存物体或位置', 'DataSaveUi().ToolUi()'],
             [u'动力学曲线 IK', u'动力学曲线 IK', 'cur2IKFX_ToolUi()'],
+            [u'半自动权重工具', u'基于ng2的权重计算工具', 'ngSk2Weight_BbBB().ToolUi()'],
             [u'镜像驱动关键帧', u'依次选择 做好的驱动者，做好的被驱动者\n没做的驱动者, 没做的被驱动者', 'MirrorDriverKey().ToolUi()'],
             [u'解决Maya报错问题', u'解决报错的清单界面', 'FixError().ToolUi()']
         ]

@@ -37,6 +37,7 @@ if runInMaya:
     from .scripts.WeightTool import *
     from .scripts.MirrorDriverKey import *
     from .scripts.OtherTools import *
+    from .scripts.ngSk2Weight import *
 
 # MAIN WINDOW
 class MainWindow(QMainWindow):
@@ -431,6 +432,19 @@ class MainWindow(QMainWindow):
             minHeight=28,
             tooltip_text = u'解决报错的清单界面'
         )
+        self.toolButton_R11 = cusPushButton(
+            text=u"半自动权重工具",
+            radius=4,
+            color=self.themes["app_color"]["text_foreground"],
+            bg_color=self.themes["app_color"]["dark_one"],
+            bg_color_hover=self.themes["app_color"]["dark_three"],
+            bg_color_pressed=self.themes["app_color"]["dark_four"],
+            parent = self,
+            app_parent = self.ui.central_widget,
+            font = self.settings["font_family"],
+            minHeight=28,
+            tooltip_text = u'基于ng2的权重计算工具'
+        )
 
         self.toolButton_R1.clicked.connect(lambda *args: otherTools().createFollicleOnsurface_ToolUi())
         self.toolButton_R2.clicked.connect(lambda *args: CopyWeightTool().ToolUi())
@@ -442,6 +456,7 @@ class MainWindow(QMainWindow):
         self.toolButton_R8.clicked.connect(lambda *args: WeightTool_BbBB().ToolUi())
         self.toolButton_R9.clicked.connect(lambda *args: WeightCheckTool_BbBB().ToolUi())
         self.toolButton_R10.clicked.connect(lambda *args: FixError().ToolUi())
+        self.toolButton_R11.clicked.connect(lambda *args: ngSk2Weight_BbBB().ToolUi())
 
         self.ui.load_pages.right_tool_layout.addWidget(self.rightTool_lableLine)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R5)
@@ -452,6 +467,7 @@ class MainWindow(QMainWindow):
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R2)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R4)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R3)
+        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R11)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R7)
         self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R10)
         self.right_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)

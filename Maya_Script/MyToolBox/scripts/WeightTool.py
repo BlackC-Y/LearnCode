@@ -14,7 +14,7 @@ import os
 class WeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.03'
+        Ver = '1.04'
         self.ToolUi = 'WeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
@@ -838,13 +838,13 @@ class WeightCheckTool_BbBB():
         if os.path.isfile(self.DataLoc):
             with open(self.DataLoc, 'r') as jsFile:
                 self.readData = json.load(jsFile)
-                self.jsSetting = self.readData[os.path.basename(__file__)[:-3]]
+                self.jsSetting = self.readData[self.Ui]
             Setting_CheckDefaultMode = self.jsSetting["CheckDefaultMode"]
         else:
             Setting_CheckDefaultMode = 1
         if cmds.window(self.Ui, q=1, ex=1):
             cmds.deleteUI(self.Ui)
-        cmds.window(self.Ui, t='WeightCheckTool', rtf=1, tlb=1, wh=(165, 350), cc=lambda *args: self.saveSettings())
+        cmds.window(self.Ui, t='WeightCheckTool', rtf=1, s=0, tlb=1, wh=(165, 350), cc=lambda *args: self.saveSettings())
         MainformLayout = cmds.formLayout(w=165, h=350)
         cmds.textScrollList('%s_vtxList' %self.Ui, ams=1, w=100, vis=0, 
                             sc=lambda *args: cmds.textScrollList('%s_weightList' %self.Ui, e=1, da=1, sii=cmds.textScrollList('%s_vtxList' %self.Ui, q=1, sii=1)))
@@ -856,12 +856,12 @@ class WeightCheckTool_BbBB():
                 cmds.button('%s_unfold' %self.Ui, e=1, l='>')
                 cmds.textScrollList('%s_vtxList' %self.Ui, e=1, vis=0)
                 cmds.textScrollList('%s_weightList' %self.Ui, e=1, vis=0)
-                cmds.window(self.Ui, e=1, rtf=1, wh=(165, 350))
+                cmds.window(self.Ui, e=1, s=0, wh=(165, 350))
             else:
                 cmds.button('%s_unfold' %self.Ui, e=1, l='<')
                 cmds.textScrollList('%s_vtxList' %self.Ui, e=1, vis=1)
                 cmds.textScrollList('%s_weightList' %self.Ui, e=1, vis=1)
-                cmds.window(self.Ui, e=1, rtf=1, wh=(400, 350))
+                cmds.window(self.Ui, e=1, s=1, rtf=1, wh=(400, 350))
         cLayout = cmds.columnLayout(cat=('left', 3), h=300, w=140, rs=2)
         cmds.button(l=u'加载', w=80, h=26, c=lambda *args: self.Load())
         cmds.button(l=u'清理', w=80, h=26, c=lambda *args: self.Clean())
@@ -883,13 +883,14 @@ class WeightCheckTool_BbBB():
         cmds.formLayout(MainformLayout, e=1, ac=[('%s_weightList' %self.Ui, 'left', 3, '%s_vtxList' %self.Ui), 
                                                     ('%s_weightList' %self.Ui, 'right', 3, '%s_unfold' %self.Ui), ('%s_unfold' %self.Ui, 'right', 3, cLayout)])
         cmds.showWindow(self.Ui)
+        cmds.window(self.Ui, e=1, wh=(165, 350))
     
     def saveSettings(self):
         self.DataLoc = '%s/MyToolBoxDir/Data/Settings.json' %os.getenv('ALLUSERSPROFILE')
         if os.path.isfile(self.DataLoc):
             with open(self.DataLoc, 'w') as jsFile:
                 self.jsSetting["CheckDefaultMode"] = 0 if cmds.radioButton('%s_DecimalText' %self.Ui, q=1, sl=1) else 1
-                self.readData[os.path.basename(__file__)[:-3]] = self.jsSetting
+                self.readData[self.Ui] = self.jsSetting
                 json.dump(self.readData, jsFile, indent=4)
 
     def getSel(self):

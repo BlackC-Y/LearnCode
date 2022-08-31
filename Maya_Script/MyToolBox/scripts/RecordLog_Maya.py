@@ -9,7 +9,7 @@ class RecordLog_Maya(object):
         def log(*args, **kwargs):
             AllLog = '%s\n' %time.strftime("%m-%d %H:%M:%S", time.localtime())
             AllLog = '%s%s func enter\n' %(AllLog, func.__name__)
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
             AllLog = '%s%s func leave\n' %(AllLog, func.__name__)
-            #return func(*args, **kwargs)
+            return result
         return log

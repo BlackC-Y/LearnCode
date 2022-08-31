@@ -1081,5 +1081,6 @@ class WeightCheckTool_BbBB():
             cmds.setAttr(j + '.liw', l)
         self.Load()
 
+
 #WeightTool_BbBB().ToolUi()
 #WeightCheckTool_BbBB().ToolUi()

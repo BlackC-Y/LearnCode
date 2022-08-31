@@ -33,7 +33,6 @@ class cusPushButton(QPushButton):
         app_parent = None,
         dark_one = "#1b1e23",
         text_foreground = "#8a95aa",
-        top_margin = 40,
         font = 'Segoe UI',
         tooltip_text = '',
         context_color = "#568af2",
@@ -48,7 +47,6 @@ class cusPushButton(QPushButton):
         #self.setCursor(Qt.PointingHandCursor)
 
         self._parent = parent
-        self._top_margin = top_margin
 
         # TOOLTIP
         self._tooltip_text = tooltip_text
@@ -107,9 +105,8 @@ class cusPushButton(QPushButton):
             # FORMAT POSITION
             # Adjust tooltip position with offset
             pos_x = (pos.x() - (self._tooltip.width() // 2)) + (self.width() // 2)
-            pos_y = pos.y() - self._top_margin
+            pos_y = pos.y() - self._tooltip.height() - 3 #前两个参数相减为 刚好显示在按钮上方 -3为留缝
 
-            # SET POSITION TO WIDGET
             # Move tooltip position
             self._tooltip.move(pos_x, pos_y)
 

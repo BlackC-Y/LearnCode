@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from maya import cmds, mel
-
+from .DisplayYes import *
 
 class CopyWeightTool():
 
@@ -78,10 +78,8 @@ class CopyWeightTool():
             soureObj = _TempObj_
 
         if cmds.listRelatives(targeObj, c=1, s=1, typ='nurbsSurface'):
-            self.SurfaceCWeight(1, sourelist, targelist, soureObj, targeObj[0])
+            self.SurfaceCWeight(soureObj, targeObj[0])
         else:
-            #_list_ = [_TempObj_]
-            # finalCopyList = _list_ + targelist   塞进列表第一位
             for i in targeObj:
                 if not mel.eval('findRelatedSkinCluster("%s")' % i):
                     cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)
@@ -93,11 +91,10 @@ class CopyWeightTool():
             cmds.delete(_TempObj_)
         for j, l in zip(infJointList, jntLock):
             cmds.setAttr('%s.liw' %j, l)
-        print('Finish!')
+        DisplayYes.showMessage('Finish!')
 
-    def SurfaceCWeight(self, mode, sourelist, targelist, soureObj, targeObj):
+    def SurfaceCWeight(self, soureObj, targeObj):
         _StPObj = cmds.nurbsToPoly(targeObj, mnd=1, ch=0, f=3, n='__TempStP_Obj')[0]
-        #soureSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % soureObj)
         targeSkinCluster = mel.eval('findRelatedSkinCluster("%s")' %targeObj)
         infJointList = cmds.skinCluster(soureObj, q=1, inf=1)
         cmds.skinCluster(infJointList, _StPObj, tsb=1, dr=4)
@@ -118,14 +115,6 @@ class CopyWeightTool():
             tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
             exec('cmds.skinPercent("%s", "%s", tv=%s)' % (targeSkinCluster, i, tvList))
         cmds.delete(_StPObj, _cPOMNode)
-    '''
-    def strProc(self, Onestr):
-        if ', ' in Onestr:
-            return [i[2:-1] for i in Onestr[1:-1].split(', ')]
-        elif int(cmds.about(v=1)) >= 2022:
-            return [Onestr[2:-2]]
-        else:
-            return [Onestr[3:-2]]
-    '''
+
 
 #CopyWeightTool().ToolUi()

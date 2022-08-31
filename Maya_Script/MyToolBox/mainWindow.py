@@ -33,7 +33,6 @@ if runInMaya:
     from .scripts.cur2IK_FX import *
     from .scripts.DataSaveUi import *
     from .scripts.PSDshape import *
-    from .scripts.Rivet import *
     from .scripts.WeightTool import *
     from .scripts.MirrorDriverKey import *
     from .scripts.OtherTools import *
@@ -189,6 +188,8 @@ class MainWindow(QMainWindow):
 
     def myWidget(self):
         self.leftTool_lableLine = cusLableLine('HC', self.themes["app_color"]["text_foreground"], u'运行工具', 35)
+        self.ui.load_pages.left_tool_layout.addWidget(self.leftTool_lableLine)
+        self.ui.load_pages.left_tool_layout.addWidget(self.ui.load_pages.left_scrollArea)
         self.toolButton_L1 = cusPushButton(
             text=u"创建Locator",
             radius=4,
@@ -286,22 +287,23 @@ class MainWindow(QMainWindow):
         self.toolButton_L3.clicked.connect(lambda *args: otherTools().xiuxingJointHang())
         self.toolButton_L4.clicked.connect(lambda *args: otherTools().xiuxingJoin())
         self.toolButton_L5.clicked.connect(lambda *args: otherTools().TransferUV())
-        self.toolButton_L6.clicked.connect(lambda *args: otherTools().doPlugin("ngRelax"))
+        self.toolButton_L6.clicked.connect(lambda *args: ngSmooth_BbBB().doIt())
         self.toolButton_L7.clicked.connect(lambda *args: cRivet("follicle"))
         
-        self.ui.load_pages.left_tool_layout.addWidget(self.leftTool_lableLine)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L7)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L5)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L6)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L4)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L3)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L1)
-        self.ui.load_pages.left_tool_layout.addWidget(self.toolButton_L2)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L7)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L5)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L6)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L4)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L3)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L1)
+        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L2)
         self.left_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.ui.load_pages.left_tool_layout.addItem(self.left_VSpacer)
-
+        self.ui.load_pages.left_scrollArea_vLayout.addItem(self.left_VSpacer)
+        
         # Right
         self.rightTool_lableLine = cusLableLine('HC', self.themes["app_color"]["text_foreground"], u'界面工具', 35)
+        self.ui.load_pages.right_tool_layout.addWidget(self.rightTool_lableLine)
+        self.ui.load_pages.right_tool_layout.addWidget(self.ui.load_pages.right_scrollArea)
         self.toolButton_R1 = cusPushButton(
             text=u"曲面毛囊",
             radius=4,
@@ -458,20 +460,20 @@ class MainWindow(QMainWindow):
         self.toolButton_R10.clicked.connect(lambda *args: FixError().ToolUi())
         self.toolButton_R11.clicked.connect(lambda *args: ngSk2Weight_BbBB().ToolUi())
 
-        self.ui.load_pages.right_tool_layout.addWidget(self.rightTool_lableLine)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R5)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R1)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R6)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R8)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R9)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R2)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R4)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R3)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R11)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R7)
-        self.ui.load_pages.right_tool_layout.addWidget(self.toolButton_R10)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R5)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R1)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R6)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R8)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R9)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R2)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R4)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R3)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R11)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R7)
+        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R10)
         self.right_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.ui.load_pages.right_tool_layout.addItem(self.right_VSpacer)
+        self.ui.load_pages.right_scrollArea_vLayout.addItem(self.right_VSpacer)
+        
 """
 if __name__ == "__main__":
     app = QApplication(sys.argv)

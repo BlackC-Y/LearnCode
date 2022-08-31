@@ -289,24 +289,20 @@ class MainFunctions():
         super().__init__()
         # SETUP MAIN WINDOw
         # Load widgets from "uis\ui_main.py"
-        # ///////////////////////////////////////////////////////////////
         self.ui = UI_MainWindow()
         self.ui.setup_ui(self)
 
     # SET MAIN WINDOW PAGES
-    # ///////////////////////////////////////////////////////////////
     def set_page(self, page):
         self.ui.load_pages.pages.setCurrentWidget(page)
 
     # SET LEFT COLUMN PAGES
-    # ///////////////////////////////////////////////////////////////
     def set_left_column_menu(self, menu, title, icon_path):
         self.ui.left_column.menus.menus.setCurrentWidget(menu)
         self.ui.left_column.title_label.setText(title)
         self.ui.left_column.icon.set_icon(icon_path)
 
     # RETURN IF LEFT COLUMN IS VISIBLE
-    # ///////////////////////////////////////////////////////////////
     def left_column_is_visible(self):
         width = self.ui.left_column_frame.width()
         if width == 0:
@@ -315,7 +311,6 @@ class MainFunctions():
             return True
 
     # RETURN IF RIGHT COLUMN IS VISIBLE
-    # ///////////////////////////////////////////////////////////////
     def right_column_is_visible(self):
         width = self.ui.right_column_frame.width()
         if width == 0:
@@ -324,22 +319,18 @@ class MainFunctions():
             return True
 
     # SET RIGHT COLUMN PAGES
-    # ///////////////////////////////////////////////////////////////
     def set_right_column_menu(self, menu):
         self.ui.right_column.menus.setCurrentWidget(menu)
 
     # GET TITLE BUTTON BY OBJECT NAME
-    # ///////////////////////////////////////////////////////////////
     def get_title_bar_btn(self, object_name):
         return self.ui.title_bar_frame.findChild(QPushButton, object_name)
 
     # GET TITLE BUTTON BY OBJECT NAME
-    # ///////////////////////////////////////////////////////////////
     def get_left_menu_btn(self, object_name):
         return self.ui.left_menu.findChild(QPushButton, object_name)
     
     # LEDT AND RIGHT COLUMNS / SHOW / HIDE
-    # ///////////////////////////////////////////////////////////////
     def toggle_left_column(self):
         # GET ACTUAL CLUMNS SIZE
         width = self.ui.left_column_frame.width()

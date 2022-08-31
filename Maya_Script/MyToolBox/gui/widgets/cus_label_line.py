@@ -20,16 +20,6 @@ class cusLableLine(QWidget):
                 frame_line2.setStyleSheet("background: {};".format(color))
                 frame_line2.setMaximumHeight(1)
                 frame_line2.setMinimumHeight(1)
-                Ly.addWidget(frame_line)
-                Ly.addWidget(Label)
-                Ly.addWidget(frame_line2)
-            elif directionStyle[1] == 'L':
-                Ly.addWidget(Label)
-                Ly.addWidget(frame_line)
-            elif directionStyle[1] == 'R':
-                Ly.addWidget(frame_line)
-                Ly.addWidget(Label)
-            
         elif directionStyle[0] == 'V':
             Ly = QVBoxLayout(self)
             Ly.setContentsMargins(0,5,0,5)
@@ -43,16 +33,18 @@ class cusLableLine(QWidget):
                 frame_line2.setStyleSheet("background: {};".format(color))
                 frame_line2.setMaximumWidth(1)
                 frame_line2.setMinimumWidth(1)
-                Ly.addWidget(frame_line)
-                Ly.addWidget(Label)
-                Ly.addWidget(frame_line2)
-            elif directionStyle[1] == 'L':
-                Ly.addWidget(Label)
-                Ly.addWidget(frame_line)
-            elif directionStyle[1] == 'R':
-                Ly.addWidget(frame_line)
-                Ly.addWidget(Label)
-
+        
+        Ly.setSizeConstraint(QLayout.SetMinAndMaxSize)
+        if directionStyle[1] == 'C':
+            Ly.addWidget(frame_line)
+            Ly.addWidget(Label)
+            Ly.addWidget(frame_line2)
+        elif directionStyle[1] == 'L':
+            Ly.addWidget(Label)
+            Ly.addWidget(frame_line)
+        elif directionStyle[1] == 'R':
+            Ly.addWidget(frame_line)
+            Ly.addWidget(Label)
         Label.setStyleSheet("color: {};".format(color))
         Label.setAlignment(Qt.AlignHCenter|Qt.AlignVCenter)
         Label.setText(Text)

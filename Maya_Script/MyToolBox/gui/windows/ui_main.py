@@ -278,19 +278,36 @@ class Ui_MainPages(object):
         self.page_1 = QWidget()
         self.page_1.setObjectName(u"page_1")
         self.page_1.setStyleSheet(u"font-size: 8pt")
-        self.page_1_layout = QHBoxLayout(self.page_1)
-        self.page_1_layout.setSpacing(60)
-        self.page_1_layout.setObjectName(u"page_1_layout")
-        self.page_1_layout.setContentsMargins(30, 10, 30, 10)
+        self.page_1_HLayout = QHBoxLayout(self.page_1)
+        self.page_1_HLayout.setSpacing(60)
+        self.page_1_HLayout.setContentsMargins(30, 10, 30, 10)
         self.left_tool_layout = QVBoxLayout()
         self.left_tool_layout.setSpacing(5)
         self.left_tool_layout.setContentsMargins(0,0,0,0)
+        self.left_scrollArea = QScrollArea(self.page_1)
+        self.left_scrollArea.setWidgetResizable(True)
+        self.left_scrollArea.setStyleSheet(u"background: transparent;")
+        self.left_scrollArea.setFrameShape(QFrame.NoFrame)
+        self.left_scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.left_scrollAreaWidgetContents = QWidget()
+        self.left_scrollArea_vLayout = QVBoxLayout(self.left_scrollAreaWidgetContents)
+        self.left_scrollArea.setWidget(self.left_scrollAreaWidgetContents)
         self.right_tool_layout = QVBoxLayout()
         self.right_tool_layout.setSpacing(5)
         self.right_tool_layout.setContentsMargins(0,0,0,0)
-        self.page_1_layout.addLayout(self.left_tool_layout)
-        self.page_1_layout.addLayout(self.right_tool_layout)
-
+        self.right_scrollArea = QScrollArea(self.page_1)
+        self.right_scrollArea.setWidgetResizable(True)
+        self.right_scrollArea.setStyleSheet(u"background: transparent;")
+        self.right_scrollArea.setFrameShape(QFrame.NoFrame)
+        self.right_scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.right_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.right_scrollAreaWidgetContents = QWidget()
+        self.right_scrollArea_vLayout = QVBoxLayout(self.right_scrollAreaWidgetContents)
+        self.right_scrollArea.setWidget(self.right_scrollAreaWidgetContents)
+        
+        self.page_1_HLayout.addLayout(self.left_tool_layout)
+        self.page_1_HLayout.addLayout(self.right_tool_layout)
 
         self.pages.addWidget(self.page_1)
         self.page_2 = QWidget()
@@ -317,8 +334,8 @@ class Ui_MainPages(object):
         
         self.scroll_area.setWidget(self.contents)
         self.page_2_layout.addWidget(self.scroll_area)
-
         self.pages.addWidget(self.page_2)
+
         self.page_3 = QWidget()
         self.page_3.setObjectName(u"page_3")
         self.page_3.setStyleSheet(u"QFrame {font-size: 8pt;}")
@@ -327,16 +344,11 @@ class Ui_MainPages(object):
         self.empty_page_label = QLabel(self.page_3)
         self.empty_page_label.setObjectName(u"empty_page_label")
         self.empty_page_label.setAlignment(Qt.AlignCenter)
-
         self.page_3_layout.addWidget(self.empty_page_label)
-
         self.pages.addWidget(self.page_3)
 
         self.main_pages_layout.addWidget(self.pages)
 
-
         MainPages.setWindowTitle(QCoreApplication.translate("MainPages", u"Form", None))
-
         self.pages.setCurrentIndex(0)
-
         QMetaObject.connectSlotsByName(MainPages)

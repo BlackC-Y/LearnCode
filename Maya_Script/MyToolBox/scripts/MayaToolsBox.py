@@ -8,7 +8,6 @@ from .CtrlTool import *
 from .cur2IK_FX import *
 from .DataSaveUi import *
 from .PSDshape import *
-from .Rivet import *
 from .WeightTool import *
 from .MirrorDriverKey import *
 from .OtherTools import *
@@ -21,7 +20,7 @@ class MayaToolsBox_BbBB():
         self.Info = [
             [u'Rivet', u'Rivet铆钉', 'cRivet("follicle")'],
             [u'传递UV', u'传递UV \n选择UV模型+要传递的模型', 'otherTools().TransferUV()'],
-            [u'ngRelax', u'ngRelax权重', 'otherTools().doPlugin("ngRelax")'],
+            [u'ngRelax', u'ngRelax权重', 'ngSmooth_BbBB().doIt()'],
             [u'修型骨骼xu', u'创建修型骨骼(高自定义) \n选择要修型的骨骼', 'otherTools().xiuxingJoint()'],
             [u'修型骨骼Hang', u'创建修型骨骼(航少版) \n选择要修型的骨骼', 'otherTools().xiuxingJointHang()'],
             [u'创建Locator', u'在选择物体的位置创建Locator', 'otherTools().createLocator()'],

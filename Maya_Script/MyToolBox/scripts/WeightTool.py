@@ -14,7 +14,7 @@ import os
 class WeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.04'
+        Ver = '1.05'
         self.ToolUi = 'WeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
@@ -1015,7 +1015,7 @@ class WeightCheckTool_BbBB():
         _decimalStr = "{:.%sf}" %_decimalInt
         _decimal = decimal.Decimal(_decimalStr.format(1))
         _decimal1 = decimal.Decimal('1.0')
-        oneinAll = len(self.BadList)/100
+        oneinAll = len(self.BadList)/100.0
         progressNum = 0
         doneNum = 0
         for i in self.BadList:
@@ -1059,7 +1059,7 @@ class WeightCheckTool_BbBB():
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         Influence = cmds.intField('%s_InfluenceInt' %self.Ui, q=1, v=1)
-        oneinAll = len(self.BadList)/100
+        oneinAll = len(self.BadList)/100.0
         progressNum = 0
         doneNum = 0
         for v in self.BadList:

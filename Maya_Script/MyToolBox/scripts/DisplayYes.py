@@ -1,9 +1,13 @@
 # -*- coding: UTF-8 -*-
-from PySide2.QtWidgets import QWidget, QLineEdit
-import shiboken2
 from maya import cmds, mel
 from maya import OpenMayaUI as OmUI
 from maya.api import OpenMaya as om
+try:
+    from PySide2.QtWidgets import QWidget, QLineEdit
+    import shiboken2
+except ImportError:      #2016以下兼容
+    from PySide.QtGui import QWidget, QLineEdit
+    import shiboken as shiboken2
 
 
 class DisplayYes():

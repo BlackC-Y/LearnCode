@@ -3,11 +3,15 @@
            . Bake Cloth功能构建
            . mirrorPose优化成BS内进行操作
 '''
-from PySide2.QtWidgets import QPushButton
-import shiboken2
 from maya import cmds, mel
 from maya import OpenMayaUI as OmUI
 from maya.api import OpenMaya as om
+try:
+    from PySide2.QtWidgets import QPushButton
+    import shiboken2
+except ImportError:      #2016以下兼容
+    from PySide.QtGui import QPushButton
+    import shiboken as shiboken2
 
 
 class PSD_PoseUi():

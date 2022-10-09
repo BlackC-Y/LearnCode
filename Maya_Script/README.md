@@ -3,6 +3,18 @@
 <h3 align="center">  </h3>
 <p align="center">
 
+
+## [ngSk2Weight `|基于NG2的自动分权重 Relax|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ngSk2Weight.py)
+
+#### 2022-08-31  Verision: `0.6x`
+<details>
+<summary>详情</summary>
+<pre>
+基于NG2的自动分权重 和 Smooth权重
+</pre>
+</details>
+
+
 ## [CtrlTool `|控制器工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CtrlTool.py)
 
 #### 2021-02-04  Verision: `1.0x`

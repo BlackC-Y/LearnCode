@@ -1,10 +1,16 @@
 # -*- coding: UTF-8 -*-
-'''Roadmap:
+'''Roadmap:1.镜像功能 mirrorLayerWeight
 '''
 from maya import cmds, mel
+from maya import OpenMayaUI as OmUI
 from maya.api import OpenMaya as om, OpenMayaAnim as omAni
+from PySide2.QtWidgets import QPushButton
+import shiboken2
+
 #from .RecordLog_Maya import *
-from .DisplayYes import *
+from .Utils import QtStyle
+from .DisplayYes import DisplayYes
+
 import json
 import sys
 import os
@@ -19,15 +25,18 @@ class ngSk2Weight_BbBB():
     def __init__(self):
         self.Ui = 'ngSk2Weight_Ui'
 
-    def ToolUi(self):
-        if not self.pluginCheck():
+    def ToolUi(self, layout=0):
+        if not ngUtils_BbBB.pluginCheck():
+            om.MGlobal.displayError(u'这个Maya中缺少ng2插件, 无法使用!')
             return
-        Ver = 0.6
+        Ver = 0.7
         if cmds.window(self.Ui, q=1, ex=1):
             cmds.deleteUI(self.Ui)
-        cmds.window(self.Ui, t='ngSk2Weight Beta1', rtf=1, mb=1, tlb=1, wh=(240, 118))
-        cmds.columnLayout('%s_MainCL' %self.Ui, cat=('both', 2), rs=1, cw=230, adj=1)
-        cmds.optionMenu('%s_TemplateMenu' %self.Ui, l=u'选择模板', mvi=6)
+        if not layout:
+            cmds.window(self.Ui, t='ngSk2Weight', rtf=1, mb=1, tlb=1, bgc=QtStyle.backgroundColor)
+        cmds.columnLayout('%s_MainCL' %self.Ui, cat=('both', 2), rs=1, cw=420)
+        cmds.rowLayout(nc=2, h=28, cw2=(200, 150), co2=(5, 5), ct2=('both', 'both'), rat=((1, 'both', 2), (2, 'both', 2)))
+        cmds.optionMenu('%s_TemplateMenu' %self.Ui, l=u'模板 ', mvi=6)
         self.DataLoc = '%s/MyToolBoxDir/Data/ngSk2Weight/' %os.getenv('ALLUSERSPROFILE')
         if os.path.isdir(self.DataLoc):
             fileList = os.listdir(self.DataLoc)
@@ -36,71 +45,92 @@ class ngSk2Weight_BbBB():
                     fileSplit = i.rsplit('.')
                     if fileSplit[1] == 'json':
                         cmds.menuItem(l=fileSplit[0])
-        
         cmds.rowLayout(nc=2, h=28)
-        cmds.checkBox('%s_assignMaxInfluencesCB' %self.Ui, l=u'最大影响值', v=1)
-        cmds.intField('%s_assignMaxInfluencesNum' %self.Ui, v=8)
+        cmds.checkBox('%s_maxInfluencesCB' %self.Ui, l=u'最大影响值', v=1)
+        cmds.intField('%s_maxInfluencesNum' %self.Ui, v=8, w=28)
         cmds.setParent('..')
-        cmds.button(l=u'运行', c=lambda *args: self.doIt())
+        cmds.setParent('..')
+        cmds.rowLayout(nc=2, h=28)
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'临时模板', w=200, c=lambda *args: self.tempSelectJointUi()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'运行', w=200, c=lambda *args: self.doIt()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
         cmds.popupMenu()
         cmds.menuItem('%s_objHaveSkin' %self.Ui, cb=0, l=u'模型已有蒙皮')
-        cmds.menuItem(d=1, dl=u'相关工具')
-        cmds.menuItem(l=u'临时选择骨骼处理权重', c=lambda *args: self.tempSelectJointUi())
-        cmds.menuItem(l=u'选择骨骼快速建层分权重', c=lambda *args: slJointCreateNgLayer_BbBB().ToolUi())
-        cmds.separator(h=10)
-        cmds.button('%s_foldSwitch' %self.Ui, l=u'Smooth △', c=lambda *args: self.foldSmoothPage())
-        cmds.showWindow(self.Ui)
-        cmds.window(self.Ui, e=1, rtf=1, wh=(240, 118))
-
-    def pluginCheck(self):
-        try:
-            cmds.loadPlugin('ngSkinTools2', qt=1)
-            import ngSkinTools2.api as ng2api
-        except (RuntimeError, ImportError):
-            om.MGlobal.displayError(u'这个Maya中缺少ng2插件, 无法使用!')
-            return 0
-        return 1
-
-    def foldSmoothPage(self):
-        if cmds.button('%s_foldSwitch' %self.Ui, q=1, l=1) == u'Smooth ▽':
-            cmds.deleteUI('%s_smoothRCL' %self.Ui, lay=1)
-            cmds.button('%s_foldSwitch' %self.Ui, e=1, l=u'Smooth △')
-            cmds.window(self.Ui, e=1, rtf=1, wh=(240, 118))
-        else:
-            sllist = cmds.ls(sl=1)
-            if not sllist:
-                om.MGlobal.displayError(u'什么都没选, 做咩啊')
-                return
-            clusterName = ng2api.target_info.get_related_skin_cluster(sllist[0])
-            if not clusterName:
-                om.MGlobal.displayError(u'模型上没得蒙皮, 做咩啊')
-                return
-            if not cmds.listConnections('%s.message' %clusterName, d=1, t='ngst2SkinLayerData'):
-                om.MGlobal.displayError(u'模型上没有Ng数据, smooth功能不可用')
-                return
-            objLayers = ng2api.Layers(clusterName)
-            objAllLayer = objLayers.list()
-            cmds.rowColumnLayout('%s_smoothRCL' %self.Ui, nc=2, cs=(2, 2), rs=(1, 2), w=240, p='%s_MainCL' %self.Ui)
-            cmds.radioCollection('%s_smoothLayerRC' %self.Ui)
-            for i in objAllLayer:
-                if i.name == 'assignBase' or not max(self.get_LayerWeights(i, 'mask')):
-                    continue
-                cmds.radioButton(l=i.name, h=22)
-                cmds.radioButton(l=u'%s子骨骼' %i.name, h=22)
-            cmds.button(l=u'< 反Smooth', h=25, c=lambda *args: self.floodLayerWeight(0, objAllLayer))
-            cmds.button(l=u'Smooth >', h=25, c=lambda *args: self.floodLayerWeight(1, objAllLayer))
-            cmds.checkBox('%s_floodMaxInfluencesCB' %self.Ui, h=25, l=u'最大影响值', v=cmds.checkBox('%s_assignMaxInfluencesCB' %self.Ui, q=1, v=1))
-            cmds.intField('%s_floodMaxInfluencesNum' %self.Ui, h=25, v=cmds.intField('%s_assignMaxInfluencesNum' %self.Ui, q=1, v=1))
-            #cmds.checkBox('%s_limitSelectComponentCB' %self.Ui, l=u'只影响选中的点', v=0)
-            cmds.button(l=u'镜像权重', h=25, c=lambda *args: self.mirrorLayerWeight(sllist[0], clusterName, objAllLayer))
-            cmds.button(l=u'结束使用', h=25, c=lambda *args: self.finishUseNg(clusterName))
-            cmds.button('%s_foldSwitch' %self.Ui, e=1, l=u'Smooth ▽')
+        cmds.setParent('..')
+        cmds.rowLayout(nc=2, cw2=(280, 120), co2=(2, 2), ct2=('both', 'both'), rat=((1, 'both', 2), (2, 'both', 2)))
+        cmds.frameLayout(cll=1, cl=1, mw=5, l=u'快速创建Ng层')
+        cmds.columnLayout(cat=('both', 2), rs=2, adj=1)
+        cmds.textFieldButtonGrp('%s_selectObj' %self.Ui, bl=u'选择', columnAlign=[1, 'center'], adj=2, cw3=[50, 160, 50], ed=0, bc=lambda *args: selectObj(), l=u'选择模型')
+        def selectObj():
+            sllist = cmds.ls(sl=1, typ='transform')
+            if sllist:
+                if not ng2api.target_info.get_related_skin_cluster(sllist[0]):
+                    om.MGlobal.displayError(u'模型上没得蒙皮')
+                    return
+                selectObj = sllist[0]
+                cmds.textFieldButtonGrp('%s_selectObj' %self.Ui, e=1, tx=selectObj)
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'创建', c=lambda *args: self.slJointCreateNgLayer(selectObj)))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        cmds.setParent('..')
+        cmds.setParent('..')
+        cmds.frameLayout(cll=1, cl=1, mw=5, l=u'复制Ng权重')
+        cmds.columnLayout(cat=('both', 2), rs=2, adj=1)
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'复制点权重', c=lambda *args: self.copyVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'粘贴点权重', c=lambda *args: self.pasteVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
         
+        
+        cmds.setParent('..')
+        cmds.setParent('..')
+        cmds.setParent('..')
+        
+        #cmds.popupMenu(b=1)
+        #cmds.menuItem(d=1, dl=u'相关工具')
+        #cmds.menuItem(l=u'临时选择骨骼处理权重', )
+        #cmds.menuItem(l=u'辅助工具', c=lambda *args: ngSk2Tools_BbBB().ToolUi())
+        #cmds.separator(h=10)
+        #cmds.radioCollection('%s_smoothLayerRC' %self.Ui)
+        
+        if not layout:
+            #cmds.frameLayout('%s_smoothQuickL' %self.Ui, cll=1, cl=1, mw=5, l=u'Smooth', cc=lambda *args: foldSmoothPage(1), ec=lambda *args: foldSmoothPage(0))
+            cmds.showWindow(self.Ui)
+
+    """
+        def foldSmoothPage(sate):
+            if sate:
+                cmds.window(self.Ui, e=1, rtf=1, wh=(240, 118))
+            else:
+                sllist = cmds.ls(sl=1)
+                if not sllist:
+                    om.MGlobal.displayError(u'什么都没选, 做咩啊')
+                    return
+                clusterName = ng2api.target_info.get_related_skin_cluster(sllist[0])
+                if not clusterName:
+                    om.MGlobal.displayError(u'模型上没得蒙皮, 做咩啊')
+                    return
+                if not cmds.listConnections('%s.message' %clusterName, d=1, t='ngst2SkinLayerData'):
+                    om.MGlobal.displayError(u'模型上没有Ng数据, smooth功能不可用')
+                    return
+                objLayers = ng2api.Layers(clusterName)
+                objAllLayer = objLayers.list()
+                
+                for i in objAllLayer:
+                    if i.name == 'assignBase' or not ngUtils_BbBB.get_LayerWeights(i, 'mask'):
+                        continue
+                    cmds.radioButton(l=i.name, h=22)
+                    if len(i.get_used_influences()) != 1:
+                        cmds.radioButton(l=u'%s子骨骼' %i.name, h=22)
+                cmds.button(l=u'< 反Smooth', h=25, c=lambda *args: self.floodLayerWeight(0, objAllLayer))
+                cmds.button(l=u'Smooth >', h=25, c=lambda *args: self.floodLayerWeight(1, objAllLayer))
+                #cmds.button(l=u'镜像权重', h=25, c=lambda *args: self.mirrorLayerWeight(clusterName, objAllLayer))
+                cmds.button(l=u'删除NG节点', h=25, c=lambda *args: self.finishUseNg(clusterName))
+
     def floodLayerWeight(self, mode, objAllLayer):
         slLayer = cmds.radioButton(cmds.radioCollection('%s_smoothLayerRC' %self.Ui, q=1, sl=1), q=1, l=1)
         FloodSettings = ng2api.FloodSettings()
-        FloodSettings.influences_limit = cmds.intField('%s_floodMaxInfluencesNum' %self.Ui, q=1, v=1) \
-                                            if cmds.checkBox('%s_floodMaxInfluencesCB' %self.Ui, q=1, v=1) else 0
+        FloodSettings.influences_limit = cmds.intField('%s_maxInfluencesNum' %self.Ui, q=1, v=1) if cmds.checkBox('%s_maxInfluencesCB' %self.Ui, q=1, v=1) else 0
         #FloodSettings.limit_to_component_selection = cmds.checkBox('%s_limitSelectComponentCB' %self.Ui, q=1, v=1)
         if mode:
             FloodSettings.mode = ng2api.paint.PaintMode.smooth
@@ -129,17 +159,18 @@ class ngSk2Weight_BbBB():
             for i in objAllLayer:
                 if i.name == slLayer:
                     break
-            ng2api.flood_weights(i, 'mask', FloodSettings)
+            ng2api.flood_weights(i, influence='mask', settings=FloodSettings)
     
-    def mirrorLayerWeight(self, prwObj, clusterName, objAllLayer):
-        for i in objAllLayer:
-            cmds.ngst2Layers(clusterName, id=i.index, mirrorLayerWeights=1, mirrorLayerMask=1, 
-                                mirrorDirection=ng2api.MirrorOptions.directionPositiveToNegative)
-        cmds.skinPercent(clusterName, prwObj, prw=0.001)
+    def mirrorLayerWeight(self, clusterName, objAllLayer):
+        #for i in objAllLayer:
+        cmds.ngst2Layers(clusterName, mirrorLayerWeights=1, mirrorLayerMask=1, mirrorLayerDq=0, mirrorDirection=1)
 
     def finishUseNg(self, clusterName):
         if cmds.confirmDialog(t='Confirm', m=u'确定不在需要使用Smooth了吗, 此操作将删除ng节点', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
+            ng2api.export_json(clusterName, '%s/ngWeight_%s_%s.json' 
+                                %(os.getenv('TEMP'), os.path.basename(cmds.file(q=1, sn=1)), cmds.listConnections('%s.outputGeometry' %clusterName, s=0)[0]))
             cmds.delete([i for i in cmds.listHistory(clusterName, future=1, levels=1) if cmds.nodeType(i) in ['ngst2MeshDisplay', 'ngst2SkinLayerData']])
+    """
 
     def tempSelectJointUi(self):
         TUi = '%s_tempSelectJointdoIt_Ui' %self.Ui
@@ -151,7 +182,7 @@ class ngSk2Weight_BbBB():
         }
         if cmds.window(TUi, q=1, ex=1):
             cmds.deleteUI(TUi)
-        cmds.window(TUi, t=u'临时选择骨骼处理权重', p=self.Ui, rtf=1, mb=1, tlb=1, wh=(240, 240))
+        cmds.window(TUi, t=u'临时选择骨骼处理权重', rtf=1, mb=1, tlb=1, wh=(240, 240))
         cmds.columnLayout('%s_MainCL' %TUi, cat=('both', 2), rs=1, cw=230, adj=1)
         
         def select(args):
@@ -433,9 +464,9 @@ class ngSk2Weight_BbBB():
                     layerIndex = dataLayersOrder.index(key) + 1
                     jointIndex = ngPath_Index[ngPath_Index.index(i) + 1]
                     if heatMapLayer:
-                        layerList[layerIndex].set_weights(jointIndex, self.get_LayerWeights(heatMapLayer, jointIndex), undo_enabled=0)
+                        layerList[layerIndex].set_weights(jointIndex, ngUtils_BbBB.get_LayerWeights(heatMapLayer, jointIndex), undo_enabled=0)
                     else:
-                        layerList[layerIndex].set_weights(jointIndex, self.get_LayerWeights(layerList[0], jointIndex), undo_enabled=0)
+                        layerList[layerIndex].set_weights(jointIndex, ngUtils_BbBB.get_LayerWeights(layerList[0], jointIndex), undo_enabled=0)
                     ng2api.tools.fill_transparency(layerList[layerIndex])
                     break
         
@@ -458,23 +489,23 @@ class ngSk2Weight_BbBB():
                 _addHeatMapWeightList = []
                 for indexList, index in enumerate(_layerJointNum):
                     if len(_layerJointNum) == 1: #如果本层只有一个骨骼 -> 且该骨骼没有权重，则返回Base层的权重
-                        return self.get_LayerWeights(layerList[0], index) \
-                            if not max(self.get_LayerWeights(heatMapLayer, index)) else self.get_LayerWeights(heatMapLayer, index)
+                        result = ngUtils_BbBB.get_LayerWeights(heatMapLayer, index)
+                        return ngUtils_BbBB.get_LayerWeights(layerList[0], index) if not result else result
                     if indexList == len(_layerJointNum) - 1:   #最后一个骨骼 进行权重整理
                         # 如果v3(Base层)有权重 > 而且v1(此层已循环骨骼的热度贴图权重之和)或v2(此层当前骨骼的热度贴图权重)之中有一个是有权重的，则这个点在范围内
                         # 如果v3(Base层)没有权重, 但v1是有权重的, 则这个点在范围内
                         # 如果v3(Base层)没有权重, 而且v1也没有权重, 则这个点不在范围内
                         _addHeatMapWeightList = [1 if v3 and v1 or v2 else 1 if v1 else 0 for v1, v2, v3 in 
-                                zip(_addHeatMapWeightList, self.get_LayerWeights(heatMapLayer, index), self.get_LayerWeights(layerList[0], index))]
+                                zip(_addHeatMapWeightList, ngUtils_BbBB.get_LayerWeights(heatMapLayer, index), ngUtils_BbBB.get_LayerWeights(layerList[0], index))]
                     else:
-                        _addHeatMapWeightList = [v1 + v2 for v1, v2 in zip(_addHeatMapWeightList, self.get_LayerWeights(heatMapLayer, index))] \
-                                                                    if _addHeatMapWeightList else self.get_LayerWeights(heatMapLayer, index)   #相同代码 减少占用
+                        _addHeatMapWeightList = [v1 + v2 for v1, v2 in zip(_addHeatMapWeightList, ngUtils_BbBB.get_LayerWeights(heatMapLayer, index))] \
+                                                                    if _addHeatMapWeightList else ngUtils_BbBB.get_LayerWeights(heatMapLayer, index)   #相同代码 减少占用
                 return _addHeatMapWeightList
             else:
                 _addngWeightList = []
                 for indexList, index in enumerate(_layerJointNum):
-                    _addngWeightList = [v1 + v2 for v1, v2 in zip(_addngWeightList, self.get_LayerWeights(layerList[0], index))] \
-                                                            if _addngWeightList else self.get_LayerWeights(layerList[0], index)   #相同代码 减少占用
+                    _addngWeightList = [v1 + v2 for v1, v2 in zip(_addngWeightList, ngUtils_BbBB.get_LayerWeights(layerList[0], index))] \
+                                                            if _addngWeightList else ngUtils_BbBB.get_LayerWeights(layerList[0], index)   #相同代码 减少占用
                 return _addngWeightList
 
         for l1 in reversed(dataWeightOrder):   #肢体块
@@ -500,10 +531,6 @@ class ngSk2Weight_BbBB():
 
         if heatMapLayer:
             cmds.delete(cmds.listRelatives(cmds.skinCluster(heatMapLayer.mesh, q=1, g=1), p=1))
-
-    def get_LayerWeights(self, Layer, influence):
-        return mel.eval("ngst2Layers -id {id} -paintTarget {index} -q -{arg} {mesh}".format(
-                            mesh=Layer.mesh, id=Layer.id, index=influence, arg='vertexWeights'))
 
     def layersFloodWeight(self):
         #入参
@@ -547,47 +574,21 @@ class ngSk2Weight_BbBB():
             ng2api.flood_weights(i, settings=FloodSettings)
             lastJoint = skCluInfo[skCluInfo.index(joint) + 1]   #最后一节骨骼的权重点数
             FloodSettings.iterations = 1 if lastJoint < 40 else int(lastJoint / 40)
-            ng2api.flood_weights(i, 'mask', FloodSettings)
+            ng2api.flood_weights(i, influence='mask', settings=FloodSettings)
 
-
-class slJointCreateNgLayer_BbBB():
-
-    def ToolUi(self):
-        self.Ui = 'slJointCreateNgLayer_Ui'
-        if cmds.window(self.Ui, q=1, ex=1):
-            cmds.deleteUI(self.Ui)
-        cmds.window(self.Ui, t=u'选择骨骼创建Ng层', rtf=1, mb=1, tlb=1, wh=(240, 240))
-        cmds.columnLayout('%s_MainCL' %self.Ui, cat=('both', 2), rs=1, cw=230, adj=1)
-
-        self.UiData = ''
-        def select():
-            sllist = cmds.ls(sl=1, typ='transform')
-            if sllist:
-                self.UiData = sllist[0]
-                cmds.textFieldButtonGrp('%s_selectObj' %self.Ui, e=1, tx=sllist[0])
-
-        cw3 = [75, 150, 70]
-        cmds.textFieldButtonGrp('%s_selectObj' %self.Ui, bl=u'选择', columnAlign=[1, 'center'], cw3=cw3, adj=2, ed=0, bc=lambda *args: select(), l=u'要添加的模型')
-        cmds.textFieldGrp('%s_LayerName' %self.Ui, columnAlign=[1, 'center'], cw2=cw3[:2], l=u'层名')
-        cmds.button(l=u'运行', c=lambda *args: self.doIt(self.UiData, cmds.textFieldGrp('%s_LayerName' %self.Ui, q=1, tx=1)))
-        cmds.showWindow(self.Ui)
-        cmds.window(self.Ui, e=1, rtf=1)
-
-    def doIt(self, slObj, layerName):
+    ### Tool ###
+    @staticmethod
+    def slJointCreateNgLayer(slObj):
         slJoint = cmds.ls(sl=1, l=1, typ="joint")
         if not slJoint or not slObj:
             om.MGlobal.displayError(u'什么都没选, 做咩啊')
             return
-        clusterName = ng2api.target_info.get_related_skin_cluster(slObj)
-        if not clusterName:
-            om.MGlobal.displayError(u'模型上没得蒙皮, 做咩啊')
-            return
-        skinCluster = clusterName
+        skinCluster = ng2api.target_info.get_related_skin_cluster(slObj)
 
         layers = ng2api.init_layers(skinCluster)
         if not layers.list():
             layers.add("Base")
-        newLayer = layers.add(layerName)
+        newLayer = layers.add('OneNewLayer')
         layerJointPathIndex = ng2api.target_info.list_influences(skinCluster)   #获取骨骼在数据层内的信息
         ngIndex = []
         for lj in slJoint:
@@ -598,31 +599,82 @@ class slJointCreateNgLayer_BbBB():
         ng2api.assign_from_closest_joint(skinCluster, newLayer, ngIndex)   #分权重
         DisplayYes().showMessage(u'处理完成!')
 
+    def copyVtxWeight(self):
+        selVtx = cmds.filterExpand(cmds.ls(sl=1, fl=1)[0], sm=[31])
+        if not selVtx:
+            om.MGlobal.displayError(u'未选择点')
+            return
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+        objLayers = ng2api.Layers(clusterName)
+        objAllLayer = objLayers.list()
+        if not objAllLayer:
+            om.MGlobal.displayError(u'不存在ng权重')
+            return
+        vtxIndex = int(selVtx[0].split('[')[-1][:-1])
+        self.vtxWeightInfo = {'Info': [clusterName, selVtx[0]], 'weights':[]}
+        vtxWeight = []
+        for layer in objAllLayer:
+            if not layer.enabled:
+                continue
+            weights = ngUtils_BbBB.get_LayerWeights(layer, 'mask')
+            if not weights:
+                continue
+            vtxWeight.append([layer, 'mask', weights[vtxIndex]])
+            #for joint in layer.get_used_influences():
+            #    vtxWeight.append([layer, joint, ngUtils_BbBB.get_LayerWeights(layer, joint)[vtxIndex]])
+        self.vtxWeightInfo['weights'] = vtxWeight
+
+    def pasteVtxWeight(self):
+        selVtx = cmds.filterExpand(cmds.ls(sl=1, fl=1), sm=[31])
+        if not selVtx:
+            return
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+        vtxWeightInfo = self.vtxWeightInfo
+        if vtxWeightInfo['Info'][0] != clusterName:
+            om.MGlobal.displayError(u'复制数据不是同一模型')
+            return
+        objLayers = ng2api.Layers(clusterName)
+        objAllLayer = objLayers.list()
+        if not objAllLayer:
+            om.MGlobal.displayError(u'不存在ng权重')
+            return
+        vtxWeightInfo = self.vtxWeightInfo
+        selVtxIndex = []
+        for i in selVtx:
+            selVtxIndex.append(int(i.split('[')[-1][:-1]))
+        FloodSettings = ng2api.FloodSettings()
+        FloodSettings.distribute_to_other_influences = True
+        for vtx in selVtxIndex:
+            for layer in objAllLayer:
+                cmds.select(vtxWeightInfo['Info'][1], r=1)
+                ng2api.copy_component_weights(layer)
+                cmds.select(vtx, r=1)
+                ng2api.paste_average_component_weights(layer)
+            for i in vtxWeightInfo['weights']:
+                FloodSettings.intensity = i[2]
+                ng2api.flood_weights(i[0], influence='mask', settings=FloodSettings)
+
 
 class ngSmooth_BbBB():
 
-    def doIt(self):
+    @classmethod
+    def doIt(cls):
         mayaVer = int(cmds.about(v=1))
         if mayaVer >= 2018:
-            if self.pluginCheck():
-                self.doApi()
+            if ngUtils_BbBB.pluginCheck():
+                cls.doApi()
             else:
                 if mayaVer <= 2020: 
-                    self.doPlugin()
+                    cls.doPlugin()
                 else:
                     om.MGlobal.displayError(u'缺少ng2插件, 无法使用!')
         elif mayaVer >= 2014:
-            self.doPlugin()
+            cls.doPlugin()
 
-    def pluginCheck(self):
-            try:
-                cmds.loadPlugin('ngSkinTools2', qt=1)
-                import ngSkinTools2.api as ng2api
-            except (RuntimeError, ImportError):
-                return 0
-            return 1
-
-    def doPlugin(self):
+    @staticmethod
+    def doPlugin():
         if cmds.pluginInfo('ngSkinTools.mll', q=1, l=1):
             cmds.ngSkinRelax()
             return
@@ -631,7 +683,8 @@ class ngSmooth_BbBB():
             cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
         cmds.ngSkinRelax()
 
-    def doApi(self):
+    @staticmethod
+    def doApi():
         sllist = cmds.ls(sl=1, o=1)
         if not sllist:
             return
@@ -652,6 +705,25 @@ class ngSmooth_BbBB():
         ng2api.flood_weights(baseLayer, settings=FloodSettings)
         cmds.delete([i for i in cmds.listHistory(clusterName, future=1, levels=1) if cmds.nodeType(i) in ['ngst2MeshDisplay', 'ngst2SkinLayerData']])
 
+
+class ngUtils_BbBB():
+
+    @staticmethod
+    def pluginCheck():
+        try:
+            cmds.loadPlugin('ngSkinTools2', qt=1)
+            import ngSkinTools2.api as ng2api
+        except (RuntimeError, ImportError):
+            return 0
+        return 1
+
+    @staticmethod
+    def get_LayerWeights(Layer, influence):
+        result = mel.eval("ngst2Layers -id {id} -paintTarget {index} -q -{arg} {mesh}".format(mesh=Layer.mesh, id=Layer.id, index=influence, arg='vertexWeights'))
+        if result is None:
+            return []
+        return result
+    
 
 #ngSk2Weight_BbBB().ToolUi()
 #ngSmooth_BbBB().doIt()

@@ -2,24 +2,29 @@
 '''Roadmap:
 '''
 from maya import cmds, mel
-from maya import OpenMaya as Om, OpenMayaAnim as OmAni
+#from maya import OpenMaya as Om, OpenMayaAnim as OmAni
 from maya.api import OpenMaya as om, OpenMayaAnim as omAni
+from PySide2.QtWidgets import QPushButton
+import shiboken2
+
+from .Utils import QtStyle
 from .DisplayYes import *
+
 import decimal
 import json
 import time
 import os
 
 
-class WeightTool_BbBB():
+class PointWeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.05'
-        self.ToolUi = 'WeightTool_BbBB'
+        Ver = '1.06'
+        self.ToolUi = 'PointWeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
-        cmds.window(self.ToolUi, t='WeightTool %s' %Ver, rtf=1, mb=1, tlb=1, wh=(230, 500))
-        cmds.menu(l='SkinT', to=1)
+        cmds.window(self.ToolUi, t='PointWeightTool %s' %Ver, rtf=1, mb=1, tlb=1, wh=(230, 500))
+        '''cmds.menu(l='SkinT', to=1)
         cmds.menuItem(d=1, dl="S/L")
         cmds.menuItem(l='Save', c=lambda *args: WeightSL_BbBB().SLcheck('Save'))
         cmds.menuItem(l='Load', c=lambda *args: WeightSL_BbBB().SLcheck('Load'))
@@ -28,7 +33,7 @@ class WeightTool_BbBB():
         cmds.menuItem(l='reset SkinPose', c=lambda *args: self.resetSkinPose())
         cmds.menu(l='RigT', to=1)
         cmds.menuItem(l='Create', c=lambda *args: self.createSelect())
-        cmds.menuItem(l='Get', c=lambda *args: self.getSelect())
+        cmds.menuItem(l='Get', c=lambda *args: self.getSelect())'''
         cmds.columnLayout('FiristcL_BbBB', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.text('spJobchangeVtx_BbBB', p='FiristcL_BbBB', vis=0)
         cmds.scriptJob(e=['SelectTypeChanged', lambda *args: self.refreshBoxChange(None)], p='spJobchangeVtx_BbBB')
@@ -105,21 +110,21 @@ class WeightTool_BbBB():
         cmds.scriptJob(e=['Undo', lambda *args: self.refreshJointList(0)], p='spJobVtxParent_BbBB')
         cmds.scriptJob(e=['SelectionChanged', lambda *args: self.refreshJointList(0)], p='spJobVtxParent_BbBB')
         #cmds.scriptJob(e=['ToolChanger', '自毁'], p='spJobVtxParent_BbBB')
-        cmds.scriptJob(uid=['WeightTool_BbBB', lambda *args: self.refreshBoxChange(9)])
+        cmds.scriptJob(uid=['PointWeightTool_BbBB', lambda *args: self.refreshBoxChange(9)])
 
         PaintSkinCmd = '"ArtPaintSkinWeightsToolOptions;"'
         if int(cmds.about(v=1)) > 2017:
             edgeCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"edge\\\", 0);")'
             vertexCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"vertex\\\", 0);")'
             faceCmd = '("doMenuComponentSelectionExt(\\\"" + $object + "\\\", \\\"facet\\\", 0);")'
-            objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  # python (\\\"WeightTool_BbBB().refreshBoxChange(9)\\\");
+            objModeCmd = '"maintainActiveChangeSelectMode time1 0;"'  # python (\\\"PointWeightTool_BbBB().refreshBoxChange(9)\\\");
         else:
             #2017以下兼容
             edgeCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"edge\\\");")'
             vertexCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"vertex\\\");")'
             faceCmd = '("doMenuComponentSelection(\\\"" + $object + "\\\", \\\"facet\\\");")'
             objModeCmd = '"changeSelectMode -component;changeSelectMode -object;"'
-        #string $selCmd + WeightTool_BbBB()._weightView()
+        #string $selCmd + PointWeightTool_BbBB()._weightView()
         mel.eval(
             'global proc dagMenuProc(string $parent, string $object){ \
             if(!size($object)){ \
@@ -141,12 +146,13 @@ class WeightTool_BbBB():
             if cmds.text('spJobVtxParent_BbBB', q=1, ex=1):
                 cmds.deleteUI('spJobVtxParent_BbBB', ctl=1)
             mel.eval('source "dagMenuProc.mel"')
-            if cmds.window('WeightTool_BbBB', q=1, ex=1):
+            if cmds.window('PointWeightTool_BbBB', q=1, ex=1):
                 cmds.iconTextCheckBox('refresh_BbBB', e=1, v=0)
         else:
             self.spJobStart()
             cmds.iconTextCheckBox('refresh_BbBB', e=1, v=1)
             self.refreshJointList(0)
+        #PointWeightTool_BbBB().refreshBoxChange(9)   #报绿脚本兼容
 
     def refreshJointList(self, refresh, search=''):
         seltyp = 0 if cmds.selectType(q=1, ocm=1, pv=1) or cmds.selectType(q=1, ocm=1, lp=1) or cmds.selectType(q=1, ocm=1, cv=1) else 1
@@ -407,7 +413,6 @@ class WeightTool_BbBB():
             for i in vtxList:
                 _tempVtx.append(i)
         cmds.select(_tempVtx, r=1)
-    # # # # # # # # # #
 
 
 class WeightSL_BbBB():
@@ -474,7 +479,7 @@ class WeightSL_BbBB():
             om.MGlobal.displayError(u'选择的点不支持')
             return
 
-    def vtxSave_Mel(self, filePath):
+    def vtxSave_Mel(self, filePath=''):
         st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         selVtx = cmds.filterExpand(cmds.ls(sl=1, fl=1), sm=[28, 31, 36, 40, 46])
@@ -491,11 +496,11 @@ class WeightSL_BbBB():
             selVtx = cmds.ls('%s%s[*]' % (selobj, suf), fl=1)
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
         
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
         with open(filePath[0], 'w') as vwfile:
-            #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-            #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Save ...', max=len(selVtx))
+            jsonData = {'Data':[]}
             for i in selVtx:
-                #cmds.progressBar(gMainProgressBar, e=1, s=1)
                 valueList = cmds.skinPercent(skCluster, i, ib=10**-15, q=1, v=1)
                 transList = cmds.skinPercent(skCluster, i, ib=10**-15, q=1, t=None)
                 allWeight = 0
@@ -503,13 +508,11 @@ class WeightSL_BbBB():
                     valueList[w] = round(valueList[w], 4)
                     allWeight += valueList[w]
                 valueList[-1] += (1.0 - allWeight)
-                tvList = [[transList[u], valueList[u]] for u in range(len(valueList))]
-                wtStr = '%s--%s\n' % (i.split('.')[-1], tvList)
-                vwfile.write(wtStr)
-            #cmds.progressBar(gMainProgressBar, e=1, ep=1)
+                jsonData['Data'].append([i.split('.')[-1], [[transList[u], valueList[u]] for u in range(len(valueList))]])
+            json.dump(jsonData, vwfile)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
-    def vtxLoad_Mel(self, filePath, selectpoint=0):
+    def vtxLoad_Mel(self, filePath='', selectpoint=0):
         st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
@@ -518,39 +521,32 @@ class WeightSL_BbBB():
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
+
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
         with open(filePath[0], 'r') as vwfile:
+            readData = json.load(vwfile)
             if selectpoint:
                 selVtx = [i.split('.', 1)[-1] for i in cmds.ls(sl=1, fl=1)]
-            line = vwfile.readline()
-            #gMainProgressBar = mel.eval('$tmp = $gMainProgressBar')
-            #cmds.progressBar(gMainProgressBar, e=1, bp=1, ii=1, st='Load ...', max=len(allLine))
             num = 0
-            while line:
-                #cmds.progressBar(gMainProgressBar, e=1, s=1)
-                strsplit = line.split('--')
-                vtx = strsplit[0].strip()
-                tvList = strsplit[-1].strip()
+            for i in readData['Data']:
                 if selectpoint:
-                    if vtx == selVtx[num]:
-                        num += 1
-                        exec('cmds.skinPercent("%s", "%s.%s", tv=%s, nrm=1)' % (skCluster, selobj, vtx, tvList))
-                    line = vwfile.readline()
-                else:
-                    exec('cmds.skinPercent("%s", "%s.%s", tv=%s, nrm=1)' % (skCluster, selobj, vtx, tvList))
-                    line = vwfile.readline()
-        #cmds.progressBar(gMainProgressBar, e=1, ep=1)
+                    if i[0] != selVtx[num]:
+                        continue
+                    num += 1
+                exec('cmds.skinPercent("%s", "%s.%s", tv=%s, nrm=1)' %(skCluster, selobj, i[0], i[1]))
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
     ''' 有报错 仅供参考
-    def vtxSave_Oapi(self, filePath):
+    def vtxSave_Oapi(self, filePath=''):
         st = time.time()
         selList = Om.MSelectionList()
         Om.MGlobal.getActiveSelectionList(selList)
         #_prselList = []
-        # selList.getSelectionStrings(_prselList)   #获取 MSelectionList 内容
-        # print _prselList
+        #selList.getSelectionStrings(_prselList)   #获取 MSelectionList 内容
+        #print _prselList
         MDagPath = Om.MDagPath()  # 存储所选物体的路径
         MObject = Om.MObject()  # 存储所选物体的组件的列表
         selList.getDagPath(0, MDagPath)
@@ -594,6 +590,8 @@ class WeightSL_BbBB():
         # fn = Om.MFnDependencyNode(MDagPath.node())   #获取MDagPath的内容?
         # print fn.name()   #获取 MFnDependencyNode 内容
 
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
         # component组件不为空（点）,线和面会强制转为点
         if MItcomponent.isNull():   #有报错
             vertIter = om.MItMeshVertex(MObject)
@@ -601,6 +599,7 @@ class WeightSL_BbBB():
             vertIter = om.MItMeshVertex(MItDagPath, MItcomponent)
 
         with open(filePath[0], 'w') as vwfile:
+            jsonData = {'Data':[]}
             while not vertIter.isDone():
                 infCount = Om.MScriptUtil()
                 infCountPtr = infCount.asUintPtr()
@@ -609,12 +608,13 @@ class WeightSL_BbBB():
                 skinNode.getWeights(MDagPath, vertIter.currentItem(), weights, infCountPtr)
 
                 tvList = self.zeroWeightData_Save(weights, infNameList)
-                vwfile.write('%s[%s]--%s\n' % (suf, vertIter.index(), tvList))
+                jsonData['Data'].append(['%s[%s]' %(suf, vertIter.index()), tvList])
                 vertIter.next()
+            json.dump(jsonData, vwfile)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
     '''
-
-    def vtxLoad_Oapi(self, filePath):
+    '''
+    def vtxLoad_Oapi(self, filePath=''):
         st = time.time()
         selList = Om.MSelectionList()
         Om.MGlobal.getActiveSelectionList(selList)
@@ -637,36 +637,36 @@ class WeightSL_BbBB():
             infNameList.append(infName)
         # fn = Om.MFnDependencyNode(MDagPath.node())   #获取MDagPath的内容?
         # print fn.name()   #获取 MFnDependencyNode 内容
-
-        allLine = self.readWeightData_Load(filePath[0])
-        if allLine == 'toMel':
-            self.vtxLoad_Mel(filePath)
-            return
         jntLock = []
         for j in infNameList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
-        vertIter = Om.MItGeometry(MObject)
+
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
+        readData = self.readWeightData_Load(filePath[0])
         _Num = 0
+        vertIter = Om.MItGeometry(MObject)
         while not vertIter.isDone():
-            if vertIter.index() != int(allLine[_Num][0]):
+            if vertIter.index() != readData[_Num][0]:
                 vertIter.next()
                 continue
             jntindex = Om.MIntArray()
             weights = Om.MDoubleArray()
             jntindexapp = jntindex.append
             weightsapp = weights.append
-            for i in range(len(allLine[_Num][1])):
-                jntindexapp(infNameList.index(allLine[_Num][1][i]))
-                weightsapp(allLine[_Num][2][i])
-            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)  # False规格化开关默认为True
+            for i, w in zip(readData[_Num][1], readData[_Num][2]):
+                jntindexapp(infNameList.index(i))
+                weightsapp(w)
+            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)
             _Num += 1
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
+    '''
 
-    def vtxSave_api(self, filePath):
+    def vtxSave_api(self, filePath=''):
         st = time.time()
         selList = om.MGlobal.getActiveSelectionList()
         MDagPath = selList.getDagPath(0)  # 存储所选物体的路径
@@ -686,18 +686,22 @@ class WeightSL_BbBB():
         infs = skinNode.influenceObjects()
         infNameList = [infs[i].partialPathName() for i in range(len(infs))]  # 骨骼列表
 
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
         # component组件不为空（点）,线和面会强制转为点
         vertIter = om.MItMeshVertex(MObject) if MItcomponent.isNull() else om.MItMeshVertex(MItDagPath, MItcomponent)
         with open(filePath[0], 'w') as vwfile:
+            jsonData = {'Data':[]}
             while not vertIter.isDone():
                 weights = skinNode.getWeights(MDagPath, vertIter.currentItem())[0]
 
                 tvList = self.zeroWeightData_Save(weights, infNameList)
-                vwfile.write('vtx[%s]--%s\n' % (vertIter.index(), tvList))
+                jsonData['Data'].append(['vtx[%s]' %vertIter.index(), tvList])
                 vertIter.next()
+            json.dump(jsonData, vwfile)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
-    def vtxLoad_api(self, filePath):
+    def vtxLoad_api(self, filePath=''):
         st = time.time()
         selList = om.MGlobal.getActiveSelectionList()
         MDagPath = selList.getDagPath(0)  # 存储所选物体的路径
@@ -712,47 +716,47 @@ class WeightSL_BbBB():
         skinNode = omAni.MFnSkinCluster(skinObj)
         infs = skinNode.influenceObjects()
         infNameList = [infs[i].partialPathName() for i in range(len(infs))]  # 骨骼列表
-
-        allLine = self.readWeightData_Load(filePath[0])
-        if allLine == 'toMel':
-            self.vtxLoad_Mel(filePath)
-            return
-
         jntLock = []
         for j in infNameList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
-        vertIter = om.MItMeshVertex(MObject)
+        
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2, fm=1)
+        readData = self.readWeightData_Load(filePath[0])
         _Num = 0
+        vertIter = om.MItMeshVertex(MObject)
         while not vertIter.isDone():
-            if vertIter.index() != int(allLine[_Num][0]):
+            if vertIter.index() != readData[_Num][0]:
                 vertIter.next()
                 continue
             jntindex = om.MIntArray()
             weights = om.MDoubleArray()
             jntindexapp = jntindex.append
             weightsapp = weights.append
-            for i in range(len(allLine[_Num][1])):
-                jntindexapp(infNameList.index(allLine[_Num][1][i]))
-                weightsapp(allLine[_Num][2][i])
-            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)  # False规格化开关默认为True
+            for i, w in zip(readData[_Num][1], readData[_Num][2]):
+                jntindexapp(infNameList.index(i))
+                weightsapp(w)
+            skinNode.setWeights(MDagPath, vertIter.currentItem(), jntindex, weights, True)
             _Num += 1
             vertIter.next()
         for j, l in zip(infNameList, jntLock):
             cmds.setAttr(j + '.liw', l)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
-    def vtxSave_dW(self, filePath):
+    def vtxSave_dW(self, filePath=''):
         st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
         
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='Xml (*.xml)', ds=2)
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
         attributes = ['envelope', 'skinningMethod', 'normalizeWeights', 'deformUserNormals', 'useComponents']
         cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], ex=1, vc=1, wp=6, attribute=attributes, deformer=[skCluster])
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
-    def vtxLoad_dW(self, filePath):
+    def vtxLoad_dW(self, filePath=''):
         st = time.time()
         selobj = cmds.ls(sl=1, o=1)[0]
         skCluster = mel.eval('findRelatedSkinCluster("%s")' % selobj)
@@ -763,6 +767,8 @@ class WeightSL_BbBB():
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
         
+        if not filePath:
+            filePath = cmds.fileDialog2(ff='Xml (*.xml)', ds=2, fm=1)
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
         cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], deformer=[skCluster], im=1, method='nearest', ws=1)
         cmds.skinCluster([skCluster], e=1, forceNormalizeWeights=1)
@@ -774,124 +780,109 @@ class WeightSL_BbBB():
     def zeroWeightData_Save(self, weights, infNameList, source=0):
         #去除0权重数据, source为1则输出源数据
         if source:
-            return [[infNameList[it], weights[it]] for it in range(len(weights))]
+            return [[i, w] for i, w in zip(infNameList, weights)]
         allWeight = 0
         transList = []
         valueList = []
         _jLappend = transList.append
         _wLappend = valueList.append
-        for i in range(len(weights)):
-            _tempweight = round(weights[i], 4)
+        for i, w in zip(infNameList, weights):
+            _tempweight = round(w, 4)
             if _tempweight:
-                _jLappend(infNameList[i])
+                _jLappend(i)
                 _wLappend(_tempweight)
             allWeight += _tempweight
         valueList[0] += (1.0 - allWeight)
-        return [[transList[it], valueList[it]] for it in range(len(valueList))]
+        return [[i, w] for i, w in zip(transList, valueList)]
 
     def readWeightData_Load(self, path):
-        allLine = []
-        _allappend = allLine.append
         with open(path, 'r') as vwfile:
-            line = vwfile.readline()
-            py3 = 1 if not '[u\'' in line else 0   #没有[u'说明是py3存的文件
-            while line:
-                strsplit = line.split('--')
-                if '][' in strsplit[0]:
-                    return 'toMel'
-                vtx = strsplit[0].split('[', 1)[-1][:-1]
-                _data = strsplit[-1].strip()
-                if '], [' in _data:
-                    jointList = []
-                    _jointListapp = jointList.append
-                    weightList = []
-                    _weightListapp = weightList.append
-                    if py3:
-                        for i in _data[2:-2].split('], ['):
-                            _str = i.split(', ')
-                            _jointListapp(_str[0][1:-1])
-                            _weightListapp(float(_str[1]))
-                        _allappend([vtx, jointList, weightList])
-                    else:
-                        for i in _data[2:-2].split('], ['):
-                            _str = i.split(', ')
-                            _jointListapp(_str[0][2:-1])
-                            _weightListapp(float(_str[1]))
-                        _allappend([vtx, jointList, weightList])
-                else:
-                    _str = _data[2:-2].split(', ')
-                    if py3:
-                        _allappend([vtx, [_str[0][1:-1]], [float(_str[1])]])
-                    else:
-                        _allappend([vtx, [_str[0][2:-1]], [float(_str[1])]])
-                line = vwfile.readline()
-            _allappend([-1, None, None])
-        return allLine
+            readData = json.load(vwfile)
+            for i in readData:
+                i[0] = int(i[0].split('[', 1)[-1][:1])
+            readData.append([-1, None, None])
+        return readData
 
-#WeightTool_BbBB().refreshBoxChange(9)   #报绿脚本兼容
 
 class WeightCheckTool_BbBB():
 
-    def ToolUi(self):
-        self.Ui = 'WeightCheckTool_Ui'
+    def ToolUi(self, layout=0):
+        self.UiName = 'WeightCheckTool_Ui'
         self.DataLoc = '%s/MyToolBoxDir/Data/Settings.json' %os.getenv('ALLUSERSPROFILE')
         if os.path.isfile(self.DataLoc):
             with open(self.DataLoc, 'r') as jsFile:
                 self.readData = json.load(jsFile)
-                self.jsSetting = self.readData[self.Ui]
+                self.jsSetting = self.readData[self.UiName]
             Setting_CheckDefaultMode = self.jsSetting["CheckDefaultMode"]
         else:
             Setting_CheckDefaultMode = 1
-        if cmds.window(self.Ui, q=1, ex=1):
-            cmds.deleteUI(self.Ui)
-        cmds.window(self.Ui, t='WeightCheckTool', rtf=1, s=0, tlb=1, wh=(165, 350), cc=lambda *args: self.saveSettings())
-        MainformLayout = cmds.formLayout(w=165, h=350)
-        cmds.textScrollList('%s_vtxList' %self.Ui, ams=1, w=100, vis=0, 
-                            sc=lambda *args: cmds.textScrollList('%s_weightList' %self.Ui, e=1, da=1, sii=cmds.textScrollList('%s_vtxList' %self.Ui, q=1, sii=1)))
-        cmds.textScrollList('%s_weightList' %self.Ui, ams=1, vis=0, 
-                            sc=lambda *args: cmds.textScrollList('%s_vtxList' %self.Ui, e=1, da=1, sii=cmds.textScrollList('%s_weightList' %self.Ui, q=1, sii=1)))
-        cmds.button('%s_unfold' %self.Ui, l='>', w=20, c=lambda *args: Switchfold())
-        def Switchfold():
-            if cmds.button('%s_unfold' %self.Ui, q=1, l=1) == '<':
-                cmds.button('%s_unfold' %self.Ui, e=1, l='>')
-                cmds.textScrollList('%s_vtxList' %self.Ui, e=1, vis=0)
-                cmds.textScrollList('%s_weightList' %self.Ui, e=1, vis=0)
-                cmds.window(self.Ui, e=1, s=0, wh=(165, 350))
-            else:
-                cmds.button('%s_unfold' %self.Ui, e=1, l='<')
-                cmds.textScrollList('%s_vtxList' %self.Ui, e=1, vis=1)
-                cmds.textScrollList('%s_weightList' %self.Ui, e=1, vis=1)
-                cmds.window(self.Ui, e=1, s=1, rtf=1, wh=(400, 350))
-        cLayout = cmds.columnLayout(cat=('left', 3), h=300, w=140, rs=2)
-        cmds.button(l=u'加载', w=80, h=26, c=lambda *args: self.Load())
-        cmds.button(l=u'清理', w=80, h=26, c=lambda *args: self.Clean())
-        cmds.button(l=u'选择', w=80, h=26, c=lambda *args: self.selectVtx()) 
-        radiocollection = cmds.radioCollection(p=cLayout)
-        cmds.radioButton('%s_DecimalText' %self.Ui, l=u'小数点精度', h=22)
-        cmds.intField('%s_DecimalInt' %self.Ui, w=80, v=3)
-        cmds.radioButton('%s_InfluenceText' %self.Ui, l=u'骨骼影响值', h=22)
-        cmds.intField('%s_InfluenceInt' %self.Ui, w=80, v=4)
-        _intField = ['%s_DecimalText' %self.Ui, '%s_InfluenceText' %self.Ui]
-        cmds.radioCollection(radiocollection, e=1, sl=_intField[Setting_CheckDefaultMode])
-        cmds.text(l='', h=100)
-        cmds.progressBar('%s_progressBar' %self.Ui, w=130, vis=0)
-        cmds.setParent('..')
-        cmds.formLayout(MainformLayout, e=1, af=[('%s_vtxList' %self.Ui, 'top', 3),('%s_vtxList' %self.Ui, 'bottom', 3), ('%s_vtxList' %self.Ui, 'left', 3), 
-                                                    ('%s_weightList' %self.Ui, 'top', 3),('%s_weightList' %self.Ui, 'bottom', 3), 
-                                                    ('%s_unfold' %self.Ui, 'top', 3), ('%s_unfold' %self.Ui, 'bottom', 3), 
-                                                    (cLayout, 'top', 3), (cLayout, 'right', 3)])
-        cmds.formLayout(MainformLayout, e=1, ac=[('%s_weightList' %self.Ui, 'left', 3, '%s_vtxList' %self.Ui), 
-                                                    ('%s_weightList' %self.Ui, 'right', 3, '%s_unfold' %self.Ui), ('%s_unfold' %self.Ui, 'right', 3, cLayout)])
-        cmds.showWindow(self.Ui)
-        cmds.window(self.Ui, e=1, wh=(165, 350))
-    
+        if cmds.window(self.UiName, q=1, ex=1):
+            cmds.deleteUI(self.UiName)
+        if not layout:
+            cmds.window(self.UiName, t='WeightCheckTool', rtf=1, tlb=1, wh=(165, 350), bgc=QtStyle.backgroundColor, cc=lambda *args: self.saveSettings())
+            cmds.columnLayout(cat=('left', 3), h=300, w=140, rs=2)
+        else:
+            cmds.rowColumnLayout(nr=4, cs=((1, 2), (2, 2)), rs=((2, 2), (3, 2)))
+
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'加载', w=80, c=lambda *args: self.Load()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'清理', w=80, c=lambda *args: self.Clean()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'选择', w=80, c=lambda *args: self.selectVtx()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        cmds.text(l='', h=1)
+        cmds.radioCollection()
+        cmds.radioButton('%s_DecimalText' %self.UiName, l=u'小数点精度', h=22)
+        cmds.intField('%s_DecimalInt' %self.UiName, w=80, h=24, v=3)
+        cmds.radioButton('%s_InfluenceText' %self.UiName, l=u'骨骼影响值', h=22)
+        cmds.intField('%s_InfluenceInt' %self.UiName, w=80, h=24, v=4)
+        if Setting_CheckDefaultMode == 0:
+            cmds.radioButton('%s_DecimalText' %self.UiName, e=1, sl=1)
+        else:
+            cmds.radioButton('%s_InfluenceText' %self.UiName, e=1, sl=1)
+        #cmds.radioCollection(e=1, sl=_intField[Setting_CheckDefaultMode])
+        cmds.text(l='', h=20)
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'列出结果', w=80, c=lambda *args: showCheckResult()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+        cmds.progressBar('%s_progressBar' %self.UiName, h=26, w=150, vis=0)
+        self.saveObj = ''
+
+        def showCheckResult():
+            resultUiName = '%s_Result' %self.UiName
+            if cmds.window(resultUiName, q=1, ex=1):
+                cmds.deleteUI(resultUiName)
+            if not self.saveObj or not self.BadList:
+                om.MGlobal.displayWarning(u'没有问题点')
+                return
+            cmds.window(resultUiName, t='result', rtf=1, tlb=1)
+            cmds.rowLayout(nc=2, adj=2, rat=((1, 'both', 2), (2, 'both', 2)))
+            cmds.textScrollList('%s_vtxList' %self.UiName, ams=1, w=100, 
+                                sc=lambda *args: cmds.textScrollList('%s_weightList' %self.UiName, e=1, da=1, sii=cmds.textScrollList('%s_vtxList' %self.UiName, q=1, sii=1)))
+            cmds.textScrollList('%s_weightList' %self.UiName, ams=1, 
+                                sc=lambda *args: cmds.textScrollList('%s_vtxList' %self.UiName, e=1, da=1, sii=cmds.textScrollList('%s_weightList' %self.UiName, q=1, sii=1)))
+            if self.BadList:
+                clusterName = mel.eval('findRelatedSkinCluster("%s")' % self.saveObj)
+                for i in self.BadList:
+                    valueList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, v=1)
+                    transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
+                    tvStr = ''
+                    for w, j in zip(valueList, transList):
+                        tvStr += '%s ~ %s @ ' % (j, w)
+                    cmds.textScrollList('%s_vtxList' %self.UiName, e=1, a=i.split('.')[1])
+                    cmds.textScrollList('%s_weightList' %self.UiName, e=1, a=tvStr)
+                cmds.textScrollList('%s_vtxList' %self.UiName, e=1, si=[i.split('.')[1] for i in self.BadList])
+                cmds.textScrollList('%s_weightList' %self.UiName, e=1, sii=cmds.textScrollList('%s_vtxList' %self.UiName, q=1, sii=1))
+            cmds.showWindow(resultUiName)
+        
+        if not layout:
+            cmds.showWindow(self.UiName)
+        
     def saveSettings(self):
-        self.DataLoc = '%s/MyToolBoxDir/Data/Settings.json' %os.getenv('ALLUSERSPROFILE')
         if os.path.isfile(self.DataLoc):
             with open(self.DataLoc, 'w') as jsFile:
-                self.jsSetting["CheckDefaultMode"] = 0 if cmds.radioButton('%s_DecimalText' %self.Ui, q=1, sl=1) else 1
-                self.readData[self.Ui] = self.jsSetting
-                json.dump(self.readData, jsFile, indent=4)
+                self.jsSetting["CheckDefaultMode"] = 0 if cmds.radioButton('%s_DecimalText' %self.UiName, q=1, sl=1) else 1
+                self.readData[self.UiName] = self.jsSetting
+                json.dump(self.readData, jsFile, indent=2)
 
     def getSel(self):
         sel = cmds.ls(sl=1, fl=1)
@@ -921,61 +912,43 @@ class WeightCheckTool_BbBB():
         return selVtx, clusterName
 
     def Load(self, mode=0):
-        cmds.radioButton('%s_DecimalText' %self.Ui, e=1, l=u'小数点精度')
-        cmds.radioButton('%s_InfluenceText' %self.Ui, e=1, l=u'骨骼影响值')
-        cmds.progressBar('%s_progressBar' %self.Ui, e=1, vis=0)
-        listVis = 0 if cmds.button('%s_unfold' %self.Ui, q=1, l=1) == '>' else 1
+        cmds.radioButton('%s_DecimalText' %self.UiName, e=1, l=u'小数点精度')
+        cmds.radioButton('%s_InfluenceText' %self.UiName, e=1, l=u'骨骼影响值')
+        cmds.progressBar('%s_progressBar' %self.UiName, e=1, vis=0)
+        #listVis = 0 if cmds.button('%s_unfold' %self.UiName, q=1, l=1) == '>' else 1
         selVtx, clusterName = self.getSel()
         if not selVtx or not clusterName:
             return
-        cmds.textScrollList('%s_vtxList' %self.Ui, e=1, ra=1)
-        cmds.textScrollList('%s_weightList' %self.Ui, e=1, ra=1)
+        
         self.BadList = []
         self.LoadInfo = 0
-        if cmds.radioButton('%s_InfluenceText' %self.Ui, q=1, sl=1):
+        if cmds.radioButton('%s_InfluenceText' %self.UiName, q=1, sl=1):
             self.LoadInfo = 1   #Influence
-            maxValue = cmds.intField('%s_InfluenceInt' %self.Ui, q=1, v=1)
+            maxValue = cmds.intField('%s_InfluenceInt' %self.UiName, q=1, v=1)
             for i in selVtx:
                 valueList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
+                #transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
                 if len(valueList) > maxValue:
                     self.BadList.append(i)
-                tvStr = ''
-                for w, j in zip(valueList, transList):
-                    tvStr += '%s ~ %s @ ' % (j, w)
-                if not mode and listVis:
-                    cmds.textScrollList('%s_vtxList' %self.Ui, e=1, a=i.split('.')[1])
-                    cmds.textScrollList('%s_weightList' %self.Ui, e=1, a=tvStr)
+                    continue
             if self.BadList:
-                cmds.radioButton('%s_InfluenceText' %self.Ui, e=1, l=u'超影响值的数量: %s' %len(self.BadList))
-                if not mode and listVis:
-                    cmds.textScrollList('%s_vtxList' %self.Ui, e=1, si=[i.split('.')[1] for i in self.BadList])
-                    cmds.textScrollList('%s_weightList' %self.Ui, e=1, sii=cmds.textScrollList('%s_vtxList' %self.Ui, q=1, sii=1))
+                cmds.radioButton('%s_InfluenceText' %self.UiName, e=1, l=u'超影响值的数量: %s' %len(self.BadList))
         else:
             self.LoadInfo = 2   #Decimal
-            maxValue = cmds.intField('%s_DecimalInt' %self.Ui, q=1, v=1) + 2   #加上0.两位
+            maxValue = cmds.intField('%s_DecimalInt' %self.UiName, q=1, v=1) + 2   #加上0.两位
             for i in selVtx:
                 valueList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, v=1)
-                transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
-                tvStr = ''
-                addTag = 0
-                for w, j in zip(valueList, transList):
-                    tvStr += '%s ~ %s @ ' % (j, w)
-                    if not addTag and len(str(w)) > maxValue:
-                        addTag = 1
-                if addTag:
-                    self.BadList.append(i)
-                if not mode and listVis:
-                    cmds.textScrollList('%s_vtxList' %self.Ui, e=1, a=i.split('.')[1])
-                    cmds.textScrollList('%s_weightList' %self.Ui, e=1, a=tvStr)
+                #transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
+                for w in valueList:
+                    _num = '%.15f' %w
+                    if len(_num.rstrip('0')) > maxValue:
+                        self.BadList.append(i)
+                        break
             if self.BadList:
-                cmds.radioButton('%s_DecimalText' %self.Ui, e=1, l=u'超小数点的数量: %s' %len(self.BadList))
-                if not mode and listVis:
-                    cmds.textScrollList('%s_vtxList' %self.Ui, e=1, si=[i.split('.')[1] for i in self.BadList])
-                    cmds.textScrollList('%s_weightList' %self.Ui, e=1, sii=cmds.textScrollList('%s_vtxList' %self.Ui, q=1, sii=1))
+                cmds.radioButton('%s_DecimalText' %self.UiName, e=1, l=u'超小数点的数量: %s' %len(self.BadList))
 
     def Clean(self):
-        if cmds.radioButton('%s_InfluenceText' %self.Ui, q=1, sl=1):
+        if cmds.radioButton('%s_InfluenceText' %self.UiName, q=1, sl=1):
             if cmds.ls(sl=1, o=1)[0] == self.saveObj and self.LoadInfo == 1:
                 self.RemoveInfluence()
             else:
@@ -989,7 +962,6 @@ class WeightCheckTool_BbBB():
                 self.CleanDecimal()
 
     def selectVtx(self):
-        #vtxList = cmds.textScrollList('%s_vtxList' %Ui, q=1, si=1)
         if not self.BadList:
             return
         _shapeN = self.saveObj
@@ -1003,30 +975,30 @@ class WeightCheckTool_BbBB():
             return
         if not clusterName:
             return
-        cmds.progressBar('%s_progressBar' %self.Ui, e=1, pr=0, vis=1)
+        cmds.progressBar('%s_progressBar' %self.UiName, e=1, pr=0, vis=1)
         jntList = cmds.skinCluster(self.saveObj, q=1, inf=1)
         jntLock = []
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
+        
+        _decimalInt = cmds.intField('%s_DecimalInt' %self.UiName, q=1, v=1)
+        cmds.skinPercent(clusterName, prw=10**-_decimalInt)   #生成小数点后10**-n位
         decimal.getcontext().rounding = 'ROUND_HALF_UP'
-        _decimalInt = cmds.intField('%s_DecimalInt' %self.Ui, q=1, v=1)
-        cmds.skinPercent(clusterName, prw=(10**-_decimalInt)-(10**(-_decimalInt-1)))   #生成小数点后10**-n位
         _decimalStr = "{:.%sf}" %_decimalInt
         _decimal = decimal.Decimal(_decimalStr.format(1))
         _decimal1 = decimal.Decimal('1.0')
         oneinAll = len(self.BadList)/100.0
         progressNum = 0
-        doneNum = 0
-        for i in self.BadList:
-            transList = cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=None)
+        for index, item in enumerate(self.BadList):
+            transList = cmds.skinPercent(clusterName, item, ib=10**-15, q=1, t=None)
             _tv = []
             allValue = 0
             for j in transList:
                 # mel.eval('global proc float _rounding(float $f, int $n){float $N = pow(10, ($n));float $a = $f%(1/$N)*$N;float $B;     \
                 #            if($a>0.5)$B = ceil($f*$N)/$N;else$B = floor($f*$N/$N);return $B;}')     #精度问题?
                 #Value = mel.eval('_rounding(%s, %s)' %(cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=j), cmds.intField('DecimalInt', q=1, v=1)))
-                Value = decimal.Decimal(str(cmds.skinPercent(clusterName, i, ib=10**-15, q=1, t=j))).quantize(_decimal)
+                Value = decimal.Decimal(str(cmds.skinPercent(clusterName, item, ib=10**-15, q=1, t=j))).quantize(_decimal)
                 if Value == 1:
                     _tv.append([j, 1])
                     break
@@ -1035,12 +1007,11 @@ class WeightCheckTool_BbBB():
                 allValue += Value
                 _tv.append([j, round(float(Value), _decimalInt)])
             _tv[-1][1] = round(float(decimal.Decimal(str(_tv[-1][1])) + _decimal1 - allValue), _decimalInt)
-            cmds.skinPercent(clusterName, i, tv=_tv, nrm=1)
-            if doneNum/oneinAll > progressNum:
-                cmds.progressBar('%s_progressBar' %self.Ui, e=1, s=1)
-            progressNum += 1
-            doneNum += 1
-        cmds.progressBar('%s_progressBar' %self.Ui, e=1, vis=0)
+            cmds.skinPercent(clusterName, item, tv=_tv, nrm=1)
+            if index/oneinAll > progressNum:
+                cmds.progressBar('%s_progressBar' %self.UiName, e=1, s=1)
+                progressNum += 1
+        cmds.progressBar('%s_progressBar' %self.UiName, e=1, vis=0)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
@@ -1052,35 +1023,317 @@ class WeightCheckTool_BbBB():
             return
         if not clusterName:
             return
-        cmds.progressBar('%s_progressBar' %self.Ui, e=1, pr=0, vis=1)
+        cmds.progressBar('%s_progressBar' %self.UiName, e=1, pr=0, vis=1)
         jntList = cmds.skinCluster(self.saveObj, q=1, inf=1)
         jntLock = []
         for j in jntList:
             jntLock.append(cmds.getAttr(j + '.liw'))
             cmds.setAttr(j + '.liw', 0)
-        Influence = cmds.intField('%s_InfluenceInt' %self.Ui, q=1, v=1)
+
+        Influence = cmds.intField('%s_InfluenceInt' %self.UiName, q=1, v=1)
         oneinAll = len(self.BadList)/100.0
         progressNum = 0
-        doneNum = 0
-        for v in self.BadList:
-            transList = cmds.skinPercent(clusterName, v, ib=10**-15, q=1, t=None)
+        for index, item in enumerate(self.BadList):
+            transList = cmds.skinPercent(clusterName, item, ib=10**-15, q=1, t=None)
             while len(transList) > Influence:
-                valueList = cmds.skinPercent(clusterName, v, ib=10**-15, q=1, v=1)
+                valueList = cmds.skinPercent(clusterName, item, ib=10**-15, q=1, v=1)
                 tvdic = {}
                 for w, j in zip(valueList, transList):
                     tvdic[j] = w
                 tvList = sorted(tvdic.items(), key=lambda item: item[1])
-                cmds.skinPercent(clusterName, v, tv=(tvList[0][0], 0), nrm=1)
-                transList = cmds.skinPercent(clusterName, v, ib=10**-15, q=1, t=None)
-            if doneNum/oneinAll > progressNum:
-                cmds.progressBar('%s_progressBar' %self.Ui, e=1, s=1)
+                cmds.skinPercent(clusterName, item, tv=(tvList[0][0], 0), nrm=1)
+                transList = cmds.skinPercent(clusterName, item, ib=10**-15, q=1, t=None)
+            if index/oneinAll > progressNum:
+                cmds.progressBar('%s_progressBar' %self.UiName, e=1, s=1)
                 progressNum += 1
-            doneNum += 1
-        cmds.progressBar('%s_progressBar' %self.Ui, e=1, vis=0)
+        cmds.progressBar('%s_progressBar' %self.UiName, e=1, vis=0)
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         self.Load()
 
 
-#WeightTool_BbBB().ToolUi()
+class CopyWeightTool_BbBB():
+
+    def ToolUi(self, layout=0):
+        self.ComponentData = {'source':'', 'targe':''}
+        Ver = 1.43
+        self.UiName = 'CopyWeightTool_Ui'
+        if cmds.window(self.UiName, q=1, ex=1):
+            cmds.deleteUI(self.UiName)
+        if not layout:
+            cmds.window(self.UiName, t='%s %s' %(self.UiName, Ver), rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundColor)
+        cmds.columnLayout(cat=('both', 5), rs=2, cw=300, adj=1)
+        cmds.textFieldButtonGrp('%s_sourceText' %self.UiName, l=u'源', bl='Select', h=26, adj=2, ed=0, cw3=[30, 200, 60], bc=lambda *args: select(1))
+        cmds.popupMenu()
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.ComponentData['source'], r=1))
+        cmds.textFieldButtonGrp('%s_targeText' %self.UiName, l=u'目标', bl='Select', h=26, adj=2, ed=0, cw3=[30, 200, 60], bc=lambda *args: select(0))
+        cmds.popupMenu()
+        cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.ComponentData['targe'], r=1))
+        cmds.checkBox('%s_oneToOneAttr' %self.UiName, l=u'使用一对一标签 (源和目标的蒙皮骨骼基本一致时)', h=25, v=1)
+        cmds.rowLayout(nc=3)
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Help', w=50, c=lambda *args: showHelp()))), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Run', w=255, c=lambda *args: self.runProc()))), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        cmds.setParent('..')
+        
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_sourceText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_targeText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        
+
+        def showHelp():
+            helpUiName = '%s_Help' %self.UiName
+            if cmds.window(helpUiName, q=1, ex=1):
+                cmds.deleteUI(helpUiName)
+            cmds.window(helpUiName, t='Help', rtf=1, tlb=1)
+            cmds.columnLayout(cat=('both', 2), rs=2, adj=1)
+            cmds.text(l=u'源：整个模型 - 模型的点/线/面\n\n目标: 源模型的点/线/面\n     单个有蒙皮模型的点/线/面\n     多个无蒙皮模型\n     单个无蒙皮Surface曲面模型\n', 
+                        al='left', fn='fixedWidthFont')
+            cmds.showWindow(helpUiName)
+
+        def select(type):
+            if type:
+                self.ComponentData['source'] = lsList = cmds.ls(sl=1)
+                cmds.textFieldButtonGrp('%s_sourceText' %self.UiName, e=1, tx=str(lsList))
+            else:
+                self.ComponentData['targe'] = lsList = cmds.ls(sl=1)
+                cmds.textFieldButtonGrp('%s_targeText' %self.UiName, e=1, tx=str(lsList))
+        if not layout:
+            cmds.showWindow(self.UiName)
+    
+    def runProc(self):
+        if not self.ComponentData['source'] or not self.ComponentData['targe']:
+            return
+        sourelist = cmds.ls(self.ComponentData['source'], fl=1)
+        targelist = cmds.ls(self.ComponentData['targe'], fl=1)
+        soureObj = cmds.ls(sourelist, o=1)[0]
+        targeObj = cmds.ls(targelist, o=1)
+        Extract = 0
+        copyAttr = ('oneToOne', 'closestJoint') if cmds.checkBox('%s_oneToOneAttr' %self.UiName, q=1, v=1) else 'closestJoint'
+        #源
+        if not cmds.objectType(soureObj, i='transform'):   #是点线面
+            Extract = 1   #为点线面时提取
+            soureObj = cmds.listRelatives(soureObj, p=1)[0]
+        elif sourelist[0] == soureObj:   #是整个模型
+            Extract = 0
+        #目标
+        if not cmds.objectType(targeObj[0], i='transform'):   #目标选的是点线面
+            targeObj = cmds.listRelatives(targeObj[0], p=1)
+        
+        Extract = 1 if soureObj == targeObj[0] else 0   #目标和源为相同模型 需要提取
+        
+        soureSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % soureObj)
+        if not soureSkinCluster:
+            cmds.error(u'源模型没得蒙皮呀')
+        sourelist = cmds.ls(cmds.polyListComponentConversion(sourelist, ff=1, fv=1, fe=1, fuv=1, fvf=1, tf=1), fl=1)
+        infJointList = cmds.skinCluster(soureObj, q=1, inf=1)   #所有骨骼
+        jntLock = [cmds.getAttr('%s.liw' %j) for j in infJointList]
+
+        if Extract:   #需要提取
+            _TempObj_ = cmds.duplicate(soureObj, rr=1)[0]
+            #allList = ['%s.f[%s]' % (soureObj, i) for i in range(cmds.polyEvaluate(_TempObj_, f=1))]
+            _difflist_ = set(cmds.ls('%s.f[*]' %soureObj, fl=1)).difference(set(sourelist))
+            _list_ = [i.replace(soureObj, _TempObj_) for i in _difflist_]
+            if cmds.ls(_list_):
+                cmds.delete(_list_)
+            cmds.skinCluster(infJointList, _TempObj_, tsb=1, dr=4)
+            cmds.copySkinWeights(soureObj, _TempObj_, nm=1, sa='closestPoint', ia='oneToOne', nr=1)
+            soureObj = _TempObj_
+
+        if cmds.listRelatives(targeObj, c=1, s=1, typ='nurbsSurface'):
+            self.SurfaceCWeight(soureObj, targeObj[0], copyAttr)
+        else:
+            for i in targeObj:
+                if not mel.eval('findRelatedSkinCluster("%s")' % i):
+                    cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)
+                    targelist = i
+                else:
+                    if cmds.nodeType(i) == 'transform':
+                        state = 1 if cmds.nodeType(cmds.listRelatives(i, c=1, s=1)) == 'mesh' else 0
+                    elif cmds.nodeType(i) == 'mesh':
+                        state = 1
+                    else:
+                        state = 0
+                    targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fv=1, fe=1, fuv=1, fvf=1, tv=1), fl=1) if state else i
+                cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=copyAttr, nr=1)
+        if Extract:
+            cmds.delete(_TempObj_)
+        for j, l in zip(infJointList, jntLock):
+            cmds.setAttr('%s.liw' %j, l)
+        DisplayYes().showMessage(u'处理完成!')
+
+    def SurfaceCWeight(self, soureObj, targeObj, copyAttr):
+        _StPObj = cmds.nurbsToPoly(targeObj, mnd=1, ch=0, f=3, n='__TempStP_Obj')[0]
+        targeSkinCluster = mel.eval('findRelatedSkinCluster("%s")' %targeObj)
+        infJointList = cmds.skinCluster(soureObj, q=1, inf=1)
+        cmds.skinCluster(infJointList, _StPObj, tsb=1, dr=4)
+        cmds.copySkinWeights(soureObj, _StPObj, nm=1, sa='closestPoint', ia=copyAttr, nr=1)
+        StpSkinCluster = mel.eval('findRelatedSkinCluster("%s")' %_StPObj)
+        if not targeSkinCluster:
+            cmds.skinCluster(infJointList, targeObj, tsb=1, dr=4)
+            targeSkinCluster = mel.eval('findRelatedSkinCluster("%s")' %targeObj)
+        
+        _cPOMNode = cmds.createNode('closestPointOnMesh', n='__TempcPOM_Node')
+        cmds.connectAttr('%s.worldMesh[0]' %cmds.listRelatives(_StPObj, s=1, c=1)[0], '%s.inMesh' %_cPOMNode, f=1)
+        for i in cmds.ls('%s.cv[*][*]' %targeObj, fl=1):
+            cvTrans = cmds.xform(i, q=1, ws=1, t=1)
+            cmds.setAttr('%s.inPosition' %_cPOMNode, cvTrans[0], cvTrans[1], cvTrans[2])
+            vtxIndex = cmds.getAttr('%s.vt' %_cPOMNode)
+            valueList = cmds.skinPercent(StpSkinCluster, '%s.vtx[%s]' %(_StPObj, vtxIndex), q=1, ib=.000000001, v=1)
+            transList = cmds.skinPercent(StpSkinCluster, '%s.vtx[%s]' %(_StPObj, vtxIndex), q=1, ib=.000000001, t=None)
+            exec('cmds.skinPercent("%s", "%s", tv=%s)' % (targeSkinCluster, i, [[t, v] for t, v in zip(transList, valueList)]))
+        cmds.delete(_StPObj, _cPOMNode)
+
+
+class softSelectWeightTool_BbBB():
+
+    def ToolUi(self):
+        self.Ui = 'TestT_Ui'
+        if cmds.window(self.Ui, q=1, ex=1):
+            cmds.deleteUI(self.Ui)
+        cmds.window(self.Ui, t='%s' %(self.Ui), rtf=1, mb=1, tlb=1, wh=(290, 85))
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=290)
+
+        cmds.text(l=u'软选择给权重')
+        cmds.rowLayout(nc=3)
+        cmds.button(l=u'软选择创建新骨骼', w=100, c=lambda *args: self.softSelectCreateJoint())
+        cmds.button(l=u'软选择加选现有骨骼', w=115, c=lambda *args: self.softSelectCreateJoint('selJoint'))
+        cmds.button(l=u'+0.05权重', w=70, c=lambda *args: self.softSelectCreateJoint('add'))
+        cmds.setParent('..')
+        cmds.text(l=u'传递现有权重')
+        cmds.rowLayout(nc=2)
+        cmds.button(l=u'拾取现有模型骨骼', w=135, c=lambda *args: self.getWeightToEquation())
+        cmds.button(l=u'软选择加选现有骨骼', w=150, c=lambda *args: self.setWeightFromEquation())
+        cmds.showWindow(self.Ui)
+
+    def check_numpyPackge(self):
+        _ver = int(cmds.about(v=1))
+        if _ver < 2022:
+            try:
+                from . import numpy27 as np
+                return 27
+            except ImportError as e:
+                raise ImportError(u'没找到适用于py2的numpy包')
+        else:   #22 3.7.7 | 23 3.9.7
+            try:
+                import numpy as np
+            except ImportError as e:
+                raise ImportError(u'没找到适用于Maya%s的numpy包' %_ver)
+    
+    def getWeightToEquation(self):
+        """
+        选取模型和骨骼 获取权重公式
+        """
+        index = self.check_numpyPackge()
+        if index == 27:
+            from . import numpy27 as np
+        else:
+            import numpy as np
+        selApiList = om.MGlobal.getActiveSelectionList()
+        if selApiList.length() != 2:
+            om.MGlobal.displayError(u'需要先选模型再选骨骼')
+            return
+        objDagPath = selApiList.getDagPath(0)
+        #objObject = selApiList.getDependNode(0)
+        jointDagPath = selApiList.getDagPath(1)
+
+        skCluster = mel.eval('findRelatedSkinCluster("%s")' %objDagPath.partialPathName())
+        selApiList.add(skCluster)
+        skinObj = selApiList.getDependNode(2)
+        skinNode = omAni.MFnSkinCluster(skinObj)
+        vtxSelList, weightList = skinNode.getPointsAffectedByInfluence(jointDagPath)
+
+        #列表排序方法
+        #weightList, vtxSelList = zip(*sorted(zip(weightList, cmds.ls(vtxSelList.getSelectionStrings(), fl=1)), reverse=True))
+        dataRange = self.reRange(weightList, 0, 1, 0, max(weightList))
+        
+        xAxis = np.array(dataRange)
+        yAxis = np.array(weightList)
+        self.weightEquation = np.polynomial.polynomial.Polynomial.fit(xAxis, yAxis, 3)
+        #print(self.weightEquation(1), self.weightEquation(.5), self.weightEquation(.3333)) 
+
+    def setWeightFromEquation(self):
+        """
+        软选择点加选骨骼 根据权重公式赋予权重
+        """
+        if self.weightEquation:
+            selList = cmds.ls(sl=1, fl=1)
+            selobj = cmds.ls(sl=1, o=1)[0]
+            clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+            if not clusterName:
+                return
+            
+            IndexList, weightList = self.getSoftSelectData()
+            newJoint = selList[1]
+            for index, weight in zip(IndexList, weightList):
+                cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), tv=[newJoint, self.weightEquation(weight)])
+
+    def softSelectCreateJoint(self, mode=None):
+        """
+        软选择点创建新骨骼分权重
+        - mode: None创建新的骨骼分权重 | selJoint记录选择的骨骼 | add在之前记录的骨骼上添加权重
+        """
+        selList = cmds.ls(sl=1, fl=1)
+        selobj = cmds.ls(sl=1, o=1)[0]
+        clusterName = mel.eval('findRelatedSkinCluster("%s")' % selobj)
+        if not clusterName:
+            return
+        
+        IndexList, weightList = self.getSoftSelectData()
+        if mode == 'add':
+            newJoint = self.creatNewData[0]
+            if not newJoint:
+                om.MGlobal.displayError(u'没有记录骨骼')
+                return
+            scaleValue = 0.05
+            for index, weight in zip(IndexList, weightList):
+                cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), tv=
+                    [newJoint, weight * scaleValue + cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), q=1, t=newJoint)])
+            return
+        elif mode == 'selJoint':
+            newJoint = selList[1]
+        else:
+            cmds.select(cl=1)
+            newJoint = cmds.joint(p=cmds.xform(selList[0], q=1, ws=1, t=1), n='oneNewJoint')
+            cmds.skinCluster(clusterName, e=1, dr=4, lw=1, wt=0, ai=newJoint)
+        scaleValue = 0.1
+        for index, weight in zip(IndexList, weightList):
+            cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), tv=[newJoint, weight * scaleValue])
+        self.creatNewData = [newJoint]
+        
+    def reRange(self, dataList, to_min, to_max, minNow, maxNow):
+        """
+        重映射范围
+        - dataList: 需要映射的列表
+        - to_min: 要映射到的最小值
+        - to_max: 要映射到的最大值
+        - minNow: 现有数据最小值
+        - maxNow: 现有数据最大值
+        """
+        return [to_min + ((to_max - to_min) / (maxNow - minNow)) * i - minNow for i in dataList]
+
+    def getSoftSelectData(self):
+        """
+        获取软选择的组件和权重值
+        """
+        softSel = om.MGlobal.getRichSelection()
+        selApiList = softSel.getSelection()
+        MDagPth, MComponent = selApiList.getComponent(0)
+        fnComp = om.MFnSingleIndexedComponent(MComponent)
+        return list(fnComp.getElements()), [fnComp.weight(i).influence for i in range(fnComp.elementCount)]
+               #IndexList, weightList
+        '''
+        selection = Om.MSelectionList()
+        softSelection = Om.MRichSelection()
+        Om.MGlobal.getRichSelection(softSelection)
+        softSelection.getSelection(selection)
+        pathDag = Om.MDagPath()
+        oComp = Om.MObject()
+        selection.getDagPath(0, pathDag, oComp)
+        fnComp = Om.MFnSingleIndexedComponent(oComp)
+        for i in range(fnComp.elementCount()):
+            print(fnComp.element(i), fnComp.weight(i).influence())
+        '''
+
+
+#PointWeightTool_BbBB().ToolUi()
 #WeightCheckTool_BbBB().ToolUi()
+#CopyWeightTool_BbBB().ToolUi()

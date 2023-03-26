@@ -6,6 +6,17 @@
 
 ## [ngSk2Weight `|基于NG2的自动分权重 Relax|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ngSk2Weight.py)
 
+#### 2023-03-25  Verision: `0.7x`
+<details>
+<summary>详情</summary>
+<pre>
+1.功能Ui分布
+2.取消层功能
+3.提取功能函数
+</pre>
+</details>
+
+
 #### 2022-08-31  Verision: `0.6x`
 <details>
 <summary>详情</summary>
@@ -40,6 +51,13 @@
   ▽  2022-08-11  Ver_1.04
 1.移除一半不必要的icon数据
 2.Fix: 修复镜像形状的规则
+<p align="left">
+  ▽  2023-03-26  Ver_1.05
+1.形状颜色改为序号颜色模式
+2.优化UI逻辑
+3.优化保存形状功能，规划新规则
+4.添加更多控制选项
+5.镜像添加多个模式
 </pre>
 </details>
 
@@ -132,6 +150,12 @@
 <p align="left">
   ▽  2022-09-15  Ver_1.05
 1.Fix: py2中整数除法结果可能为0
+<p align="left">
+  ▽  2023-03-26  Ver_1.06
+1.存取权重修改文件格式
+2.检查权重优化流程 效率
+3.拷贝工具整合
+4.软选择工具
 </pre>
 </details>
 
@@ -229,7 +253,7 @@
 </details>
 
 
-## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/CopyWeightTool.py)
+## [CopyWeightTool `|拷贝权重工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/WeightTool.py)
 
 #### 2021-11-06  Verision: `1.4x`
 <details>

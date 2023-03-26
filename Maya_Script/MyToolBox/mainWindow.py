@@ -28,15 +28,17 @@ if runInMaya:
     from maya import OpenMayaUI as OmUI
     from maya.api import OpenMaya as om
     import shiboken2
-    from .scripts.CopyWeightTool import *
-    from .scripts.CtrlTool import *
-    from .scripts.cur2IK_FX import *
-    from .scripts.DataSaveUi import *
-    from .scripts.PSDshape import *
-    from .scripts.WeightTool import *
-    from .scripts.MirrorDriverKey import *
-    from .scripts.OtherTools import *
-    from .scripts.ngSk2Weight import *
+    from MyToolBox.scripts.CtrlTool import MZ_CtrllTool
+    from MyToolBox.scripts.cur2IK_FX import cur2IKFX_ToolUi
+    from MyToolBox.scripts.DataSaveUi import DataSaveUi
+    from MyToolBox.scripts.PSDshape import PSD_PoseUi
+    from MyToolBox.scripts.WeightTool import PointWeightTool_BbBB, WeightCheckTool_BbBB, WeightSL_BbBB, softSelectWeightTool_BbBB, CopyWeightTool_BbBB
+    from MyToolBox.scripts.MirrorDriverKey import MirrorDriverKey
+    from MyToolBox.scripts.OtherTools import otherTools, FixError, cRivet
+    from MyToolBox.scripts.ngSk2Weight import ngSk2Weight_BbBB, ngSmooth_BbBB
+    from MyToolBox.scripts.ModelTool import SymmetryTool_BbBB, ModelUtils_BbBB
+    from MyToolBox.scripts.Utils import QtStyle
+
 
 # MAIN WINDOW
 class MainWindow(QMainWindow):
@@ -281,24 +283,39 @@ class MainWindow(QMainWindow):
             minHeight=28,
             tooltip_text = u'Rivet铆钉'
         )
+        self.toolButton_L8 = cusPushButton(
+            text=u"大纲排序",
+            radius=4,
+            color=self.themes["app_color"]["text_foreground"],
+            bg_color=self.themes["app_color"]["dark_one"],
+            bg_color_hover=self.themes["app_color"]["dark_three"],
+            bg_color_pressed=self.themes["app_color"]["dark_four"],
+            parent = self,
+            app_parent = self.ui.central_widget,
+            font = self.settings["font_family"],
+            minHeight=28,
+            tooltip_text = u'选择组，按照内容的结尾编号，在大纲中进行排序'
+        )
         
-        self.toolButton_L1.clicked.connect(lambda *args: otherTools().createLocator())
-        self.toolButton_L2.clicked.connect(lambda *args: otherTools().polytoCurve())
-        self.toolButton_L3.clicked.connect(lambda *args: otherTools().xiuxingJointHang())
-        self.toolButton_L4.clicked.connect(lambda *args: otherTools().xiuxingJoin())
-        self.toolButton_L5.clicked.connect(lambda *args: otherTools().TransferUV())
+        self.toolButton_L1.clicked.connect(lambda *args: otherTools.createLocator())
+        self.toolButton_L2.clicked.connect(lambda *args: otherTools.polytoCurve())
+        self.toolButton_L3.clicked.connect(lambda *args: otherTools.xiuxingJointHang())
+        self.toolButton_L4.clicked.connect(lambda *args: otherTools.xiuxingJoin())
+        self.toolButton_L5.clicked.connect(lambda *args: otherTools.TransferUV())
         self.toolButton_L6.clicked.connect(lambda *args: ngSmooth_BbBB().doIt())
         self.toolButton_L7.clicked.connect(lambda *args: cRivet("follicle"))
+        self.toolButton_L8.clicked.connect(lambda *args: otherTools.selectSorted())
         
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L7)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L5)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L6)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L4)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L3)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L1)
-        self.ui.load_pages.left_scrollArea_vLayout.addWidget(self.toolButton_L2)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L7)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L5)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L8)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L6)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L4)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L3)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L1)
+        self.ui.load_pages.left_scrollArea_VLayout.addWidget(self.toolButton_L2)
         self.left_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.ui.load_pages.left_scrollArea_vLayout.addItem(self.left_VSpacer)
+        self.ui.load_pages.left_scrollArea_VLayout.addItem(self.left_VSpacer)
         
         # Right
         self.rightTool_lableLine = cusLableLine('HC', self.themes["app_color"]["text_foreground"], u'界面工具', 35)
@@ -367,7 +384,7 @@ class MainWindow(QMainWindow):
             app_parent = self.ui.central_widget,
             font = self.settings["font_family"],
             minHeight=28,
-            tooltip_text = u'基于Maya Pose功能的修型'
+            tooltip_text = u'基于Maya Pose功能的修型UI'
         )
         self.toolButton_R6 = cusPushButton(
             text=u"控制器Pro",
@@ -396,7 +413,7 @@ class MainWindow(QMainWindow):
             tooltip_text = u'依次选择 做好的驱动者, 做好的被驱动者\n没做的驱动者, 没做的被驱动者'
         )
         self.toolButton_R8 = cusPushButton(
-            text=u"调权重工具",
+            text=u"点权重工具",
             radius=4,
             color=self.themes["app_color"]["text_foreground"],
             bg_color=self.themes["app_color"]["dark_one"],
@@ -406,7 +423,7 @@ class MainWindow(QMainWindow):
             app_parent = self.ui.central_widget,
             font = self.settings["font_family"],
             minHeight=28,
-            tooltip_text = u'点权重调整 - Save/Load权重'
+            tooltip_text = u'点权重调整'
         )
         self.toolButton_R9 = cusPushButton(
             text=u"权重检查工具",
@@ -435,7 +452,7 @@ class MainWindow(QMainWindow):
             tooltip_text = u'解决报错的清单界面'
         )
         self.toolButton_R11 = cusPushButton(
-            text=u"半自动权重工具",
+            text=u"ng2权重工具",
             radius=4,
             color=self.themes["app_color"]["text_foreground"],
             bg_color=self.themes["app_color"]["dark_one"],
@@ -449,30 +466,30 @@ class MainWindow(QMainWindow):
         )
 
         self.toolButton_R1.clicked.connect(lambda *args: otherTools().createFollicleOnsurface_ToolUi())
-        self.toolButton_R2.clicked.connect(lambda *args: CopyWeightTool().ToolUi())
+        self.toolButton_R2.clicked.connect(lambda *args: CopyWeightTool_BbBB().ToolUi())
         self.toolButton_R3.clicked.connect(lambda *args: cur2IKFX_ToolUi())
         self.toolButton_R4.clicked.connect(lambda *args: DataSaveUi().ToolUi())
         self.toolButton_R5.clicked.connect(lambda *args: PSD_PoseUi().ToolUi())
         self.toolButton_R6.clicked.connect(lambda *args: MZ_CtrllTool().ToolUi())
         self.toolButton_R7.clicked.connect(lambda *args: MirrorDriverKey().ToolUi())
-        self.toolButton_R8.clicked.connect(lambda *args: WeightTool_BbBB().ToolUi())
+        self.toolButton_R8.clicked.connect(lambda *args: PointWeightTool_BbBB().ToolUi())
         self.toolButton_R9.clicked.connect(lambda *args: WeightCheckTool_BbBB().ToolUi())
         self.toolButton_R10.clicked.connect(lambda *args: FixError().ToolUi())
         self.toolButton_R11.clicked.connect(lambda *args: ngSk2Weight_BbBB().ToolUi())
 
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R5)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R1)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R6)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R8)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R9)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R2)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R4)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R3)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R11)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R7)
-        self.ui.load_pages.right_scrollArea_vLayout.addWidget(self.toolButton_R10)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R5)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R1)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R6)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R8)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R9)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R2)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R4)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R3)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R11)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R7)
+        self.ui.load_pages.right_scrollArea_VLayout.addWidget(self.toolButton_R10)
         self.right_VSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.ui.load_pages.right_scrollArea_vLayout.addItem(self.right_VSpacer)
+        self.ui.load_pages.right_scrollArea_VLayout.addItem(self.right_VSpacer)
         
 """
 if __name__ == "__main__":

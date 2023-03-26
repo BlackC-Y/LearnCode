@@ -5,14 +5,48 @@ import re
 
 
 class otherTools():
-        
-    def createLocator(self):
+
+    @staticmethod
+    def resetWindowLoc():
+        """
+        重置打开窗口的位置
+        """
+        try:
+            from PySide2.QtWidgets import QApplication
+        except:
+            from PySide.QtGui import QApplication
+        for i in QApplication.topLevelWidgets():
+            try:
+                i.move(100, 100)
+            except:
+                pass
+        for i in cmds.lsUI(type='window'):
+            try:
+                cmds.window(i, e=1, tlc=[100, 100])
+            except:
+                pass
+    
+    @staticmethod
+    def selectSorted():
+        """
+        选择组，按照内容的结尾编号，在大纲中进行排序
+        """
+        slList = cmds.ls(sl=1)
+        childList = cmds.listRelatives(slList[0], c=1, s=0, f=1)
+        numList = [int(re.search(r'\d*$', i).group()) for i in childList]
+        numList, childList = zip(*sorted(zip(numList, childList)))
+        cmds.parent(childList, w=1)
+        cmds.parent([i.rsplit('|', i)[-1] for i in childList], slList[0])
+
+    @staticmethod
+    def createLocator():
         alist = cmds.ls(sl=1, fl=1)
         for i in alist:
             txyz = cmds.xform(i, q=1, ws=1, t=1)
             cmds.setAttr(cmds.spaceLocator(n=i+'_loc')[0]+'.translate', txyz[0], txyz[1], txyz[2])
 
-    def polytoCurve(self):
+    @staticmethod
+    def polytoCurve():
         blist = cmds.ls(sl=1)
         for i in blist:
             vnum = cmds.polyEvaluate(i, v=1)
@@ -22,9 +56,8 @@ class otherTools():
                     break
             arclen = []
             for e in enum:
-                elist = cmds.polySelectSp(e, q=1, loop=1)
                 earclen = 0.0
-                for el in elist:
+                for el in cmds.polySelectSp(e, q=1, loop=1):
                     earclen += cmds.arclen(el)
                 arclen.append(earclen)
             cmds.polySelectSp(enum[arclen.index(max(arclen))], loop=1)
@@ -32,7 +65,8 @@ class otherTools():
             if cmds.xform('%s.cv[0]', q=1, ws=1, t=1)[1] %cname < cmds.xform('%s.cv[%s]' %(cname, cmds.getAttr("%s.controlPoints", size=1) %cname), q=1, ws=1, t=1)[1]:
                 cmds.reverseCurve(cname, ch=0, rpo=1)
 
-    def xiuxingJoint(self):
+    @staticmethod
+    def xiuxingJoint():
         Raxial = 'Y'     #Z
         Taxial = 'z'     #y
         joint = cmds.ls(sl=1, type="joint")[0]
@@ -71,7 +105,8 @@ class otherTools():
         cmds.connectAttr(floatMathC + ".outFloat", blendJointEnd + ".t" + Taxial, f=1)
         cmds.connectAttr(joint + ".rotate" + Raxial, floatMathB + ".floatA", f=1)
 
-    def xiuxingJointHang(self):
+    @staticmethod
+    def xiuxingJointHang():
         jot_name = cmds.ls(sl=1, typ="joint")
         jot_bs_name1 = cmds.joint(n=(jot_name[0] + "_bs"), rad=3)
         jot_bs_name2 = cmds.joint(n=(jot_name[0] + "_bsend"), rad=3)
@@ -122,7 +157,8 @@ class otherTools():
             for i in range(7):
                 cmds.setAttr(jot_bs_name2 + jot_attibuteZ[i], lock=1, keyable=0, channelBox=0)
 
-    def TransferUV(self):
+    @staticmethod
+    def TransferUV():
         dobj = cmds.ls(sl=1)
         if cmds.polyEvaluate(dobj[0], v=1) != cmds.polyEvaluate(dobj[1], v=1):
             dupobj = cmds.duplicate(dobj[1], rr=1)
@@ -133,7 +169,8 @@ class otherTools():
         else:
             cmds.polyTransfer(dobj[1], uv=1, ao=dobj[0])
 
-    def createFollicleOnsurface_ToolUi(self):
+    @staticmethod
+    def createFollicleOnsurface_ToolUi():
         ui = 'ToolsBoxUI3'
         try:
             cmds.deleteUI(ui)
@@ -146,7 +183,7 @@ class otherTools():
         cmds.flowLayout(columnSpacing=5)
         cmds.checkBox('UI3JointcheckBox', l=u'创建骨骼', w=80)
         cmds.button('UI3RunButton', l="Run", h=28, w=80, 
-                        c=lambda *args: self.createFollicleOnsurface(
+                        c=lambda *args: createFollicleOnsurface(
                                 cmds.textFieldGrp('UI3nameTextFieldGrp', q=1, tx=1),
                                 cmds.intFieldGrp('UI3numIntFieldGrp', q=1, v1=1),
                                 cmds.checkBox('UI3JointcheckBox', q=1, v=1))
@@ -154,53 +191,63 @@ class otherTools():
         cmds.setParent('..')
         cmds.showWindow(ui)
 
-    def createFollicleOnsurface(self, name='', num='', joint=0):
-        #UI
-        shape = cmds.listRelatives(cmds.ls(sl=1)[0], s=1, type='nurbsSurface')
-        if not shape:
-            om.MGlobal.displayError(u'没选择曲面')
-            return
-        Follicle_Grp = name + "_foll_grp"
-        Joint_Grp = name + "_Joint_grp"
-        if cmds.ls(Follicle_Grp, typ='transform') or cmds.ls(Joint_Grp, typ='transform'):
-            om.MGlobal.displayError(u'有重名毛囊或骨骼')
-            return
-        cmds.group(em=1, n=Follicle_Grp)
-        if joint:
-            cmds.group(em=1, n=Joint_Grp)
-        
-        follList = []
-        for i in range(num):
-            if i == num:
-                break
-            follicS = cmds.createNode('follicle', n='%s_follShape' %name)
-            follicT = cmds.listRelatives(follicS, p=1)[0]
-            
-            cmds.connectAttr("%s.local" %shape[0], "%s.inputSurface" %follicS, f=1)
-            cmds.connectAttr("%s.worldMatrix[0]" %shape[0], "%s.inputWorldMatrix" %follicS, f=1)
-            cmds.connectAttr("%s.outTranslate" %follicS, "%s.translate" %follicT, f=1)
-            cmds.connectAttr("%s.outRotate" %follicS, "%s.rotate" %follicT, f=1)
-            cmds.setAttr("%s.parameterV" %follicS, .5)
-            cmds.setAttr("%s.parameterU" %follicS, i*1.0/(num-1))
-            #cmds.parent(follicT, Follicle_Grp)
+        def createFollicleOnsurface(name='', num='', joint=0):
+            #UI
+            shape = cmds.listRelatives(cmds.ls(sl=1)[0], s=1, type='nurbsSurface')
+            if not shape:
+                om.MGlobal.displayError(u'没选择曲面')
+                return
+            Follicle_Grp = name + "_foll_grp"
+            Joint_Grp = name + "_Joint_grp"
+            if cmds.ls(Follicle_Grp, typ='transform') or cmds.ls(Joint_Grp, typ='transform'):
+                om.MGlobal.displayError(u'有重名毛囊或骨骼')
+                return
+            cmds.group(em=1, n=Follicle_Grp)
             if joint:
-                cmds.select(cl=1)
-                jointN = cmds.joint(n='%s%sJoint' %(name, i))
-                cmds.parentConstraint(follicT, jointN, weight=1)
-                #cmds.parent(jointN, Joint_Grp)
-            follList.append([follicT, jointN])
-        for i in follList:
-            cmds.parent(i[0], Follicle_Grp)
-            cmds.parent(i[1], Joint_Grp)
-
+                cmds.group(em=1, n=Joint_Grp)
+            
+            follList = []
+            for i in range(num):
+                if i == num:
+                    break
+                follicS = cmds.createNode('follicle', n='%s_follShape' %name)
+                follicT = cmds.listRelatives(follicS, p=1)[0]
+                
+                cmds.connectAttr("%s.local" %shape[0], "%s.inputSurface" %follicS, f=1)
+                cmds.connectAttr("%s.worldMatrix[0]" %shape[0], "%s.inputWorldMatrix" %follicS, f=1)
+                cmds.connectAttr("%s.outTranslate" %follicS, "%s.translate" %follicT, f=1)
+                cmds.connectAttr("%s.outRotate" %follicS, "%s.rotate" %follicT, f=1)
+                cmds.setAttr("%s.parameterV" %follicS, .5)
+                cmds.setAttr("%s.parameterU" %follicS, i*1.0/(num-1))
+                #cmds.parent(follicT, Follicle_Grp)
+                if joint:
+                    cmds.select(cl=1)
+                    jointN = cmds.joint(n='%s%sJoint' %(name, i))
+                    cmds.parentConstraint(follicT, jointN, weight=1)
+                    #cmds.parent(jointN, Joint_Grp)
+                follList.append([follicT, jointN])
+            for i in follList:
+                cmds.parent(i[0], Follicle_Grp)
+                cmds.parent(i[1], Joint_Grp)
+    
+    @staticmethod
+    def connectBsCommand():
+        slbs = cmds.ls(sl=1, typ='blendShape')
+        if not slbs:
+            om.MGlobal.displayError(u'未选择BS节点')
+            return
+        for i in cmds.getAttr('%s.w' %slbs[0], mi=1):
+            connectInfo = cmds.listConnections('%s.w[%s]' %(slbs[0], i), c=1, d=0, p=1, scn=1)
+            if connectInfo:
+                print('connectAttr -r "%s" "%s";' %(connectInfo[1], connectInfo[0]))
 
 class FixError():
 
     def ToolUi(self):
-        self.Ui = 'FixError_ToolUi'
-        if cmds.window(self.Ui, q=1, ex=1):
-            cmds.deleteUI(self.Ui)
-        cmds.window(self.Ui, t='FixError', rtf=1, mb=1, tlb=1, wh=(300, 85))
+        self.UiName = 'FixError_ToolUi'
+        if cmds.window(self.UiName, q=1, ex=1):
+            cmds.deleteUI(self.UiName)
+        cmds.window(self.UiName, t='FixError', rtf=1, mb=1, tlb=1, wh=(300, 85))
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=2)
         cmds.text(l=u'鼠标放在按钮上 查看使用说明', h=40, fn='fixedWidthFont')
         cmds.scrollLayout(hst=16, vsb=16)
@@ -209,7 +256,7 @@ class FixError():
                     ann=u'解决在大纲选择物体时Maya爆红"look"的问题')
         cmds.button(l=u'开关文件爆红', c=lambda *args: self.FixRed_uiConfigScriptNode(), 
                     ann=u'解决在打开文件或新建文件时爆红的问题\n请重开maya, 在打开问题文件时取消勾选右上角的"Execute script nodes"\n打开文件后运行此工具, 然后保存')
-        cmds.showWindow(self.Ui)
+        cmds.showWindow(self.UiName)
     
     def FixRed_look(self):
         mel.eval('outlinerEditor -e -sec "" outlinerPanel1')

@@ -4,8 +4,6 @@ from PySide2.QtCore import Qt, QSize, QMetaObject, QFileInfo, QRect, QPropertyAn
 from PySide2.QtGui import QIcon, QPainter, QPalette, QColor, QPixmap, QIntValidator, QCursor
 from PySide2.QtWidgets import *
 from datetime import datetime
-#from watchdog.observers import Observer
-#from watchdog.events import LoggingEventHandler
 import threading
 import tempfile
 import shutil
@@ -15,7 +13,6 @@ import os
 
 
 UIData = {}
-
 
 class BackupFile_Ui(QMainWindow):
 
@@ -131,7 +128,7 @@ class BackupFile_Ui(QMainWindow):
         self.BackupPathlabel.setText(u'备份目录')
         self.BackupPathLine.editingFinished.connect(self.checkBackupPath)
         self.BackupTimelabel.setText(u'备份间隔')
-        self.BackupTimeLine.setText('6')
+        self.BackupTimeLine.setText('8')
         self.StartButton.setText(u'开始监控')
         self.StartButton.clicked.connect(lambda *args: StartMonitor())
         self.NowCheckButton.setText(u'立即检查')
@@ -155,7 +152,7 @@ class BackupFile_Ui(QMainWindow):
         
         #确认线程状态
         try:
-            if monitorThread.is_alive():
+            if monitorThread and monitorThread.is_alive():
                 _outLog(u'正在结束监控')
                 StopMonitor()
                 monitorThread.join()
@@ -241,16 +238,8 @@ def StartMonitor():
     if monitorThread and monitorThread.is_alive():
         _outLog(u'监控已在运行')
         return
-    PPth = UIData['ProjecPath'].text()
-    ProjectList = [[PPth, UIData['Projectlist'].item(i).text()] for i in range(UIData['Projectlist'].count())]
-
-    #p = Process(target=OneThread, args=(ProjectList,))
-    #p.start()
-    if not ProjectList:
-        _outLog(u'没有获取到项目', 'red')
-        return
     #global monitorThread
-    monitorThread = threading.Thread(target=OneThread, args=(ProjectList,))
+    monitorThread = threading.Thread(target=OneThread)   #args=(ProjectList,)
     monitorThread.start()
     _outLog(u'开始运行')
     UIData['StartButton'].setStyleSheet(u'color: rgb(54, 162, 79);')
@@ -270,13 +259,20 @@ def StopMonitor():
     #_outLog(u'请等待线程结束')
     UIData['StartButton'].setStyleSheet(u'color: rgb(0, 0, 0);')
 
-def OneThread(ProjectList):
-    #ProjectList的内容 [项目总目录, 项目名称]
+def OneThread():
     backupPath = UIData['BackupPath'].text()
     if not os.path.exists(backupPath):
         _outLog(u'指定备份目录不存在', 'red')
         return
+    
     while(_SetRun_):
+        BFUi.addProjectItem()
+        #ProjectList的内容 [项目总目录, 项目名称]
+        PPth = UIData['ProjecPath'].text()
+        ProjectList = [[PPth, UIData['Projectlist'].item(i).text()] for i in range(UIData['Projectlist'].count())]
+        if not ProjectList:
+            _outLog(u'没有获取到项目', 'red')
+            return
         _outLog('开始查询')
         for i in ProjectList:
             if os.path.exists(f'{i[0]}/{i[1]}/Scenes.revisions/'):
@@ -310,7 +306,10 @@ def OneThread(ProjectList):
                         if os.path.exists(_newFile):
                             _outLog(f'发现修改时间重复的文件 请手动检查\n {fTime[0]} 和 {_newFile}', 'red')
                             continue
-                        shutil.copy2(fTime[0], _newFile)
+                        try:
+                            shutil.copy2(fTime[0], _newFile)
+                        except PermissionError:
+                            _outLog(f'文件{fTime[0]}可能正在自动保存, 本次跳过文件', 'orange')
                         _outLog(f'备份完成')   #-新文件{_newFile}
         
         _outLog('本次查询结束')

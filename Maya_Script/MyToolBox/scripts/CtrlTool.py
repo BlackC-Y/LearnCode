@@ -1,32 +1,29 @@
 # -*- coding: UTF-8 -*-
 from maya import cmds, mel
 from maya.api import OpenMaya as om
-import tempfile
 import json
+import time
 import os
 
 class MZ_CtrllTool():
 
     def ToolUi(self, parent=0):
-        Ver = 1.04
+        Ver = 1.05
         self.UiName = "MZ_CtrlTool"
+        self.DataLoc = '%s/MyToolBoxDir/Data/CtrlData' %os.getenv('ALLUSERSPROFILE')   #文件路径下xxx文件夹 os.path.abspath("%s/../xxx/" %__file__)
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
-        cmds.window(self.UiName, title="CtrlTool %s" %Ver, s=1, mb=1, tlb=1, bgc=[.2, .2, .2], widthHeight=(305, 430))
+        
         if not parent:
+            cmds.window(self.UiName, title="CtrlTool %s" %Ver, s=1, mb=1, tlb=1, bgc=[.2, .2, .2], widthHeight=(305, 430))
             cmds.columnLayout(rs=3)
         else:
             cmds.columnLayout(rs=3, p=parent)
-        cmds.colorSliderGrp('%s_colorChoose' %self.UiName, l=u'控制器颜色', h=25, cw3=[100, 170, 0], cl3=['center', 'center', 'center'], 
-                                hsv=(239, 1, 0.117), cc=lambda *args: self.ObjShapeColor())   #cc=松手时调用 dc=拖动时调用
+        #cmds.colorSliderGrp('%s_colorChoose' %self.UiName, l=u'控制器颜色', h=25, cw3=[100, 170, 0], cl3=['center', 'center', 'center'], hsv=(239, 1, 0.117), 
+        #                        cc=lambda *args: self.ObjShapeColor(cmds.colorSliderGrp('%s_colorChoose' %self.UiName, q=1, rgb=1)))   #cc=松手时调用 dc=拖动时调用
+        cmds.colorIndexSliderGrp('%s_colorChoose' %self.UiName, l=u'控制器颜色', h=25, cl3=('center', 'left', 'center'), cw3=(70, 70, 140), 
+                                    min=1, max=32, value=6, cc=lambda *args: self.ObjShapeColor())
         '''
-        cmds.rowColumnLayout(nc=3, columnWidth=[(1, 80), (2, 8), (3, 200)])
-        cmds.canvas('SColorView', rgb=(.5, .5, .5), pc=lambda *args: self.ObjShapeColor())
-        cmds.text(l='')
-        cmds.intSlider('SColorInt', min=1, max=31, value=5, step=1, dc=
-                            "cmds.canvas('SColorView', e=1, rgbValue=cmds.colorIndex(cmds.intSlider('SColorInt', q=1, v=1), q=1))")
-        cmds.setParent('..')
-
         cmds.canvas('SColorView', e=1, rgbValue=cmds.colorIndex(5, q=1))
         cmds.gridLayout(nc=10, cellWidthHeight=(29.1, 30), w=298)
         for ii in range(1,32):
@@ -34,14 +31,25 @@ class MZ_CtrllTool():
             cmds.canvas(rgb=(index[0], index[1], index[2]), pc=lambda *args: self.ObjShapeColor(ii))
         cmds.canvas("defaultColorCanvas", hsv=(237.446808, 1, 0.376), ann="5", pc='cmds.select(cl=1)')
         '''
-        cmds.rowColumnLayout(nc=2, columnWidth=[(1, 100), (2, 148)])
-        cmds.checkBox('%s_ParentCheck' %self.UiName, l=u'层级化控制器', h=25, ann=u'注意选择顺序 先选父级物体 顺序选择')
-        cmds.checkBox('%s_SnapCheck' %self.UiName, l=u'对齐到选择物体', v=1, h=25)
-        cmds.checkBox('%s_NameCheck' %self.UiName, l=u'指定命名规则', h=25, onc=lambda *args: cmds.columnLayout(SetNamecL, e=1, vis=1), 
+        cmds.rowColumnLayout(nc=4)
+        cmds.checkBox('%s_NameCheck' %self.UiName, l=u'修改命名规则', h=25, onc=lambda *args: cmds.columnLayout(SetNamecL, e=1, vis=1), 
                         ofc=lambda *args: cmds.columnLayout(SetNamecL, e=1, vis=0))
-        cmds.checkBox('%s_repaceShapeCheck' %self.UiName, l=u'置换形状', h=25, 
-                        onc=lambda *args: cmds.checkBox('%s_repaceShapeCheck' %self.UiName, e=1, l=u"|置换形状| - √"), 
-                        ofc=lambda *args: cmds.checkBox('%s_repaceShapeCheck' %self.UiName, e=1, l=u"置换形状"))
+        cmds.checkBox('%s_SdkGroupCB' %self.UiName, l=u'SDK组', h=25, onc=lambda *args: cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, e=1, en=1), 
+                        ofc=lambda *args: cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, e=1, en=0))
+        cmds.checkBox('%s_ParentCheck' %self.UiName, l=u'层级化控制器', h=25, ann=u'注意选择顺序 先选父级物体 顺序选择')
+        cmds.checkBox('%s_repaceShapeCheck' %self.UiName, l=u'置换形状', h=25, onc=lambda *args: _switch_Shape(1), ofc=lambda *args: _switch_Shape(0))
+        def _switch_Shape(value):
+            if value:
+                cmds.checkBox('%s_NameCheck' %self.UiName, e=1, en=0, v=0)
+                cmds.columnLayout(SetNamecL, e=1, vis=0)
+                cmds.checkBox('%s_SdkGroupCB' %self.UiName, e=1, en=0)
+                cmds.checkBox('%s_ParentCheck' %self.UiName, e=1, en=0)
+                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=0)
+            else:
+                cmds.checkBox('%s_NameCheck' %self.UiName, e=1, en=1)
+                cmds.checkBox('%s_SdkGroupCB' %self.UiName, e=1, en=1)
+                cmds.checkBox('%s_ParentCheck' %self.UiName, e=1, en=1)
+                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=1)
         cmds.setParent('..')
 
         SetNamecL = cmds.columnLayout(rs=1, vis=0)
@@ -60,41 +68,54 @@ class MZ_CtrllTool():
                         ofc=lambda *args: cmds.textField('%s_grpSuffixText' %self.UiName, e=1, en=0))
         cmds.textField('%s_grpSuffixText' %self.UiName, tx='_Grp', en=0)
         cmds.setParent('..')
-        cmds.rowColumnLayout(nc=2, columnWidth=[(1, 110), (2, 120)])
-        cmds.checkBox('%s_SdkGroupCheck' %self.UiName, l=u'添加SDK组', onc=lambda *args: cmds.textField('%s_SdkGroupText' %self.UiName, e=1, en=1), 
-                        ofc=lambda *args: cmds.textField('%s_SdkGroupText' %self.UiName, e=1, en=0))
-        cmds.textField('%s_SdkGroupText' %self.UiName, tx='_Sdk', en=0)
-        cmds.setParent('..')
+        cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, l=u'SDK组后缀', tx='_Sdk', cl2=('center', 'left'), cw2=(110, 120), en=0)
         cmds.setParent('..')
 
-        cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, l="", sl=1, labelArray4=[u"只对齐", u"约束控制", u"父子关系", u"属性连接"], nrb=4, cw5=[0, 60, 75, 75, 75])
-        
+        cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, l="", sl=1, labelArray4=[u"只对齐", u"约束控制", u"层级关系", u"属性连接"], nrb=4, cw5=[0, 60, 75, 75, 75],
+                            on2=lambda *args: cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, vis=1), 
+                            of2=lambda *args: cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, vis=0))
+        cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, ncb=4, cw5=(65, 50, 40, 50, 50), cl5=('center', 'left', 'left', 'left', 'left'), v1=1, en2=0, en3=0, 
+                            cc=lambda *args: _switch_Constrain(), l=u'', labelArray4=(u'父子', u'点', u'旋转', u'缩放'), vis=0)
+        def _switch_Constrain():
+            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v1=1):
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=0, en3=0, v2=0, v3=0)
+            else:
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=1, en3=1)
+            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v2=1) or cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v3=1):
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=0, v1=0)
+            else:
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=1)
+
         cmds.gridLayout(nc=8, cwh=(35, 35), w=298)
         self.outIcon()
-        tempdir = tempfile.gettempdir()
+        tempdir = os.getenv('TEMP')
         for i in range(1, 30):
             cmds.iconTextButton(i="%s/b%s.xpm" %(tempdir, i), c=lambda n=i: self.CreateCtrlCur(1, n))   #高亮图标 hi="%s/b%s_h.xpm" %(tempdir, i)
         cmds.iconTextButton(i="addClip.png", c=lambda *args: self.AddCtrlData())
         cmds.setParent('..')
         cmds.gridLayout('%s_ctrlDataIcon_gL' %self.UiName, nc=8, cwh=(35, 35), w=298, vis=0)
-        self.listCtrlData(0)
+        self.listCtrlData()
         cmds.setParent('..')
 
         cmds.intField('%s_saveScaleValue' %self.UiName, v=0, vis=0)
-        cmds.rowColumnLayout(nc=3, columnWidth=[(1, 95), (2, 95), (3, 95)], cs=[(2, 3), (3, 3)], rs=(2, 3))
-        cmds.button(label=u"添加形状", h=25, bgc=[1, 1, .3], c=lambda *args: self.parentCurveShapeNode())
-        cmds.button(label=u"镜像形状", h=25, bgc=[1, 1, .3], c=lambda *args: self.mirrorCtrl())
-        cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, min=-20, max=20, value=0, step=1, cc=lambda *args: zeroValue(), 
+        cmds.rowColumnLayout(nc=3, columnWidth=[(1, 95), (2, 95), (3, 95)], cs=[(2, 2), (3, 2)], rs=(2, 3))
+        cmds.button(label=u"添加", h=25, bgc=[1, 1, .3], c=lambda *args: self.parentCurveShapeNode())
+        cmds.button(label=u"镜像", h=25, bgc=[1, 1, .3])
+        cmds.popupMenu(button=1)
+        cmds.menuItem(l=u'形状镜像', c=lambda *args: self.mirrorCtrl(1))
+        cmds.menuItem(l=u'世界镜像', c=lambda *args: self.mirrorCtrl(0))
+        cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, min=-20, max=20, value=0, step=1, cc=lambda *args: _zeroValue(), 
                             dc=lambda *args: self.curScale_Rot(cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, q=1, v=1)))
-        def zeroValue():
+        def _zeroValue():
             cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, e=1, v=0)
             cmds.intField('%s_saveScaleValue' %self.UiName, e=1, v=0)
+        
         cmds.button(label=u"X轴45", h=25, bgc=[1, .35, .35], c=lambda *args: self.curScale_Rot("X45"))
         cmds.button(label=u"Y轴45", h=25, bgc=[.35, 1, .35], c=lambda *args: self.curScale_Rot("Y45"))
         cmds.button(label=u"Z轴45", h=25, bgc=[.35, .35, 1], c=lambda *args: self.curScale_Rot("Z45"))
         cmds.button(label=u"添加前缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Pre'))
         cmds.button(label=u"添加后缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Suf'))
-        cmds.button(label=u"名字替换", h=25, bgc=[.36, .36, .36], c=lambda *args: cmds.SearchAndReplaceNames())
+        cmds.button(label=u"名字替换", h=25, bgc=[.36, .36, .36], c=lambda *args: mel.eval("SearchAndReplaceNames"))
         cmds.setParent('..')
         if not parent:
             cmds.showWindow(self.UiName)
@@ -168,54 +189,47 @@ class MZ_CtrllTool():
             '/* XPM */\nstatic char *b29_xpm[] = {"32 32 256 2","`` c #041604","`. c #24860c","`# c #8c968c","`a c #3cb614","`b c #7c867c","`c c #2c9e0c","`d c #64c21c","`e c #1c5204","`f c #4cca14","`g c #449e1c","`h c #8cce7c","`i c #3c8a14","`j c #545e4c","`k c #54b61c","`l c #bcd2b4","`m c #246e0c","`n c #24920c","`o c #64d61c","`p c #44aa14","`q c #2caa0c","`r c #143204","`s c #1c7a0c","`t c #44c214","`u c #4cb614","`v c #a4ca94","`w c #c4e6bc","`x c #4caa34","`y c #348a14","`z c #64c24c","`A c #349214","`B c #54c61c","`C c #2c7e0c","`D c #248e0c","`E c #3c9e14","`F c #7cbe6c","`G c #0c2a04","`H c #4c5244","`I c #54d214","`J c #54aa14","`K c #a4da94","`L c #dceedc","`M c #8cc27c","`N c #24620c","`O c #3c9214","`P c #249a0c","`Q c #84d26c","`R c #3caa14","`S c #1c4204","`T c #2c860c","`U c #44be14","`V c #54be1c","`W c #64de1c","`X c #0c1e04","`Y c #44b614","`Z c #2ca60c","`0 c #44b214","`1 c #24820c","`2 c #4cbe14","`3 c #6cc654","`4 c #b4dea4","`5 c #8ca684","`6 c #5cb21c","`7 c #5cca1c","`8 c #44a614",".` c #346e0c",".. c #2c920c",".# c #143a04",".a c #d4eacc",".b c #2c820c",".c c #1c5a0c",".d c #54ca14",".e c #9cd68c",".f c #bce2b4",".g c #64da1c",".h c #34aa0c",".i c #247a0c",".j c #4cba24",".k c #54aa3c",".l c #349a0c",".m c #54c234",".n c #acda9c",".o c #449a1c",".p c #54be2c",".q c #243a1c",".r c #0c1604",".s c #248a0c",".t c #6c9a5c",".u c #349e14",".v c #44a22c",".w c #3c8e0c",".x c #6c7a6c",".y c #ccd6c4",".z c #4caa1c",".A c #347a0c",".B c #3ca614",".C c #84ce64",".D c #5cd21c",".E c #e4eedc",".F c #34660c",".G c #449214",".H c #3cb214",".I c #2c8a0c",".J c #44ba14",".K c #74c65c",".L c #2c960c",".M c #1c3a0c",".N c #54ce14",".O c #34ae0c",".P c #949e94",".Q c #3cba14",".R c #848e84",".S c #64c644",".T c #4ca21c",".U c #94ce84",".V c #448614",".W c #5cba1c",".X c #c4d6bc",".Y c #1c760c",".Z c #6cd21c",".0 c #4cc214",".1 c #4cba14",".2 c #a4d694",".3 c #cceec4",".4 c #348e0c",".5 c #74be5c",".6 c #34960c",".7 c #5cc21c",".8 c #2c8e0c","#` c #3ca224","#. c #7ca274","## c #a4ae9c","#a c #b4ceac","#b c #7c8274","#c c #1c2e14","#d c #64ce1c","#e c #9ca694","#f c #44b22c","#g c #244a0c","#h c #2c760c","#i c #acb6a4","#j c #54b21c","#k c #7cc66c","#l c #4cbe2c","#m c #54b23c","#n c #4cb214","#o c #cceac4","#p c #6cbe54","#q c #848a7c","#r c #142e04","#s c #3caa24","#t c #6cde1c","#u c #142204","#v c #245e0c","#w c #2c9a0c","#x c #34a60c","#y c #94a68c","#z c #5cc23c","#A c #5cbe34","#B c #347614","#C c #5cbe1c","#D c #6cda1c","#E c #747a6c","#F c #84ce74","#G c #4cb224","#H c #1c560c","#I c #44a214","#J c #8cd274","#K c #54ae1c","#L c #a4de94","#M c #246614","#N c #3c9614","#O c #6cca4c","#P c #d4eec4","#Q c #247e0c","#R c #4cae14","#S c #041a04","#T c #8c9a8c","#U c #2ca20c","#V c #54ba1c","#W c #24720c","#X c #24960c","#Y c #44ae14","#Z c #1c7e0c","#0 c #3ca214","#1 c #dcf2dc","#2 c #3cae14","#3 c #1c4604","#4 c #0c2204","#5 c #b4e2a4","#6 c #143e04","#7 c #1c5e0c","#8 c #54ae3c","a` c #acde9c","a. c #0c1a04","a# c #34a214","aa c #347e0c","ab c #5cd61c","ac c #e4f2dc","ad c #346a0c","ae c #74ca5c","af c #1c3e0c","ag c #448a14","ah c #6cd61c","ai c #4cc614","aj c #5cc61c","ak c #6ce21c","al c #248614","am c #3cb61c","an c #2c7e14","ao c #54d21c","ap c #a4da9c","aq c #2c8614","ar c #44b61c","as c #248214","at c #44a61c","au c #2c9214","av c #2c8214","aw c #54ca1c","ax c #9cd694","ay c #34aa14","az c #4cba2c","aA c #349a14","aB c #54be34","aC c #248a14","aD c #2c8a14","aE c #44ba1c","aF c #2c9614","aG c #54ce1c","aH c #34ae14","aI c #c4d6c4","aJ c #4cba1c","aK c #348e14","aL c #349614","aM c #2c8e14","aN c #2c9a14","aO c #34a614","aP c #3c961c","aQ c #d4eecc","aR c #247e14","aS c #000000","aT c #000000","aU c #000000","aV c #000000","aW c #000000","aX c #000000","aY c #000000","aZ c #000000","a0 c #000000","a1 c #000000","a2 c #000000","a3 c #000000","a4 c #000000","a5 c #000000","a6 c #000000","a7 c #000000","a8 c #000000",".Y.Y.Y.Y.Y`s.i`s`s.i`s`s.i`s.i`s.i`s.i`s`s.i`s`s.i`s`s.Y.Y.Y.Y.Y",".Y.Y.Y.i#Q#Z`.`.`.`.`.`.`.`.`.`.`.`.`.`.`.`.`.`.`.`1`1#Q`s.Y.Y.Y",".Y.Y#Q#Z.s`D`D`D..`D`n`D`n`D`n`D`n`D`n`D`n`D`n`D`n`D.s.s`1#Q.Y.Y",".Y`s`..s`n..#w.L#X#``x.k#8#8#8#8#8#8#8.k.k.v#w.L#w.L#X`D.s#Z#Z.Y",".Y#Q.s`D.L#X`c#s.5`hax.n`4.n.n.n.n.n.n.n.2.U#k#m`c`c#X#w`n.sas.Y","`sal.s#X`c#U#U#p.e.f#o.X#i`##q#q.R#q#T###a`wap#kay`Z#U#w#X.s`1`s","`s`.`n#w`c#U`q.Kap#a`b#b#eaI`L#1ac`L.y.P#E.x`v#F#faO`Z`c#w`nal`s","#Z`.`n#X#U`Zay`z#.`j`5#oaQ.a.3aQ.3aQaQ#o#o`5`H.taH.h`Z#U`P`n`.#Z",".i.s`n`c#U`qaH#M#c`Mapa`#5a`#5#5#5a`#5a`#L.e`F.q`NaH`Z#U#w`naC#Q","#Z`.`n#w`Zay#h`G#G.K.C`Q#J#J#J#J#J#J#J#J`Qae#zay`G`m#U#U#w.8.s#Z","`1.s.L`cay.l``.B.H#l#z.S`3#O`3#O`3#O`3.S`zaBar`aa##S..`c#w`n`.#Z","#Q.saFa#.h#6#W.H`aar.j.paB#z.paB.p#l#l.jazar`aaH#2#W`r#U#X`naCas","#QaD.u#xaA`X.H.H.H`YaraE.j`u.jaJaEaEararam`a.H.O.O.h#S.saN..`D`.","#Q.s.laO#7.c`Y`a`a`Y`Y`YaEaEaE.JaEaE.J.Q`Y.H.H.Hay#x`e#H.Lau`DaM","`1aM.laO`r.6`a.J`a.J.Q`U`U`U`U`U`U`U.J.J.Q.J`aaH.Oay`.`GaN.Lau..","`1aM#waO``.H`U.Q`U`U`U`t`t`t`t`t`t`t`U`t`U.Q.Q`a#2.ha#``#waF..au","#Qaq.L.B```a`U`U`t`t`taiaiaiaiaiaiai`t`t`t`U`U.Q.HaH#x``.u.lau..","as.saFaO.r.Q`U`t`t`taiaiai`f`f`fai`faiai`t`t`U.Q`a.Hay.r.u#waF.8","as.IaAa#```a`U`U`t.0ai`f`f`f`f.d`f`f`fai.0`t`U`U.Q.H#2``a#.l.6aM","`.aM#w.B`r`A`U`t`taiai`faGaG`IaoaG.Naw`faiai`t`U.J`a.4`r#x.uau.8","aqauaAay`N.c`U.0aiai`faG`I.D.Dab.D.D`IaG.d`fai.0`U.J.c#7aO.u.6aM","aD...u`R`E#4`Uai`faG`7abab`oab.gab`oab.D.DaG.dai.0`U`X.l.B.u.6aM",".IaF.u#2`Y#3aa`faG.Dabab.g`W.g`W#D.g.g`oab`7aoawai`C`S`0`Ra#aLaM","aqaLa##2.J`p`X.1.Dab.g.g#D#t#t#t`W#t`W.g`oab.D.N`ua.`8`Y`R#0`AaM","aDaL`E#Y.J.0.w#r`7.g`o#D`Wak#tak#t#t#D#D.g.gabaj#raK`2`Y#2a#aLaD","aq..a##2.1`2aw#B`r.7.g#D#t#t#t#t#t#t#t`W#D.g#C#r#B`B`2`u`R#0..aD","aqau`E`R`Y`2`B`7`O`X.V`oah#D#D#t#t#D#Dah`oag`X`i`7`B.1`Y`p.u`A.b","#QaKaA`8#Y`u`V.d`7`k#g#u.F`J.Zah#D#d`Jad#u#g`k`7.d`V.1`0.BaA.8av","avaDaL`E`p`0aJ#V.7.7aj#j.`af`Xa.a.#u.M.``6aj.7.7#V.1`0`p`EaLaDan","as.baM#N#0`8#R#n`k#V.W#C#C#C`d`d`d`d`d#C.W#V#V`k#n#R`8`EaLaK.bas","anavaqaKaLaP#Iat.z.z#R#K#j#j#j#j#j#m#j#K#j#K.z.z`8#I`E#NaKaqav`C","#Qavavaq`yaK`O.o.o.o.T`g.T.T.T.T.T.T.T.T.T`g.o.o#N`OaK`yavavasaR"};',
         ]
                     
-        tempdir = tempfile.gettempdir()
+        tempdir = os.getenv('TEMP')
         for n in range(1, 30):
             with open('%s/b%s.xpm' %(tempdir, n), 'w') as wfile:
                 wfile.write(IconData[n-1])
-                #wfile.write(IconData[2*n-2])
-            #with open('%s/b%s_h.xpm' %(tempdir, n), 'w') as wfile:
-            #    wfile.write(IconData[2*n-1])
 
-    def listCtrlData(self, clean):
-        if clean:
-            cmds.deleteUI(cmds.gridLayout('%s_ctrlDataIcon_gL' %self.UiName, q=1, ca=1), ctl=1)
+    def listCtrlData(self):
         #try:   #使用__file__需要在文件模式下
-        DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')   #文件路径下xxx文件夹 os.path.abspath("%s/../xxx/" %__file__)
-        if not os.path.exists(DataLoc):
+        if not os.path.exists(self.DataLoc):
             om.MGlobal.displayWarning(u'外部控制器数据不存在')
             return
         #except NameError:
-        if DataLoc and os.path.isdir(DataLoc):
-            fileList = os.listdir(DataLoc)
+        if os.path.isdir(self.DataLoc):
+            fileList = os.listdir('%s/Json' %self.DataLoc)
             if fileList:
                 cmds.gridLayout('%s_ctrlDataIcon_gL' %self.UiName, e=1, vis=1)
-                for i in range(0, len(fileList), 2):
-                    fileN = fileList[i+1].split('.json')[0]
-                    cmds.iconTextButton('ctrl_DataIcon_%s' %fileN, i="%s/%s" %(DataLoc, fileList[i]), p='%s_ctrlDataIcon_gL' %self.UiName, 
-                                            c=lambda n=fileList[i+1]: self.CreateCtrlCur(0, n))
+                for i in range(len(fileList)):
+                    name = os.path.splitext(fileList[i])[0]
+                    #fileN = fileList[i+1].split('.json')[0]
+                    cmds.iconTextButton('%s_ctrl_DataIcon%s' %(self.UiName, i), i="%s/Icon/%s.jpg" %(self.DataLoc, name), p='%s_ctrlDataIcon_gL' %self.UiName, 
+                                            c=lambda n=name: self.CreateCtrlCur(0, n))
                     cmds.popupMenu()
-                    cmds.menuItem(l='Delete', c=lambda n=fileN: self.DeleteCtrlData(n))
+                    cmds.menuItem(l='Delete', c=lambda f, n=name, index=i: self.DeleteCtrlData(n, index))
 
     def ReadJsonData(self, fileName):
-        DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')
-        with open('%s%s' %(DataLoc, fileName), 'r') as jsFile:
+        with open('%s/Json/%s.json' %(self.DataLoc, fileName), 'r') as jsFile:
             readData = json.load(jsFile)
         return readData['degree'], readData['points'], readData['knot']
 
-    def DeleteCtrlData(self, fileN):
-        DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')
-        for i in os.listdir(DataLoc):
-            if fileN in i:
-                os.remove('%s/%s' %(DataLoc, i))
-        self.listCtrlData(1)
+    def DeleteCtrlData(self, name, index):
+        for i in ["%s/Icon/%s.jpg" %(self.DataLoc, name), "%s/Json/%s.json" %(self.DataLoc, name)]:
+            if os.path.isfile(i):
+                os.remove(i)
+        cmds.iconTextButton('%s_ctrl_DataIcon%s' %(self.UiName, index), e=1, vis=0)
     
     def AddCtrlData(self):
         sl = cmds.ls(sl=1)
         if len(sl) != 1:
             om.MGlobal.displayError(u'只能选择一个控制器')
             return
-        DataLoc = '%s/MyToolBoxDir/Data/CtrlData/' %os.getenv('ALLUSERSPROFILE')
-        
+        TimeName = time.strftime('%Y%m%d%H%M%S')
+
         #Data
         jsonDirt = {'degree': [], 'points': [], 'knot': []}
         for i in range(len(cmds.listRelatives(sl[0], c=1, s=1, typ='nurbsCurve'))):
@@ -225,8 +239,9 @@ class MZ_CtrllTool():
             jsonDirt['degree'].append(nurbsCurve.degree)
             jsonDirt['points'].append(cmds.getAttr('%s.controlPoints[*]' %MDagPath.extendToShape(i)))
             jsonDirt['knot'].append(list(nurbsCurve.knots()))
-        dataNum = int(os.listdir(DataLoc)[-1].split('.')[0][1:]) + 1
-        with open('%s/B%s.json' %(DataLoc, dataNum), 'w') as jsFile:
+
+        #dataNum = int(os.listdir(self.DataLoc)[-1].split('.')[0][1:]) + 1
+        with open('%s/Json/%s.json' %(self.DataLoc, TimeName), 'w') as jsFile:
             json.dump(jsonDirt, jsFile, indent=4, sort_keys=1)
         
         #Icon
@@ -239,13 +254,14 @@ class MZ_CtrllTool():
             cmds.modelPanel(panel, tearOff=1, toc=1)
         cmds.modelEditor(panel, e=1, alo=0, nc=1, gr=False)
         cmds.setFocus(panel)
-        cmds.setAttr("persp.r", -30, 25, 0)
+        cmds.setAttr("persp.r", 0,0,0)   #-30, 25, 0
         cmds.viewFit("persp", an=0)
         cmds.isolateSelect(panel, state=1)
         cmds.isolateSelect(panel, addSelected=1)
         
-        scshot = cmds.playblast(fmt="image", f='%s/aa' %DataLoc, c="jpg", wh=[128, 128], st=0, et=0, viewer=0, percent=100, quality=100, fp=1)
-        os.rename(scshot.replace('aa.####.', 'aa.0.'), '%s/B%s.jpg' %(DataLoc, dataNum))
+        #cmds.refresh(cv=1, fe="jpg", fn='%s/Icon/%s.jpg' %(self.DataLoc, TimeName))
+        scshot = cmds.playblast(fmt="image", f='%s/Icon/aa' %self.DataLoc, c="jpg", wh=[128, 128], st=0, et=0, viewer=0, percent=100, quality=100, fp=1)
+        os.rename(scshot.replace('aa.####.', 'aa.0.'), '%s/Icon/%s.jpg' %(self.DataLoc, TimeName))
 
         if cmds.modelPanel(panel, ex=1):
             cmds.deleteUI(panel, panel=True)
@@ -254,35 +270,35 @@ class MZ_CtrllTool():
         cmds.select(cl=1)
         cmds.FrameSelectedWithoutChildrenInAllViews()
 
-        self.listCtrlData(1)
-
+        
     def ObjShapeColor(self):
         SelObj = cmds.ls(sl=1, typ="transform")
         if not SelObj:
             return
-        #c_Index = cmds.intSlider('SColorInt', q=1, v=1)
-        rgbValue = cmds.colorSliderGrp('%s_colorChoose' %self.UiName, q=1, rgb=1)
+        color = cmds.colorIndexSliderGrp('%s_colorChoose' %self.UiName, q=1, v=1)
         for ob in SelObj:
             objShape = cmds.listRelatives(ob, c=1, s=1)
             for sh in objShape:
                 cmds.setAttr("%s.overrideEnabled" %sh, 1)
-                cmds.setAttr("%s.overrideRGBColors" %sh, 1)
-                cmds.setAttr("%s.overrideColorRGB" %sh, rgbValue[0], rgbValue[1], rgbValue[2])
+                #if type(color) == int:
+                cmds.setAttr("%s.overrideRGBColors" %sh, 0)
+                cmds.setAttr("%s.overrideColor" %sh, color-1)
+                #else:
+                #    cmds.setAttr("%s.overrideRGBColors" %sh, 1)
+                #    cmds.setAttr("%s.overrideColorRGB" %sh, color[0], color[1], color[2])
         cmds.select(SelObj)
 
     def CreateCtrlCur(self, local, Input):
-        ToolTab_Snap_V = cmds.checkBox('%s_SnapCheck' %self.UiName, q=1, v=1)
-        ToolTab_SDK_V = cmds.checkBox('%s_SdkGroupCheck' %self.UiName, q=1, v=1)
+        ToolTab_SDK_V = cmds.checkBox('%s_SdkGroupCB' %self.UiName, q=1, v=1)
         ToolTab_Control_V = cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, q=1, sl=1)
         ToolTab_repace_V = cmds.checkBox('%s_repaceShapeCheck' %self.UiName, q=1, v=1)
         selectObj = cmds.ls(sl=1)
-        dates = self.CtrlCurClass
 
         if Input != 29:
             if local:
                 D_degree = [1]
-                D_points = [dates[Input-1][0]]
-                D_knot = [dates[Input-1][1]]
+                D_points = [self.CtrlCurClass[Input-1][0]]
+                D_knot = [self.CtrlCurClass[Input-1][1]]
             else:
                 D_degree, D_points, D_knot = self.ReadJsonData(Input)
 
@@ -290,14 +306,14 @@ class MZ_CtrllTool():
             ctrlName = cmds.textField('%s_MidNameText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_MidNameCheck' %self.UiName, q=1, v=1) else None
             ctrlSuffix = cmds.textField('%s_ctrlSuffixText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_ctrlSuffixCheck' %self.UiName, q=1, v=1) else '_Ctrl'
             grpSuffix = cmds.textField('%s_grpSuffixText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_grpSuffixCheck' %self.UiName, q=1, v=1) else '_Grp'
-            SdkGroup = cmds.textField('%s_SdkGroupText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_SdkGroupCheck' %self.UiName, q=1, v=1) else '_Sdk'
+            SdkGroup = cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_SdkGroupCB' %self.UiName, q=1, v=1) else '_Sdk'
         else:
             ctrlName = None
             ctrlSuffix = '_Ctrl'
             grpSuffix = '_Grp'
             SdkGroup = '_Sdk'
         
-        if not selectObj or ToolTab_Snap_V == 0:   #在原点生成
+        if not selectObj:   #在原点生成
             if Input == 29:
                 cctrl = cmds.circle(nr=[0, 1, 0])[0]
             else:
@@ -348,7 +364,15 @@ class MZ_CtrllTool():
                         cmds.xform(cctrlGp, os=1, piv=[0, 0, 0])
                     cmds.delete(cmds.parentConstraint(everyObj, cctrlGp, weight=1))
                     if ToolTab_Control_V == 2:
-                        cmds.parentConstraint(cctrl, everyObj, weight=1)
+                        mode = cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, va4=1)
+                        if mode[0]:
+                            cmds.parentConstraint(cctrl, everyObj, mo=1, weight=1)
+                        if mode[1]:
+                            cmds.pointConstraint(cctrl, everyObj, mo=1, weight=1)
+                        if mode[2]:
+                            cmds.orientConstraint(cctrl, everyObj, mo=1, weight=1)
+                        if mode[3]:
+                            cmds.scaleConstraint(cctrl, everyObj, offset=(1, 1, 1), weight=1)
                     elif ToolTab_Control_V == 3:
                         cmds.parent(everyObj, cctrl)
                     elif ToolTab_Control_V == 4:
@@ -356,15 +380,9 @@ class MZ_CtrllTool():
                         Rv = cmds.getAttr("%s.rotate" %everyObj)
                         Sv = cmds.getAttr("%s.scale" %everyObj)
                         if Tv[0] == (0, 0, 0) and Rv[0] == (0, 0, 0) and Sv[0] == (1.0, 1.0, 1.0):
-                            cmds.connectAttr("%s.translateX" %cctrl, "%s.translateX" %everyObj, f=1)
-                            cmds.connectAttr("%s.translateY" %cctrl, "%s.translateY" %everyObj, f=1)
-                            cmds.connectAttr("%s.translateZ" %cctrl, "%s.translateZ" %everyObj, f=1)
-                            cmds.connectAttr("%s.rx" %cctrl, "%s.rx" %everyObj, f=1)
-                            cmds.connectAttr("%s.ry" %cctrl, "%s.ry" %everyObj, f=1)
-                            cmds.connectAttr("%s.rz" %cctrl, "%s.rz" %everyObj, f=1)
-                            cmds.connectAttr("%s.sx" %cctrl, "%s.sx" %everyObj, f=1)
-                            cmds.connectAttr("%s.sy" %cctrl, "%s.sy" %everyObj, f=1)
-                            cmds.connectAttr("%s.sz" %cctrl, "%s.sz" %everyObj, f=1)
+                            cmds.connectAttr("%s.t" %cctrl, "%s.t" %everyObj, f=1)
+                            cmds.connectAttr("%s.r" %cctrl, "%s.r" %everyObj, f=1)
+                            cmds.connectAttr("%s.s" %cctrl, "%s.s" %everyObj, f=1)
                         else:
                             cmds.select(selectObj)
                             om.MGlobal.displayError(u"属性连接控制时 被控制的物体的位移旋转属性归零")
@@ -377,7 +395,8 @@ class MZ_CtrllTool():
         else:   #替换形状
             for o in selectObj:
                 sList = cmds.listRelatives(o, c=1, s=1)
-                cmds.delete(sList[1:], s=1)
+                if len(sList)>1:
+                    cmds.delete(sList[1:], s=1)
                 saveShape = []
                 if Input == 29:
                     cctrl = cmds.circle(nr=[0, 1, 0])[0]
@@ -479,14 +498,11 @@ class MZ_CtrllTool():
                 for i in reversed(sllist):
                     cmds.rename(i, '%s%s' %(i.rsplit('|', 1)[-1], text))
 
-    def mirrorCtrl(self):
+    def mirrorCtrl(self, mode):
         sel = cmds.ls(sl=1, typ="transform")
-        if len(sel) == 0:
+        if len(sel) != 2:
+            om.MGlobal.displayError(u"先选做好的, 再选被镜像的")
             return
-        if len(sel) > 2:
-            om.MGlobal.displayError(u"选多了, 这让我很难办鸭")
-            return
-
         Shape = cmds.listRelatives(sel[0], c=1, s=1, type="nurbsCurve")
         if not Shape:
             om.MGlobal.displayError(u"先选做好的, 再选被镜像的")
@@ -495,13 +511,16 @@ class MZ_CtrllTool():
         souShape = cmds.listRelatives(sel[0], c=1, s=1, type="nurbsCurve")
         newShape = cmds.listRelatives(dupObj, c=1, s=1, type="nurbsCurve")
         cmds.delete(cmds.listRelatives(sel[1], c=1, s=1, type="nurbsCurve"), s=1)
-        for ss, ns in zip(souShape, newShape):
-            nName = cmds.parent(cmds.rename(ns, '%s01Shape' %sel[1]), sel[1], add=1, s=1)[0]
-            sscv = cmds.ls('%s.cv[*]' %ss, fl=1)
-            for n in range(len(sscv)):
-                _ssT = cmds.xform(sscv[n], q=1, ws=1, t=1)
-                cmds.xform('%s.cv[%s]' %(nName, n), ws=1, t=(_ssT[0] * -1, _ssT[1], _ssT[2]))
+        if not mode:
+            for ss, ns in zip(souShape, newShape):
+                nName = cmds.parent(cmds.rename(ns, '%s01Shape' %sel[1]), sel[1], add=1, s=1)[0]
+                sscv = cmds.ls('%s.cv[*]' %ss, fl=1)
+                for n in range(len(sscv)):
+                    _ssT = cmds.xform(sscv[n], q=1, ws=1, t=1)
+                    cmds.xform('%s.cv[%s]' %(nName, n), ws=1, t=(_ssT[0] * -1, _ssT[1], _ssT[2]))
+        else:
+            for ss, ns in zip(souShape, newShape):
+                nName = cmds.parent(cmds.rename(ns, '%s01Shape' %sel[1]), sel[1], add=1, s=1)[0]
         cmds.delete(dupObj)
-
 
 #MZ_CtrllTool().ToolUi()

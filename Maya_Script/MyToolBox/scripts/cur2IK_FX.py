@@ -25,14 +25,14 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
         self.setupUi()
 
     def setupUi(self):
-        Ver = 2.54
+        Ver = 2.55
         self.UiName = 'cur2IK_FX'
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         self.setObjectName(self.UiName)
         #self.resize(260, 500)
         #self.setMinimumSize(260, 500)
-        self.setFixedSize(260, 500)
+        self.setFixedSize(260, 400)
         self.MainverticalLayout = QtWidgets.QVBoxLayout(self)
         self.MainverticalLayout.setObjectName("MainverticalLayout")
         self.MainverticalLayout.setSpacing(3)
@@ -113,17 +113,21 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
         self.horLayoutE.setSpacing(3)
         ui_variable['SkinCtrlbox'] = self.SkinCtrlbox = QtWidgets.QCheckBox(self.child1)
         self.SkinCtrlbox.setObjectName("SkinCtrlbox")
-        self.SkinCtrlbox.setMinimumSize(QtCore.QSize(130, 26))
+        self.SkinCtrlbox.setMaximumSize(QtCore.QSize(90, 26))
         ui_variable['ctrlNumhorLineEdit'] = self.ctrlNumLineEdit = QtWidgets.QLineEdit(self.child1)
-        self.ctrlNumLineEdit.setMinimumSize(QtCore.QSize(35, 22))
+        self.ctrlNumLineEdit.setMaximumSize(QtCore.QSize(35, 22))
         self.ctrlNumLineEdit.setValidator(QtGui.QIntValidator())
-        self.ctrlNumLineEdit.setAlignment(QtCore.Qt.AlignCenter)
+        self.ctrlNumLineEdit.setAlignment(QtCore.Qt.AlignLeft)
         self.ctrlNumLineEdit.setText('5')
         self.ctrlNumLineEdit.setObjectName("ctrlNumLineEdit")
-        spacerItemB = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItemB = QtWidgets.QSpacerItem(130, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        ui_variable['FXCurvebox'] = self.FXCurvebox = QtWidgets.QCheckBox(self.child1)
+        self.FXCurvebox.setMinimumSize(QtCore.QSize(80, 26))
+        self.FXCurvebox.setObjectName("FXCurvebox")
         self.horLayoutE.addWidget(self.SkinCtrlbox)
         self.horLayoutE.addWidget(self.ctrlNumLineEdit)
         self.horLayoutE.addItem(spacerItemB)
+        self.horLayoutE.addWidget(self.FXCurvebox)
         self.child1verLayout.addLayout(self.horLayoutE)
 
         self.gridLayoutWidget = QtWidgets.QWidget(self.child1)
@@ -133,26 +137,8 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
 
-        ui_variable['IKFKCtrlbox'] = self.IKFKCtrlbox = QtWidgets.QCheckBox(self.child1)
-        self.IKFKCtrlbox.setMinimumSize(QtCore.QSize(100, 26))
-        self.IKFKCtrlbox.setObjectName("IKFKCtrlbox")
-        # self.IKFKCtrlbox.setChecked(True)
-        ui_variable['IKjointbox'] = self.IKjointbox = QtWidgets.QCheckBox(self.child1)
-        self.IKjointbox.setMinimumSize(QtCore.QSize(80, 26))
-        self.IKjointbox.setObjectName("IKjointbox")
-        #self.selectboxGrp = QtWidgets.QButtonGroup(self.child1)
-        # self.selectboxGrp.addButton(self.selectboxA,11)
-        # self.selectboxGrp.addButton(self.selectboxB,12)
-
-        ui_variable['FXCurvebox'] = self.FXCurvebox = QtWidgets.QCheckBox(self.child1)
-        self.FXCurvebox.setMinimumSize(QtCore.QSize(80, 26))
-        self.FXCurvebox.setObjectName("FXCurvebox")
-        ui_variable['OnlyFXCurvebox'] = self.OnlyFXCurvebox = QtWidgets.QCheckBox(self.child1)
-        self.OnlyFXCurvebox.setMinimumSize(QtCore.QSize(100, 26))
-        self.OnlyFXCurvebox.setObjectName("FXCurvebox")
-
         self.JointIntText = QtWidgets.QLabel(self.child1)
-        self.JointIntText.setMinimumSize(QtCore.QSize(100, 26))
+        self.JointIntText.setMinimumSize(QtCore.QSize(90, 26))
         self.JointIntText.setObjectName("JointIntText")
         ui_variable['JointInt'] = self.JointInt = QtWidgets.QLineEdit(self.child1)
         self.JointInt.setMinimumSize(QtCore.QSize(100, 20))
@@ -161,31 +147,17 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
         self.JointInt.setObjectName("JointInt")
 
         self.HairSystemText = QtWidgets.QLabel(self.child1)
-        self.HairSystemText.setMinimumSize(QtCore.QSize(80, 26))
+        self.HairSystemText.setMinimumSize(QtCore.QSize(90, 26))
         self.HairSystemText.setObjectName("HairSystemText")
         ui_variable['SelectHairSystem'] = self.SelectHairSystem = QtWidgets.QComboBox(self.child1)
         self.SelectHairSystem.setObjectName("SelectHairSystem")
         self.SelectHairSystem.setMinimumSize(QtCore.QSize(100, 22))
         self.SelectHairSystem.installEventFilter(self)
 
-        self.NucleusText = QtWidgets.QLabel(self.child1)
-        self.NucleusText.setMinimumSize(QtCore.QSize(60, 26))
-        self.NucleusText.setObjectName("NucleusText")
-        ui_variable['SelectNucleus'] = self.SelectNucleus = QtWidgets.QComboBox(self.child1)
-        self.SelectNucleus.setObjectName("SelectNucleus")
-        self.SelectNucleus.setMinimumSize(QtCore.QSize(100, 22))
-        self.SelectNucleus.installEventFilter(self)
-
-        self.gridLayout.addWidget(self.IKFKCtrlbox, 0, 0, 1, 1)
-        self.gridLayout.addWidget(self.IKjointbox, 0, 1, 1, 1)
-        self.gridLayout.addWidget(self.FXCurvebox, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self.OnlyFXCurvebox, 1, 1, 1, 1)
-        self.gridLayout.addWidget(self.JointIntText, 2, 0, 1, 1)
-        self.gridLayout.addWidget(self.JointInt, 2, 1, 1, 1)
-        self.gridLayout.addWidget(self.HairSystemText, 3, 0, 1, 1)
-        self.gridLayout.addWidget(self.SelectHairSystem, 3, 1, 1, 1)
-        self.gridLayout.addWidget(self.NucleusText, 4, 0, 1, 1)
-        self.gridLayout.addWidget(self.SelectNucleus, 4, 1, 1, 1)
+        self.gridLayout.addWidget(self.JointIntText, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.JointInt, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.HairSystemText, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.SelectHairSystem, 1, 1, 1, 1)
         self.child1verLayout.addWidget(self.gridLayoutWidget)
 
         self.BuildCtrl = QtWidgets.QPushButton(self.child1)
@@ -215,8 +187,7 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
 
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
-        cur2IKFX_Tool().Ready_GetNode('HairSystem')
-        cur2IKFX_Tool().Ready_GetNode('Nucleus')
+        cur2IKFX_Tool().refreshNode()
 
         self.RebuildIntText.setText(u"重建段数")
         self.RebuildInt.setPlaceholderText(u"重建段数")
@@ -229,21 +200,10 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
         self.FromJointBG.setText(u"从骨骼开始")
         self.FromJointBG.clicked.connect(lambda: self.setdisable())
         self.FromJointWar.setText(u"选择开始骨骼和结束骨骼\n不能进行批量创建")
-        self.SkinCtrlbox.setText(u"骨骼控制             数量： ")
-        self.IKFKCtrlbox.setText(u"IKFK控制")
-        self.IKjointbox.setText(u'建立IK骨骼')
+        self.SkinCtrlbox.setText(u"骨骼控制-数量")
         self.FXCurvebox.setText(u"添加动力学")
-        self.OnlyFXCurvebox.setText(u"仅动力学曲线")
-        self.OnlyFXCurvebox.clicked.connect(lambda: self.setdisable())
         self.JointIntText.setText(u"骨骼段数")
         self.HairSystemText.setText(u"HairSystem")
-        self.NucleusText.setText(u"Nucleus")
-        if int(cmds.about(v=1)) > 2016:
-            self.SelectHairSystem.currentTextChanged.connect(lambda *args: cur2IKFX_Tool().Acondition())
-            self.SelectNucleus.currentTextChanged.connect(lambda *args: cur2IKFX_Tool().Acondition())
-        else:   #2016以下兼容
-            self.SelectHairSystem.currentIndexChanged.connect(lambda *args: cur2IKFX_Tool().Acondition())
-            self.SelectNucleus.currentIndexChanged.connect(lambda *args: cur2IKFX_Tool().Acondition())
         self.BuildCtrl.setText(u"创建")
         self.BuildCtrl.clicked.connect(lambda *args: cur2IKFX_Tool().createCtrl())
         self.PoseEdit.setText(u"Adv默认Pose编辑")
@@ -262,33 +222,13 @@ class cur2IKFX_ToolUi(QtWidgets.QWidget):
     def eventFilter(self, object, event):  # 鼠标移动就会触发...淦
         if object == self.SelectHairSystem:
             if event.type() == QtCore.QEvent.MouseButtonPress:
-                cur2IKFX_Tool().Ready_GetNode('HairSystem')
+                cur2IKFX_Tool().refreshNode('HairSystem')
             # if event.type() == QtCore.QEvent.MouseButtonDblClick:
             #    if event.button() == QtCore.Qt.RightButton:
             #        pass
             return super(cur2IKFX_ToolUi, self).eventFilter(object, event)
-        elif object == self.SelectNucleus:
-            if event.type() == QtCore.QEvent.MouseButtonPress:
-                cur2IKFX_Tool().Ready_GetNode('Nucleus')
-            return super(cur2IKFX_ToolUi, self).eventFilter(object, event)
 
     def setdisable(self):
-        if self.OnlyFXCurvebox.isChecked():
-            self.SkinCtrlbox.setEnabled(False)
-            self.ctrlNumLineEdit.setEnabled(False)
-            self.IKFKCtrlbox.setEnabled(False)
-            self.IKjointbox.setEnabled(False)
-            self.FXCurvebox.setEnabled(False)
-            self.JointInt.setEnabled(False)
-            self.JointIntText.setEnabled(False)
-        else:
-            self.SkinCtrlbox.setEnabled(True)
-            self.ctrlNumLineEdit.setEnabled(True)
-            self.IKFKCtrlbox.setEnabled(True)
-            self.IKjointbox.setEnabled(True)
-            self.FXCurvebox.setEnabled(True)
-            self.JointInt.setEnabled(True)
-            self.JointIntText.setEnabled(True)
         if self.FromJointBG.isChecked():
             self.FromJointWar.setVisible(True)
             self.SkinCtrlbox.setEnabled(False)
@@ -325,7 +265,7 @@ class cur2IKFX_Tool(object):
             Om.MGlobal.displayError(u"//名称冲突")
             return
         cmds.undoInfo(ock=1)
-        if cmds.confirmDialog(t='Confirm', m=u'尝试居中对齐?(如果对齐错误请撤回)', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
+        if cmds.confirmDialog(t='Confirm', m=u'尝试居中对齐?(如果错误请撤回)', b=['Yes', 'No'], db='Yes', cb='No', ds='No') == 'Yes':
             cmds.polyToCurve(ch=0, form=2, degree=3, n='__temp_cur')
             cmds.select(polyEdgeN, r=1)
             mel.eval('PolySelectConvert 3')
@@ -421,9 +361,6 @@ class cur2IKFX_Tool(object):
         getlist = self.checkCurve()
         if not getlist:
             return
-        if ui_variable['OnlyFXCurvebox'].isChecked():
-            self.FXCurve(getlist)
-            return
         if ui_variable['SkinCtrlbox'].isChecked():
             jointint = int(ui_variable['ctrlNumhorLineEdit'].text())
             self.jointCtrlNum = jointint
@@ -443,11 +380,11 @@ class cur2IKFX_Tool(object):
                     jntN = cmds.joint(p=_pos, n='%s_control%s' % (i, num))
                     cmds.setAttr(jntN + '.v', 0)
                     _ctrlJointList.append(jntN)
-                    createCur = cmds.circle(ch=0, n="%s_Ctrl" % jntN)[0]
+                    createCur = cmds.circle(nr=(1, 0, 0), ch=0, n="%s_Ctrl" % jntN)[0]
                     ctrlgrp = cmds.group(cmds.group(n=createCur + "_SDK"), n=createCur + "_grp")
                     cmds.setAttr(ctrlgrp + '.t', _pos[0], _pos[1], _pos[2])
                     cmds.parent(jntN, createCur)
-                    cmds.delete(cmds.tangentConstraint(i, ctrlgrp, w=1, aim=(0, 0, 1), u=(0, 1, 0), wut="scene"))
+                    cmds.delete(cmds.tangentConstraint(i, ctrlgrp, w=1, aim=(1, 0, 0), u=(0, 1, 0), wut="vector", wu=(0, 1, 0)))
                 cmds.skinCluster(_ctrlJointList, i, tsb=1, dr=4, mi=4)
                 cmds.delete(_tempPos)
                 cmds.setAttr(i + '.ctrlName', i + '_control*_Ctrl', type='string')
@@ -461,26 +398,23 @@ class cur2IKFX_Tool(object):
                 numCVs = cmds.getAttr(i + ".controlPoints", size=1)
                 for nu in range(numCVs):
                     createClu = cmds.cluster('%s.cv[%s]' % (curve, nu), n='%s_clu%s' % (i, nu + 1), rel=1)[1]
-                    createCur = cmds.circle(ch=0, n="%s_control%s_Ctrl" % (i, nu + 1))[0]
+                    createCur = cmds.circle(nr=(1, 0, 0), ch=0, n="%s_control%s_Ctrl" % (i, nu + 1))[0]
                     ctrlgroup = cmds.group(cmds.group(n=createCur + "_SDK"), n=createCur + "_grp")
                     cmds.connectAttr(createClu + "Shape.origin", ctrlgroup + ".translate", f=1)
                     cmds.disconnectAttr(createClu + "Shape.origin", ctrlgroup + ".translate")
-                    cmds.delete(cmds.tangentConstraint(i, ctrlgroup, w=1, aim=(0, 0, 1), u=(0, 1, 0), wut="scene"))
+                    cmds.delete(cmds.tangentConstraint(i, ctrlgroup, w=1, aim=(1, 0, 0), u=(0, 1, 0), wut="vector", wu=(0, 1, 0)))
                     cmds.parentConstraint(createCur, createClu, mo=1)
                     cmds.select(cl=1)
                 cmds.setAttr(i + '.ctrlName', i + '_control*_Ctrl', type='string')
         cmds.select(getlist, r=1)
-        if ui_variable['IKFKCtrlbox'].isChecked():
-            self.IKFKCtrl(ui_variable['SkinCtrlbox'].isChecked())
+        self.IKFKCtrl(ui_variable['SkinCtrlbox'].isChecked())
         if ui_variable['FXCurvebox'].isChecked():
             self.FXCurve(getlist)
-        if ui_variable['IKjointbox'].isChecked():
-            if ui_variable['FXCurvebox'].isChecked():
-                for i in getlist:
-                    self.CurveToIK(i + '_Blend')
-            else:
-                for i in getlist:
-                    self.CurveToIK(i)
+            for i in getlist:
+                self.CurveToIK(i + '_OutFX')
+        else:
+            for i in getlist:
+                self.CurveToIK(i)
         cmds.undoInfo(cck=1)
 
     def IKFKCtrl(self, ctrlmode):
@@ -551,7 +485,7 @@ class cur2IKFX_Tool(object):
             #    cmds.pathAnimation(NodeA, e=1, wuo=cmds.listRelatives(curveN, s=1)[0])
             mz_dd.append(NodeA)
             mz_Loc.append(locB[0])
-        if '_Blend' in curveN:  # 修改名称
+        if '_OutFX' in curveN:  # 修改名称
             curveN = curveN.rsplit('_', 1)[0]
         cmds.select(cl=1)
         locT = cmds.xform(mz_Loc[0], q=1, ws=1, t=1)
@@ -604,48 +538,36 @@ class cur2IKFX_Tool(object):
     def doFinish(self, Name, fx, lastCtrl):
         mainList = [Name, "%s_control*_Ctrl_grp" %Name, '%s_IKJnt0' %Name, '%s_SplineIkHandle' %Name]
         cluList = ['%s_clu*Handle' %Name]
-        fxList = ['%s_Blend' %Name, '%s_toFX' %Name, '%s_OutFX' %Name, '%s_onlyCtrl' %Name]
+        fxList = ['%s_toFX' %Name, '%s_OutFX' %Name]
 
         cmds.setAttr('%s.it' %Name, 0)
         cmds.setAttr('%s_IKJnt0.it' %Name, 0)
-        if '_Blend' in fx:
+        if '_OutFX' in fx:
             mainList = mainList + fxList
             for i in fxList:
                 cmds.setAttr(i + '.it', 0)
             if not ui_variable['SkinCtrlbox'].isChecked():
-                cmds.setAttr('%s_Blend.it' % Name, 1)
-            #完成Fx曲线bs
-            cmds.addAttr(lastCtrl, ln="Ctrl_Fx", at='double', min=0, max=1, dv=1)
+                cmds.setAttr('%s_OutFX.it' % Name, 1)
+            #添加控制属性
+            cmds.addAttr(lastCtrl, ln="Ctrl_Fx", at='long', min=0, max=2, dv=2)
             cmds.setAttr("%s.Ctrl_Fx" %lastCtrl, e=1, k=1)
-            nodeList = cmds.ls('cur2Ik_reverse*', typ='reverse')
-            if nodeList:
-                for i in nodeList:
-                    for input in ['x', 'y', 'z']:
-                        if not cmds.listConnections('%s.i%s' %(i, input)):
-                            nodeList = 'have'
-                            break
-                    else:   #break多个循环: 里循环未发生braek 则正常执行外else, 否则触发外break
-                        continue
-                    break
-                if nodeList == 'have':
-                    cmds.connectAttr("%s.Ctrl_Fx" %lastCtrl, '%s.i%s' %(i, input))
-                    cmds.connectAttr("%s.o%s" %(i, input), '%s_curveBS.%s_onlyCtrl' %(Name, Name))
-                else:   #完全一致
-                    node = cmds.createNode('reverse', n='cur2Ik_reverse')
-                    cmds.connectAttr("%s.Ctrl_Fx" %lastCtrl, '%s.ix' %node)
-                    cmds.connectAttr("%s.ox" %node, '%s_curveBS.%s_onlyCtrl' %(Name, Name))
-            else:       #完全一致
-                node = cmds.createNode('reverse', n='cur2Ik_reverse')
-                cmds.connectAttr("%s.Ctrl_Fx" %lastCtrl, '%s.ix' %node)
-                cmds.connectAttr("%s.ox" %node, '%s_curveBS.%s_onlyCtrl' %(Name, Name))
-            cmds.connectAttr("%s.Ctrl_Fx" %lastCtrl, '%s_curveBS.%s_OutFX' %(Name, Name))
+            """
+            for x in y:
+                for x2 in y2:
+                    if x2:
+                        break
+                else:   #break多个循环: 里循环未发生braek 则正常执行外else, 否则触发外break
+                    continue
+                break
+            """
+            cmds.connectAttr("%s.Ctrl_Fx" %lastCtrl, '%s.simulationMethod' %cmds.listConnections('%s_OutFX.create' %Name, type='follicle')[0])
             cmds.hide(fxList)
         if not ui_variable['SkinCtrlbox'].isChecked():
             mainList = mainList + cluList
             cmds.setAttr('%s.it' % Name, 1)
             cmds.hide(cluList[0])
         cmds.group(mainList, n=Name + '_allGrp')
-        cmds.hide('%s_SplineIkHandle' % Name, '%s_IKJnt0' % Name)
+        cmds.hide(Name, '%s_SplineIkHandle' % Name, '%s_IKJnt0' % Name)
         if cmds.ls('buildPose', typ='dagPose') and cmds.ls('DeformationSystem', 'MotionSystem', typ='transform'):
             cmds.setAttr('buildPose.udAttr', '%s/*addItem*/xform -os -t 0 0 0 -ro 0 0 0 \"%s_clu*Handle_Ctrl\";'
                          %(cmds.getAttr('buildPose.udAttr'), Name), type='string')
@@ -695,48 +617,13 @@ class cur2IKFX_Tool(object):
     # # # # # # # # # #
 
     #Dynamic
-    def Acondition(self):
-        if ui_variable['SelectHairSystem'].currentText() != 'Create New':
-            ui_variable['SelectNucleus'].setEnabled(False)
-        else:
-            ui_variable['SelectNucleus'].setEnabled(True)
-
-    def Ready_GetNode(self, mode):
-        if mode == 'HairSystem':
-            ui_variable['SelectHairSystem'].clear()
-            hairsystemitem = cmds.listRelatives(cmds.ls(typ='hairSystem'), p=1)
-            if hairsystemitem:
-                for i in hairsystemitem:
-                    ui_variable['SelectHairSystem'].addItem(i)
-            ui_variable['SelectHairSystem'].addItem('Create New')
-        if mode == 'Nucleus':
-            ui_variable['SelectNucleus'].clear()
-            nucleusitem = cmds.ls(typ='nucleus')
-            if nucleusitem:
-                for i in nucleusitem:
-                    ui_variable['SelectNucleus'].addItem(i)
-            ui_variable['SelectNucleus'].addItem('Create New')
-
-    def ifdef(self, mode=''):
-        qComboBox = []
-        qComboBox.append(ui_variable['SelectNucleus'].currentText())
-        qComboBox.append(ui_variable['SelectHairSystem'].currentText())
-        if mode == 'NC':
-            qComboBox[0] = cmds.createNode('nucleus')
-            cmds.connectAttr('time1.outTime', qComboBox[0] + ".currentTime")
-            if cmds.upAxis(q=1, axis=1) == "z":
-                cmds.setAttr(qComboBox[0] + ".gravityDirection", 0, 0, -1)
-        if mode == 'NC' or mode == 'HC':
-            qComboBox[1] = cmds.createNode('hairSystem')
-            cmds.setAttr(qComboBox[1] + ".hairsPerClump", 1)
-            cmds.setAttr(qComboBox[1] + ".clumpWidth", 0)
-            cmds.parent(cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0])
-        if not cmds.connectionInfo(qComboBox[1] + ".nextState", sfd=1):
-            mel.eval('addActiveToNSystem("%s", "%s")' % (cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0]))
-            cmds.connectAttr('time1.outTime', qComboBox[1] + '.currentTime', f=1)
-            cmds.connectAttr(qComboBox[0] + '.startFrame', qComboBox[1] + '.startFrame', f=1)
-            qComboBox[1] = cmds.listRelatives(qComboBox[1], p=1)[0] 
-        return qComboBox
+    def refreshNode(self):
+        ui_variable['SelectHairSystem'].clear()
+        hairsystemitem = cmds.listRelatives(cmds.ls(typ='hairSystem'), p=1)
+        if hairsystemitem:
+            for i in hairsystemitem:
+                ui_variable['SelectHairSystem'].addItem(i)
+        ui_variable['SelectHairSystem'].addItem('CreateNew')
 
     def FXCurve(self, curve):
         if not curve:
@@ -744,15 +631,24 @@ class cur2IKFX_Tool(object):
             Om.MGlobal.displayError(u"//未选取曲线")
             return
         cmds.undoInfo(ock=1)
-        qComboBox = []
-        if ui_variable['SelectNucleus'].currentText() != 'Create New' and not cmds.ls(typ='nucleus'):
-            self.Ready_GetNode('Nucleus')
-        if ui_variable['SelectNucleus'].currentText() == 'Create New':
-            qComboBox = self.ifdef('NC')
-        elif ui_variable['SelectHairSystem'].currentText() == 'Create New':
-            qComboBox = self.ifdef('HC')
-        else:
-            qComboBox = self.ifdef()
+        qComboBox = ['', ui_variable['SelectHairSystem'].currentText()]
+        connectNucleus = cmds.listConnections("%s.nextState" %qComboBox[1]) if cmds.ls(str(qComboBox[1]), typ='hairSystem') else []
+        if qComboBox[1] == 'CreateNew' or not connectNucleus:
+            qComboBox[0] = cmds.createNode('nucleus')
+            cmds.connectAttr('time1.outTime', qComboBox[0] + ".currentTime")
+            if cmds.upAxis(q=1, axis=1) == "z":
+                cmds.setAttr(qComboBox[0] + ".gravityDirection", 0, 0, -1)
+        if qComboBox[1] == 'CreateNew' or not cmds.ls(str(qComboBox[1]), typ='hairSystem'):
+            qComboBox[1] = cmds.createNode('hairSystem')
+            cmds.setAttr(qComboBox[1] + ".hairsPerClump", 1)
+            cmds.setAttr(qComboBox[1] + ".clumpWidth", 0)
+            cmds.parent(cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0])
+        if not connectNucleus:
+            mel.eval('addActiveToNSystem("%s", "%s")' % (cmds.listRelatives(qComboBox[1], p=1)[0], qComboBox[0]))
+            cmds.connectAttr('time1.outTime', qComboBox[1] + '.currentTime', f=1)
+            cmds.connectAttr(qComboBox[0] + '.startFrame', qComboBox[1] + '.startFrame', f=1)
+            qComboBox[1] = cmds.listRelatives(qComboBox[1], p=1)[0]
+
         _saveSystemValue = [cmds.getAttr("%s.simulationMethod" %qComboBox[1]), cmds.getAttr("%s.enable" %qComboBox[0])]
         cmds.setAttr("%s.simulationMethod" %qComboBox[1], 1)
         cmds.setAttr("%s.enable" %qComboBox[0], 0)
@@ -768,22 +664,16 @@ class cur2IKFX_Tool(object):
             hairNum = cmds.listConnections(qComboBox[1] + '.outputHair')
             if not hairNum:
                 cmds.connectAttr(qComboBox[1] + '.outputHair[0]', '%s.currentPosition' %hairfollicle, f=1)
-                cmds.connectAttr('%s.outHair' %hairfollicle, qComboBox[1] + '.inputHair[0]', f=1)
+                cmds.connectAttr('%s.outHair' %hairfollicle, '%s.inputHair[0]' %qComboBox[1], f=1)
             else:
-                cmds.connectAttr('%s.outputHair[%s]' % (qComboBox[1], len(hairNum)), hairfollicle + '.currentPosition', f=1)
-                cmds.connectAttr(hairfollicle + '.outHair', '%s.inputHair[%s]' % (qComboBox[1], len(hairNum)), f=1)
+                cmds.connectAttr('%s.outputHair[%s]' % (qComboBox[1], len(hairNum)), '%s.currentPosition' %hairfollicle, f=1)
+                cmds.connectAttr('%s.outHair' %hairfollicle, '%s.inputHair[%s]' %(qComboBox[1], len(hairNum)), f=1)
             cmds.rename(cmds.rebuildCurve(c, ch=1, rpo=0, rt=0, end=1, kr=0, kcp=0, kep=1, kt=0,
                                           s=cmds.getAttr("%s.controlPoints" %c, size=1) + 5, d=3, tol=0.01)[0], '%s_toFX' %c)
-            cmds.duplicate('%s_toFX' %c, rr=1, n='%s_onlyCtrl' %c)
-            cmds.duplicate('%s_toFX' %c, rr=1, n='%s_Blend' %c)
-            cmds.connectAttr(cmds.listRelatives('%s_toFX' %c, s=1)[0] + '.worldSpace[0]', cmds.listRelatives('%s_onlyCtrl' %c, s=1)[0] + '.create', f=1)
-            cmds.parent('%s_toFX' %c, cmds.listRelatives(hairfollicle, p=1))
             cmds.connectAttr(cmds.listRelatives('%s_toFX' %c, s=1, type='nurbsCurve')[0] + '.local', hairfollicle + '.startPosition', f=1)
             cmds.connectAttr('%s_toFX.worldMatrix[0]' %c, hairfollicle+'.startPositionMatrix', f=1)
             cmds.connectAttr(hairfollicle + '.outCurve', cmds.duplicate(c, rr=1, n='%s_OutFX' %c)[0] + 'Shape.create', f=1)
-            cmds.blendShape('%s_OutFX' %c, '%s_onlyCtrl' %c, '%s_Blend' %c, n='%s_curveBS' %c)
-        self.Ready_GetNode('HairSystem')
-        self.Ready_GetNode('Nucleus')
+        self.refreshNode()
         cmds.setAttr("%s.simulationMethod" %qComboBox[1], _saveSystemValue[0])
         cmds.setAttr("%s.enable" %qComboBox[0], _saveSystemValue[1])
         cmds.undoInfo(cck=1)

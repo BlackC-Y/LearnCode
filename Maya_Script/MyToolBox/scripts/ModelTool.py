@@ -15,7 +15,7 @@ import hashlib
 class SymmetryTool_BbBB():
 
     def ToolUi(self, layout=0):
-        Ver = 0.01
+        Ver = 0.11
         self.UiName = "SymmetryTool"
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
@@ -104,12 +104,10 @@ class SymmetryTool_BbBB():
         allPoints = objMFnMesh.getPoints()
         apiundo.commit(undo=partial(objMFnMesh.setPoints, om.MPointArray(allPoints)))
         inverMatrix = om.MMatrix.kIdentity.setElement(Axis, Axis, -1)
-        import time
 
         if NtP:
             PosIdList, NegIdList = NegIdList, PosIdList
         if flip:
-            st = time.time()
             for p, n in zip(PosIdList, NegIdList):
                 #aPoint = om.MPoint(allPoints[p])
                 #bPoint = om.MPoint(allPoints[n])
@@ -118,12 +116,10 @@ class SymmetryTool_BbBB():
                 #allPoints[p], allPoints[n] = bPoint, aPoint
                 allPoints[p], allPoints[n] = om.MPoint(allPoints[n]) * inverMatrix, om.MPoint(allPoints[p]) * inverMatrix
         else:
-            st = time.time()
             for p, n in zip(PosIdList, NegIdList):
                 aPoint = om.MPoint(allPoints[p])
                 aPoint[Axis] = -aPoint[Axis]
                 allPoints[n] = aPoint
-        print(time.time() - st)
         objMFnMesh.setPoints(allPoints)
 
 
@@ -320,13 +316,13 @@ class ModelUtils_BbBB():
                 cycle += 1
         if trySym:
             noSymNegList = set(allNegIdList).difference(set(NegIdList))
-            allPointLoc = objMFnMesh.getFloatPoints(om.MSpace.kWorld)
+            allPointLoc = objMFnMesh.getPoints(om.MSpace.kWorld)
             for i in noSymNegList:
                 iLoc = allPointLoc[i]
                 iLoc[Axis] = -iLoc[Axis]
                 clostLoc, closeFaceID = objMFnMesh.getClosestPoint(iLoc, om.MSpace.kWorld)
                 clostPointList = objMFnMesh.getPolygonVertices(closeFaceID)
-                distance = [clostLoc.distanceTo(om.MPoint(allPointLoc[index])) for index in clostPointList]
+                distance = [clostLoc.distanceTo(allPointLoc[index]) for index in clostPointList]
                 clostPointID = clostPointList[distance.index(min(distance))]
                 PosIdList.append(clostPointID)
                 NegIdList.append(i)

@@ -4,6 +4,20 @@
 <p align="center">
 
 
+## [ModelTool `|检查模型对称 镜像工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ModelTool.py)
+
+#### 2023-03-26  Verision: `0.1`
+<details>
+<summary>详情</summary>
+<pre>
+检查模型对称 镜像工具
+<p align="left">
+  ▽  2023-04-05  Ver_0.11
+1.Fix: 修复尝试对称的类型错误
+</pre>
+</details>
+
+
 ## [ngSk2Weight `|基于NG2的自动分权重 Relax|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ngSk2Weight.py)
 
 #### 2023-03-25  Verision: `0.7x`
@@ -13,6 +27,9 @@
 1.功能Ui分布
 2.取消层功能
 3.提取功能函数
+<p align="left">
+  ▽  2023-04-05  Ver_0.71
+1.优化Smooth使用模式，增加强度调整功能
 </pre>
 </details>
 
@@ -89,6 +106,9 @@
 <p align="left">
   ▽  2022-08-14  Ver_2.54
 1.优化动力学控制的切换方式, 每根独立控制
+<p align="left">
+  ▽  2023-04-05  Ver_2.55
+1.精简生成选项，省略部分控制层级
 </pre>
 </details>
 

@@ -29,7 +29,7 @@ class ngSk2Weight_BbBB():
         if not ngUtils_BbBB.pluginCheck():
             om.MGlobal.displayError(u'这个Maya中缺少ng2插件, 无法使用!')
             return
-        Ver = 0.7
+        Ver = 0.71
         if cmds.window(self.Ui, q=1, ex=1):
             cmds.deleteUI(self.Ui)
         if not layout:
@@ -660,31 +660,28 @@ class ngSk2Weight_BbBB():
 class ngSmooth_BbBB():
 
     @classmethod
-    def doIt(cls):
+    def doIt(cls, value=3):
         mayaVer = int(cmds.about(v=1))
-        if mayaVer >= 2018:
+        if mayaVer >= 2021:
             if ngUtils_BbBB.pluginCheck():
-                cls.doApi()
+                cls.doApi(value)
             else:
-                if mayaVer <= 2020: 
-                    cls.doPlugin()
-                else:
-                    om.MGlobal.displayError(u'缺少ng2插件, 无法使用!')
+                om.MGlobal.displayError(u'缺少ng2插件, 无法使用!')
         elif mayaVer >= 2014:
-            cls.doPlugin()
+            cls.doPlugin(value)
 
     @staticmethod
-    def doPlugin():
-        if cmds.pluginInfo('ngSkinTools.mll', q=1, l=1):
-            cmds.ngSkinRelax()
+    def doPlugin(iterNum):
+        if not cmds.ls(sl=1):
             return
-        plugName = 'ngRelax%s.mll' %cmds.about(v=1)
-        if not cmds.pluginInfo(plugName, q=1, l=1):
-            cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
-        cmds.ngSkinRelax()
+        if not cmds.pluginInfo('ngSkinTools.mll', q=1, l=1):
+            plugName = 'ngRelax%s.mll' %cmds.about(v=1)
+            if not cmds.pluginInfo(plugName, q=1, l=1):
+                cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
+        cmds.ngSkinRelax(ns=iterNum, wl=8)
 
     @staticmethod
-    def doApi():
+    def doApi(iterNum):
         sllist = cmds.ls(sl=1, o=1)
         if not sllist:
             return
@@ -699,7 +696,7 @@ class ngSmooth_BbBB():
         FloodSettings = ng2api.FloodSettings()
         FloodSettings.mode = ng2api.paint.PaintMode.smooth
         FloodSettings.intensity = 0.8
-        FloodSettings.iterations = 2
+        FloodSettings.iterations = iterNum
         FloodSettings.influences_limit = 8 if not cmds.skinCluster(clusterName, q=1, omi=1) else cmds.skinCluster(clusterName, q=1, mi=1)
         FloodSettings.limit_to_component_selection = True
         ng2api.flood_weights(baseLayer, settings=FloodSettings)

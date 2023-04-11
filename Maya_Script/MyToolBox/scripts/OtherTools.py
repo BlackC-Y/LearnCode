@@ -39,6 +39,25 @@ class otherTools():
         cmds.parent([i.rsplit('|', i)[-1] for i in childList], slList[0])
 
     @staticmethod
+    def constraintFromLast(mode):
+        """
+        mode: 0-3分别为父子/点/旋转/缩放
+        """
+        sllist = cmds.ls(sl=1)
+        if mode == 0:
+            for i in sllist[:-1]:
+                cmds.parentConstraint(sllist[-1], i, mo=1, w=1)
+        elif mode == 1:
+            for i in sllist[:-1]:
+                cmds.pointConstraint(sllist[-1], i, mo=1, w=1)
+        elif mode == 2:
+            for i in sllist[:-1]:
+                cmds.orientConstraint(sllist[-1], i, mo=1, w=1)
+        elif mode == 3:
+            for i in sllist[:-1]:
+                cmds.scaleConstraint(sllist[-1], i, mo=1, w=1)
+
+    @staticmethod
     def createLocator():
         alist = cmds.ls(sl=1, fl=1)
         for i in alist:
@@ -232,6 +251,9 @@ class otherTools():
     
     @staticmethod
     def connectBsCommand():
+        """
+        打印出Bs现有连接的命令
+        """
         slbs = cmds.ls(sl=1, typ='blendShape')
         if not slbs:
             om.MGlobal.displayError(u'未选择BS节点')

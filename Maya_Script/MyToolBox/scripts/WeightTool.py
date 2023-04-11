@@ -19,21 +19,11 @@ import os
 class PointWeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.06'
+        Ver = '1.07'
         self.ToolUi = 'PointWeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
         cmds.window(self.ToolUi, t='PointWeightTool %s' %Ver, rtf=1, mb=1, tlb=1, wh=(230, 500))
-        '''cmds.menu(l='SkinT', to=1)
-        cmds.menuItem(d=1, dl="S/L")
-        cmds.menuItem(l='Save', c=lambda *args: WeightSL_BbBB().SLcheck('Save'))
-        cmds.menuItem(l='Load', c=lambda *args: WeightSL_BbBB().SLcheck('Load'))
-        cmds.menuItem(d=1)
-        cmds.menuItem(l='WeightCheck', c=lambda *args: WeightCheckTool_BbBB().ToolUi())
-        cmds.menuItem(l='reset SkinPose', c=lambda *args: self.resetSkinPose())
-        cmds.menu(l='RigT', to=1)
-        cmds.menuItem(l='Create', c=lambda *args: self.createSelect())
-        cmds.menuItem(l='Get', c=lambda *args: self.getSelect())'''
         cmds.columnLayout('FiristcL_BbBB', cat=('both', 2), rs=2, cw=220, adj=1)
         cmds.text('spJobchangeVtx_BbBB', p='FiristcL_BbBB', vis=0)
         cmds.scriptJob(e=['SelectTypeChanged', lambda *args: self.refreshBoxChange(None)], p='spJobchangeVtx_BbBB')
@@ -371,48 +361,6 @@ class PointWeightTool_BbBB():
         for i in selVtx:
             exec('cmds.skinPercent("%s", "%s", nrm=0, zri=1, tv=%s)' % (clusterName, i, tvList))
         self.refreshJointList(0)
-
-    def resetSkinPose(self):
-        for obj in cmds.ls(sl=1):
-            clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
-            if not clusterName:
-                return
-            sk_matrix = clusterName + '.matrix'
-            mx_num = cmds.getAttr(sk_matrix, mi=1)
-            infs = cmds.listConnections(sk_matrix, s=1, d=0, scn=1)
-            if not infs:
-                return
-            for n in mx_num:
-                inf = cmds.listConnections('%s[%d]' % (sk_matrix, n), s=1, d=0, scn=1)
-                if not inf:
-                    continue
-                matrix = cmds.getAttr('%s.worldInverseMatrix[0]' % inf[0])
-                cmds.setAttr('%s.pm[%d]' % (clusterName, n), matrix, typ='matrix')
-                cmds.dagPose(inf[0], rs=1, n=cmds.listConnections('%s.bp' % clusterName, s=1, d=0, scn=1)[0])
-
-    def createSelect(self):
-        selvtx = cmds.ls(sl=1)
-        selobj = cmds.ls(sl=1, o=1)[0]
-        cluWs = cmds.getAttr(cmds.cluster(n='_tempClu_')[1] + 'Shape.origin')[0]
-        Curname = cmds.circle(n='_selectCur_')[0]
-        cmds.setAttr(Curname + '.translate', cmds.polyEvaluate(selobj, b=1)[0][1] + 1, cluWs[1], cluWs[2])
-        cmds.addAttr(Curname, ln='vtxinfo', dt='string')
-        cmds.setAttr(Curname + '.vtxinfo', '', type='string')
-        for i in selvtx:
-            cmds.setAttr(Curname + '.vtxinfo', '%s%s,' % (cmds.getAttr(Curname + '.vtxinfo'), i), type='string')
-        cmds.delete('_tempClu_Handle')
-        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideEnabled', 1)
-        cmds.setAttr(cmds.listRelatives(Curname, c=1, s=1)[0] + '.overrideColor', 16)
-
-    def getSelect(self):
-        _tempVtx = []
-        for c in cmds.ls(sl=1):
-            if not cmds.ls('%s.vtxinfo' % c):
-                return
-            vtxList = cmds.getAttr('%s.vtxinfo' % c).split(',')[0:-1]
-            for i in vtxList:
-                _tempVtx.append(i)
-        cmds.select(_tempVtx, r=1)
 
 
 class WeightSL_BbBB():
@@ -825,11 +773,11 @@ class WeightCheckTool_BbBB():
             cmds.rowColumnLayout(nr=4, cs=((1, 2), (2, 2)), rs=((2, 2), (3, 2)))
 
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'加载', w=80, c=lambda *args: self.Load()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'加载', w=80, c=lambda *args: self.Load()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'清理', w=80, c=lambda *args: self.Clean()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'清理', w=80, c=lambda *args: self.Clean()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'选择', w=80, c=lambda *args: self.selectVtx()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'选择', w=80, c=lambda *args: self.selectVtx()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         cmds.text(l='', h=1)
         cmds.radioCollection()
         cmds.radioButton('%s_DecimalText' %self.UiName, l=u'小数点精度', h=22)
@@ -843,7 +791,7 @@ class WeightCheckTool_BbBB():
         #cmds.radioCollection(e=1, sl=_intField[Setting_CheckDefaultMode])
         cmds.text(l='', h=20)
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'列出结果', w=80, c=lambda *args: showCheckResult()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'列出结果', w=80, c=lambda *args: showCheckResult()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         cmds.progressBar('%s_progressBar' %self.UiName, h=26, w=150, vis=0)
         self.saveObj = ''
 
@@ -1071,12 +1019,12 @@ class CopyWeightTool_BbBB():
         cmds.menuItem(l='Select', c=lambda *args: cmds.select(self.ComponentData['targe'], r=1))
         cmds.checkBox('%s_oneToOneAttr' %self.UiName, l=u'使用一对一标签 (源和目标的蒙皮骨骼基本一致时)', h=25, v=1)
         cmds.rowLayout(nc=3)
-        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Help', w=50, c=lambda *args: showHelp()))), QPushButton).setStyleSheet(QtStyle.QButton(24))
-        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Run', w=255, c=lambda *args: self.runProc()))), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Help', w=50, c=lambda *args: showHelp()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Run', w=255, c=lambda *args: self.runProc()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
         cmds.setParent('..')
         
-        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_sourceText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButton(24))
-        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_targeText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButton(24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_sourceText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_targeText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
         
 
         def showHelp():
@@ -1192,15 +1140,15 @@ class softSelectWeightTool_BbBB():
         cmds.window(self.Ui, t='%s' %(self.Ui), rtf=1, mb=1, tlb=1, wh=(290, 85))
         cmds.columnLayout(cat=('both', 2), rs=2, cw=290)
 
-        cmds.text(l=u'软选择给权重')
+        cmds.text(l=u'软选择创建次级骨骼')
         cmds.rowLayout(nc=3)
         cmds.button(l=u'软选择创建新骨骼', w=100, c=lambda *args: self.softSelectCreateJoint())
         cmds.button(l=u'软选择加选现有骨骼', w=115, c=lambda *args: self.softSelectCreateJoint('selJoint'))
         cmds.button(l=u'+0.05权重', w=70, c=lambda *args: self.softSelectCreateJoint('add'))
         cmds.setParent('..')
-        cmds.text(l=u'传递现有权重')
+        cmds.text(l=u'记录一个骨骼权重规律 在新骨骼和范围中重现')
         cmds.rowLayout(nc=2)
-        cmds.button(l=u'拾取现有模型骨骼', w=135, c=lambda *args: self.getWeightToEquation())
+        cmds.button(l=u'选择现有模型骨骼', w=135, c=lambda *args: self.getWeightToEquation())
         cmds.button(l=u'软选择加选现有骨骼', w=150, c=lambda *args: self.setWeightFromEquation())
         cmds.showWindow(self.Ui)
 
@@ -1208,7 +1156,7 @@ class softSelectWeightTool_BbBB():
         _ver = int(cmds.about(v=1))
         if _ver < 2022:
             try:
-                from . import numpy27 as np
+                from MyToolBox import numpy27 as np
                 return 27
             except ImportError as e:
                 raise ImportError(u'没找到适用于py2的numpy包')
@@ -1224,7 +1172,7 @@ class softSelectWeightTool_BbBB():
         """
         index = self.check_numpyPackge()
         if index == 27:
-            from . import numpy27 as np
+            from MyToolBox import numpy27 as np
         else:
             import numpy as np
         selApiList = om.MGlobal.getActiveSelectionList()
@@ -1243,7 +1191,7 @@ class softSelectWeightTool_BbBB():
 
         #列表排序方法
         #weightList, vtxSelList = zip(*sorted(zip(weightList, cmds.ls(vtxSelList.getSelectionStrings(), fl=1)), reverse=True))
-        dataRange = self.reRange(weightList, 0, 1, 0, max(weightList))
+        dataRange = WeightUtils_BbBB.reRange(weightList, 0, 1, 0, max(weightList))
         
         xAxis = np.array(dataRange)
         yAxis = np.array(weightList)
@@ -1261,7 +1209,7 @@ class softSelectWeightTool_BbBB():
             if not clusterName:
                 return
             
-            IndexList, weightList = self.getSoftSelectData()
+            IndexList, weightList = WeightUtils_BbBB.getSoftSelectData()
             newJoint = selList[1]
             for index, weight in zip(IndexList, weightList):
                 cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), tv=[newJoint, self.weightEquation(weight)])
@@ -1277,7 +1225,7 @@ class softSelectWeightTool_BbBB():
         if not clusterName:
             return
         
-        IndexList, weightList = self.getSoftSelectData()
+        IndexList, weightList = WeightUtils_BbBB.getSoftSelectData()
         if mode == 'add':
             newJoint = self.creatNewData[0]
             if not newJoint:
@@ -1298,8 +1246,12 @@ class softSelectWeightTool_BbBB():
         for index, weight in zip(IndexList, weightList):
             cmds.skinPercent(clusterName, '%s.vtx[%s]'%(selobj, index), tv=[newJoint, weight * scaleValue])
         self.creatNewData = [newJoint]
-        
-    def reRange(self, dataList, to_min, to_max, minNow, maxNow):
+
+
+class WeightUtils_BbBB():
+
+    @staticmethod
+    def reRange(dataList, to_min, to_max, minNow, maxNow):
         """
         重映射范围
         - dataList: 需要映射的列表
@@ -1310,7 +1262,8 @@ class softSelectWeightTool_BbBB():
         """
         return [to_min + ((to_max - to_min) / (maxNow - minNow)) * i - minNow for i in dataList]
 
-    def getSoftSelectData(self):
+    @staticmethod
+    def getSoftSelectData():
         """
         获取软选择的组件和权重值
         """
@@ -1333,6 +1286,24 @@ class softSelectWeightTool_BbBB():
             print(fnComp.element(i), fnComp.weight(i).influence())
         '''
 
+    @staticmethod
+    def resetSkinPose():
+        for obj in cmds.ls(sl=1):
+            clusterName = mel.eval('findRelatedSkinCluster("%s")' % obj)
+            if not clusterName:
+                continue
+            sk_matrix = '%s.matrix' %clusterName
+            mx_num = cmds.getAttr(sk_matrix, mi=1)
+            infs = cmds.listConnections(sk_matrix, s=1, d=0, scn=1)
+            if not infs:
+                continue
+            for n in mx_num:
+                inf = cmds.listConnections('%s[%d]' % (sk_matrix, n), s=1, d=0, scn=1)
+                if not inf:
+                    continue
+                matrix = cmds.getAttr('%s.worldInverseMatrix[0]' %inf[0])
+                cmds.setAttr('%s.pm[%d]' %(clusterName, n), matrix, typ='matrix')
+                cmds.dagPose(inf[0], rs=1, n=cmds.listConnections('%s.bp' %clusterName, s=1, d=0, scn=1)[0])
 
 #PointWeightTool_BbBB().ToolUi()
 #WeightCheckTool_BbBB().ToolUi()

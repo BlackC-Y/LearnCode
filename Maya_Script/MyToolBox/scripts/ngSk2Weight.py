@@ -29,7 +29,7 @@ class ngSk2Weight_BbBB():
         if not ngUtils_BbBB.pluginCheck():
             om.MGlobal.displayError(u'这个Maya中缺少ng2插件, 无法使用!')
             return
-        Ver = 0.71
+        Ver = 0.72
         if cmds.window(self.Ui, q=1, ex=1):
             cmds.deleteUI(self.Ui)
         if not layout:
@@ -52,9 +52,9 @@ class ngSk2Weight_BbBB():
         cmds.setParent('..')
         cmds.rowLayout(nc=2, h=28)
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'临时模板', w=200, c=lambda *args: self.tempSelectJointUi()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'临时模板', w=200, c=lambda *args: self.tempSelectJointUi()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'运行', w=200, c=lambda *args: self.doIt()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'运行', w=200, c=lambda *args: self.doIt()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         cmds.popupMenu()
         cmds.menuItem('%s_objHaveSkin' %self.Ui, cb=0, l=u'模型已有蒙皮')
         cmds.setParent('..')
@@ -71,15 +71,15 @@ class ngSk2Weight_BbBB():
                 selectObj = sllist[0]
                 cmds.textFieldButtonGrp('%s_selectObj' %self.Ui, e=1, tx=selectObj)
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'创建', c=lambda *args: self.slJointCreateNgLayer(selectObj)))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'创建', c=lambda *args: self.slJointCreateNgLayer(selectObj)))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         cmds.setParent('..')
         cmds.setParent('..')
         cmds.frameLayout(cll=1, cl=1, mw=5, l=u'复制Ng权重')
         cmds.columnLayout(cat=('both', 2), rs=2, adj=1)
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'复制点权重', c=lambda *args: self.copyVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'复制点权重', c=lambda *args: self.copyVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l=u'粘贴点权重', c=lambda *args: self.pasteVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButton(26))
+            cmds.button(l=u'粘贴点权重', c=lambda *args: self.pasteVtxWeight()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         
         
         cmds.setParent('..')
@@ -564,8 +564,8 @@ class ngSk2Weight_BbBB():
         FloodSettings = ng2api.FloodSettings()
         FloodSettings.mode = ng2api.paint.PaintMode.smooth
         FloodSettings.intensity = 0.8
-        FloodSettings.influences_limit = cmds.intField('%s_assignMaxInfluencesNum' %self.Ui, q=1, v=1) \
-                                            if cmds.checkBox('%s_assignMaxInfluencesCB' %self.Ui, q=1, v=1) else 0
+        FloodSettings.influences_limit = cmds.intField('%s_maxInfluencesNum' %self.Ui, q=1, v=1) \
+                                            if cmds.checkBox('%s_maxInfluencesCB' %self.Ui, q=1, v=1) else 0
         for i in layerList[1:]:
             Num = 0
             for joint in reversed(dataLayers[i.name][0]):   #dataLayers数据结构为'LayerName': [[Joint], [JointMirror]]
@@ -677,7 +677,7 @@ class ngSmooth_BbBB():
         if not cmds.pluginInfo('ngSkinTools.mll', q=1, l=1):
             plugName = 'ngRelax%s.mll' %cmds.about(v=1)
             if not cmds.pluginInfo(plugName, q=1, l=1):
-                cmds.loadPlugin('%s/MyToolBoxDir/Data/plugin/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
+                cmds.loadPlugin('%s/MyToolBoxDir/MyToolBox/plugin/ngSkin1/%s' %(os.getenv('ALLUSERSPROFILE'), plugName), qt=1)
         cmds.ngSkinRelax(ns=iterNum, wl=8)
 
     @staticmethod

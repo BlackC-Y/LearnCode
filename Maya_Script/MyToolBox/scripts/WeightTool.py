@@ -7,7 +7,7 @@ from maya.api import OpenMaya as om, OpenMayaAnim as omAni
 from PySide2.QtWidgets import QPushButton
 import shiboken2
 
-from .Utils import QtStyle
+from .Utils import QtStyle, Functions
 from .DisplayYes import *
 
 import decimal
@@ -19,7 +19,7 @@ import os
 class PointWeightTool_BbBB():
 
     def ToolUi(self):
-        Ver = '1.07'
+        Ver = '1.08'
         self.ToolUi = 'PointWeightTool_BbBB'
         if cmds.window(self.ToolUi, q=1, ex=1):
             cmds.deleteUI(self.ToolUi)
@@ -638,12 +638,13 @@ class WeightSL_BbBB():
             filePath = cmds.fileDialog2(ff='File (*.Weight)', ds=2)
         # component组件不为空（点）,线和面会强制转为点
         vertIter = om.MItMeshVertex(MObject) if MItcomponent.isNull() else om.MItMeshVertex(MItDagPath, MItcomponent)
+        Aobject = True if MItcomponent.isNull() else False
         with open(filePath[0], 'w') as vwfile:
             jsonData = {'Data':[]}
             while not vertIter.isDone():
                 weights = skinNode.getWeights(MDagPath, vertIter.currentItem())[0]
 
-                tvList = self.zeroWeightData_Save(weights, infNameList)
+                tvList = self.zeroWeightData_Save(weights, infNameList, source=Aobject)
                 jsonData['Data'].append(['vtx[%s]' %vertIter.index(), tvList])
                 vertIter.next()
             json.dump(jsonData, vwfile)
@@ -700,8 +701,8 @@ class WeightSL_BbBB():
         if not filePath:
             filePath = cmds.fileDialog2(ff='Xml (*.xml)', ds=2)
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
-        attributes = ['envelope', 'skinningMethod', 'normalizeWeights', 'deformUserNormals', 'useComponents']
-        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], ex=1, vc=1, wp=6, attribute=attributes, deformer=[skCluster])
+        #attribute = ['envelope', 'skinningMethod', 'normalizeWeights', 'deformUserNormals', 'useComponents']
+        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], deformer=[skCluster], ex=1, vc=1, wp=6, dv=-1.0)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
     def vtxLoad_dW(self, filePath=''):
@@ -718,15 +719,15 @@ class WeightSL_BbBB():
         if not filePath:
             filePath = cmds.fileDialog2(ff='Xml (*.xml)', ds=2, fm=1)
         fileANDPath = filePath[0].rsplit('\\', 1) if '\\' in filePath else filePath[0].rsplit('/', 1)
-        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], deformer=[skCluster], im=1, method='nearest', ws=1)
+        cmds.deformerWeights(fileANDPath[1], path=fileANDPath[0], deformer=[skCluster], im=1, method='index', ws=1)   #"index", "nearest", "barycentric", "bilinear", "over"
         cmds.skinCluster([skCluster], e=1, forceNormalizeWeights=1)
 
         for j, l in zip(jntList, jntLock):
             cmds.setAttr(j + '.liw', l)
         DisplayYes().showMessage(u'处理完成! 用时: %s秒' %(time.time()-st))
 
-    def zeroWeightData_Save(self, weights, infNameList, source=0):
-        #去除0权重数据, source为1则输出源数据
+    def zeroWeightData_Save(self, weights, infNameList, source=False):
+        #去除0权重数据, source为True则输出源数据
         if source:
             return [[i, w] for i, w in zip(infNameList, weights)]
         allWeight = 0
@@ -756,18 +757,15 @@ class WeightCheckTool_BbBB():
 
     def ToolUi(self, layout=0):
         self.UiName = 'WeightCheckTool_Ui'
-        self.DataLoc = '%s/MyToolBoxDir/Data/Settings.json' %os.getenv('ALLUSERSPROFILE')
-        if os.path.isfile(self.DataLoc):
-            with open(self.DataLoc, 'r') as jsFile:
-                self.readData = json.load(jsFile)
-                self.jsSetting = self.readData[self.UiName]
-            Setting_CheckDefaultMode = self.jsSetting["CheckDefaultMode"]
-        else:
+
+        Setting_CheckDefaultMode = Functions.readSetting(self.UiName, "CheckDefaultMode")
+        if not Setting_CheckDefaultMode:
             Setting_CheckDefaultMode = 1
+        
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         if not layout:
-            cmds.window(self.UiName, t='WeightCheckTool', rtf=1, tlb=1, wh=(165, 350), bgc=QtStyle.backgroundColor, cc=lambda *args: self.saveSettings())
+            cmds.window(self.UiName, t='WeightCheckTool', rtf=1, tlb=1, wh=(165, 350), bgc=QtStyle.backgroundMayaColor, cc=lambda *args: self.saveSettings())
             cmds.columnLayout(cat=('left', 3), h=300, w=140, rs=2)
         else:
             cmds.rowColumnLayout(nr=4, cs=((1, 2), (2, 2)), rs=((2, 2), (3, 2)))
@@ -826,11 +824,8 @@ class WeightCheckTool_BbBB():
             cmds.showWindow(self.UiName)
         
     def saveSettings(self):
-        if os.path.isfile(self.DataLoc):
-            with open(self.DataLoc, 'w') as jsFile:
-                self.jsSetting["CheckDefaultMode"] = 0 if cmds.radioButton('%s_DecimalText' %self.UiName, q=1, sl=1) else 1
-                self.readData[self.UiName] = self.jsSetting
-                json.dump(self.readData, jsFile, indent=2)
+        data = 0 if cmds.radioButton('%s_DecimalText' %self.UiName, q=1, sl=1) else 1
+        Functions.editSetting(self.UiName, "CheckDefaultMode", data)
 
     def getSel(self):
         sel = cmds.ls(sl=1, fl=1)
@@ -1009,7 +1004,7 @@ class CopyWeightTool_BbBB():
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         if not layout:
-            cmds.window(self.UiName, t='%s %s' %(self.UiName, Ver), rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundColor)
+            cmds.window(self.UiName, t='%s %s' %(self.UiName, Ver), rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundMayaColor)
         cmds.columnLayout(cat=('both', 5), rs=2, cw=300, adj=1)
         cmds.textFieldButtonGrp('%s_sourceText' %self.UiName, l=u'源', bl='Select', h=26, adj=2, ed=0, cw3=[30, 200, 60], bc=lambda *args: select(1))
         cmds.popupMenu()
@@ -1020,7 +1015,7 @@ class CopyWeightTool_BbBB():
         cmds.checkBox('%s_oneToOneAttr' %self.UiName, l=u'使用一对一标签 (源和目标的蒙皮骨骼基本一致时)', h=25, v=1)
         cmds.rowLayout(nc=3)
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Help', w=50, c=lambda *args: showHelp()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
-        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Run', w=255, c=lambda *args: self.runProc()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(cmds.button(l='Run', w=255, c=lambda *args: self.checkProc()))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
         cmds.setParent('..')
         
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_sourceText' %self.UiName)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=24))
@@ -1047,26 +1042,50 @@ class CopyWeightTool_BbBB():
         if not layout:
             cmds.showWindow(self.UiName)
     
-    def runProc(self):
+    def checkProc(self):
         if not self.ComponentData['source'] or not self.ComponentData['targe']:
-            return
+            if len(cmds.ls(sl=1)) == 2:
+                self.selectProc()
+            else:
+                return
+        else:
+            self.runProc()
+
+    def selectProc(self):
+        sllist = cmds.ls(sl=1)
+        copyAttr = ('oneToOne', 'closestJoint') if cmds.checkBox('%s_oneToOneAttr' %self.UiName, q=1, v=1) else 'closestJoint'
+        soureSkinCluster = mel.eval('findRelatedSkinCluster("%s")' %sllist[0])
+        if not soureSkinCluster:
+            cmds.error(u'源模型没得蒙皮呀')
+        infJointList = cmds.skinCluster(sllist[0], q=1, inf=1)
+        jntLock = [cmds.getAttr('%s.liw' %j) for j in infJointList]
+        targeSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % sllist[1])
+        if not targeSkinCluster:
+            targeSkinCluster = cmds.skinCluster(infJointList, sllist[1], tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)[0]
+        cmds.copySkinWeights(ss=soureSkinCluster, ds=targeSkinCluster, nm=1, sa='closestPoint', ia=copyAttr, nr=1, sm=1)
+        for j, l in zip(infJointList, jntLock):
+            cmds.setAttr('%s.liw' %j, l)
+
+    def runProc(self):
         sourelist = cmds.ls(self.ComponentData['source'], fl=1)
         targelist = cmds.ls(self.ComponentData['targe'], fl=1)
         soureObj = cmds.ls(sourelist, o=1)[0]
         targeObj = cmds.ls(targelist, o=1)
-        Extract = 0
+        isExtract = 0
+        isComponent = 0
         copyAttr = ('oneToOne', 'closestJoint') if cmds.checkBox('%s_oneToOneAttr' %self.UiName, q=1, v=1) else 'closestJoint'
         #源
         if not cmds.objectType(soureObj, i='transform'):   #是点线面
-            Extract = 1   #为点线面时提取
+            isExtract = 1   #为点线面时提取
             soureObj = cmds.listRelatives(soureObj, p=1)[0]
         elif sourelist[0] == soureObj:   #是整个模型
-            Extract = 0
+            isExtract = 0
         #目标
         if not cmds.objectType(targeObj[0], i='transform'):   #目标选的是点线面
+            isComponent = 1
             targeObj = cmds.listRelatives(targeObj[0], p=1)
-        
-        Extract = 1 if soureObj == targeObj[0] else 0   #目标和源为相同模型 需要提取
+
+        isExtract = 1 if soureObj == targeObj[0] else 0   #目标和源为相同模型 需要提取
         
         soureSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % soureObj)
         if not soureSkinCluster:
@@ -1075,7 +1094,7 @@ class CopyWeightTool_BbBB():
         infJointList = cmds.skinCluster(soureObj, q=1, inf=1)   #所有骨骼
         jntLock = [cmds.getAttr('%s.liw' %j) for j in infJointList]
 
-        if Extract:   #需要提取
+        if isExtract:   #需要提取
             _TempObj_ = cmds.duplicate(soureObj, rr=1)[0]
             #allList = ['%s.f[%s]' % (soureObj, i) for i in range(cmds.polyEvaluate(_TempObj_, f=1))]
             _difflist_ = set(cmds.ls('%s.f[*]' %soureObj, fl=1)).difference(set(sourelist))
@@ -1089,20 +1108,16 @@ class CopyWeightTool_BbBB():
         if cmds.listRelatives(targeObj, c=1, s=1, typ='nurbsSurface'):
             self.SurfaceCWeight(soureObj, targeObj[0], copyAttr)
         else:
-            for i in targeObj:
-                if not mel.eval('findRelatedSkinCluster("%s")' % i):
-                    cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)
-                    targelist = i
-                else:
-                    if cmds.nodeType(i) == 'transform':
-                        state = 1 if cmds.nodeType(cmds.listRelatives(i, c=1, s=1)) == 'mesh' else 0
-                    elif cmds.nodeType(i) == 'mesh':
-                        state = 1
-                    else:
-                        state = 0
-                    targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fv=1, fe=1, fuv=1, fvf=1, tv=1), fl=1) if state else i
-                cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=copyAttr, nr=1)
-        if Extract:
+            if isComponent:
+                targelist = cmds.ls(cmds.polyListComponentConversion(targelist, ff=1, fv=1, fe=1, fuv=1, fvf=1, tv=1), fl=1)
+                cmds.copySkinWeights(soureObj, targelist, nm=1, sa='closestPoint', ia=copyAttr, nr=1, sm=1)
+            else:
+                for i in targeObj:
+                    targeSkinCluster = mel.eval('findRelatedSkinCluster("%s")' % i)
+                    if not targeSkinCluster:
+                        targeSkinCluster = cmds.skinCluster(infJointList, i, tsb=1, mi=cmds.getAttr('%s.maxInfluences' % soureSkinCluster), dr=4)[0]
+                    cmds.copySkinWeights(ss=soureSkinCluster, ds=targeSkinCluster, nm=1, sa='closestPoint', ia=copyAttr, nr=1, sm=1)
+        if isExtract:
             cmds.delete(_TempObj_)
         for j, l in zip(infJointList, jntLock):
             cmds.setAttr('%s.liw' %j, l)

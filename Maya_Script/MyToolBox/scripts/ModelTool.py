@@ -16,12 +16,12 @@ import hashlib
 class SymmetryTool_BbBB():
 
     def ToolUi(self, layout=0):
-        Ver = 0.12
+        Ver = 1.00
         self.UiName = "SymmetryTool_BbBB"
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         if not layout:
-            cmds.window(self.UiName, title="Symmetry %s" %Ver, s=1, mb=1, tlb=1, bgc=QtStyle.backgroundColor)
+            cmds.window(self.UiName, title="Symmetry %s" %Ver, s=1, mb=1, tlb=1, bgc=QtStyle.backgroundMayaColor)
         cmds.columnLayout(rs=3, cat=('both', 2), cw=230, adj=1)
         cmds.rowLayout(nc=4, adj=4)
         cmds.radioButtonGrp('AxisRB_%s' %self.UiName, nrb=3, l1='X', l2='Y', l3='Z', sl=1, cw3=(35, 35, 35))
@@ -72,14 +72,14 @@ class SymmetryTool_BbBB():
             self.BaseModel = None
             om.MGlobal.displayError(u'什么都没选 这让我很难办啊')
             return
+        self.BaseModel = om.MGlobal.getActiveSelectionList()
         self.PosIdList, self.NegIdList = ModelUtils_BbBB.checkSymmetry(
                 cmds.radioButtonGrp('AxisRB_%s' %self.UiName, q=1, sl=1) - 1, 
                 cmds.floatField('toleranceValue_%s' %self.UiName, q=1, v=1), 
                 self.getSpace(), 
                 cmds.menuItem('trySymCB_%s' %self.UiName, q=1, cb=1))
         cmds.text('BaseMeshText_%s' %self.UiName, e=1, l=slList[0])
-        self.BaseModel = om.MGlobal.getActiveSelectionList()
-
+        
     def selectMovedVertex(self, result=0):
         selMSList = om.MGlobal.getActiveSelectionList()
         selMSList.merge(self.BaseModel)
@@ -144,30 +144,38 @@ class SymmetryTool_BbBB():
 class BlendShapeTool_BbBB():
 
     @staticmethod
-    def reSetBsTargetUi(layout=0):
-        Ui = 'reSetBsTarget_Ui'
+    def reBsTargetUi(layout=0):
+        Ui = 'reBsTarget_Ui'
         if cmds.window(Ui, q=1, ex=1):
             cmds.deleteUI(Ui)
         if not layout:
-            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundColor)
+            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundMayaColor)
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
-        cmds.textFieldButtonGrp('%s_BsTarget' %Ui, l=u'Bs目标', bl=u'选择', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: select())
+        cmds.textFieldButtonGrp('%s_BsTarget' %Ui, l=u'Bs目标', bl=u'选择', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: _select())
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
-            cmds.button(l='Run', w=255, c=lambda *args: doIt(cmds.textFieldButtonGrp('%s_BsTarget' %Ui, q=1, tx=1)))
+            cmds.button(l=u'重设Bs目标-替换', w=255, c=lambda *args: doSet(cmds.textFieldButtonGrp('%s_BsTarget' %Ui, q=1, tx=1)))
+                )), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l=u'重建Bs目标-提取', w=255, c=lambda *args: doBuild(cmds.textFieldButtonGrp('%s_BsTarget' %Ui, q=1, tx=1)))
                 )), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_BsTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
-        def select():
+        def _select():
             slBs = cmds.ls(sl=1, typ='blendShape')
-            if not slBs:
-                return
-            slAttr = cmds.channelBox('mainChannelBox', q=1, sha=1)[0]
-            cmds.textFieldButtonGrp('%s_BsTarget' %Ui, e=1, tx='%s.%s' %(slBs[0], slAttr))
-
+            if slBs:
+                slAttr = cmds.channelBox('mainChannelBox', q=1, sha=1)[0]
+                cmds.textFieldButtonGrp('%s_BsTarget' %Ui, e=1, tx='%s.%s' %(slBs[0], slAttr))
+            else:
+                BsEditVar = cmds.optionVar(q="blendShapeEditorTreeViewSelection")
+                slBs = BsEditVar[4].split('/')
+                if slBs:
+                    data = slBs[0].split('.')
+                    cmds.textFieldButtonGrp('%s_BsTarget' %Ui, e=1, tx='%s.%s' %(data[0], cmds.aliasAttr('%s.w[%s]' %(data[0], data[1]), q=1)))
+            
         if not layout:
             cmds.showWindow(Ui)
 
-        def doIt(data):
+        def doSet(data):
             slList = cmds.ls(sl=1, typ='transform')
             if not slList or not data:
                 om.MGlobal.displayError(u'未选择模型')
@@ -176,10 +184,17 @@ class BlendShapeTool_BbBB():
             for item in cmds.getAttr('%s.w' %data[0], mi=1):
                 if data[1] == cmds.aliasAttr('%s.w[%s]' %(data[0], item), q=1):
                     break
-            bsDataAttr = '%s.inputTarget[%s].inputTargetGroup[%s].inputTargetItem[6000].inputGeomTarget' %(data[0], 0, item)
+            bsDataAttr = '%s.inputTarget[%s].inputTargetGroup[%s].inputTargetItem[6000].inputGeomTarget' %(data[0], 0, item)   #单模型Bs时为0 多模型(组队组)为编号
             cmds.connectAttr('%s.outMesh' %slList[0], bsDataAttr, f=1)
             cmds.refresh()
             cmds.disconnectAttr('%s.outMesh' %slList[0], bsDataAttr)
+
+        def doBuild(data):
+            data = data.split('.', 1)
+            for item in cmds.getAttr('%s.w' %data[0], mi=1):
+                if data[1] == cmds.aliasAttr('%s.w[%s]' %(data[0], item), q=1):
+                    break
+            cmds.select(cmds.sculptTarget(data[0], e=1, r=1, t=item), r=1)
 
     @staticmethod
     def checkSameModelToolUi(layout=0):
@@ -187,15 +202,15 @@ class BlendShapeTool_BbBB():
         if cmds.window(Ui, q=1, ex=1):
             cmds.deleteUI(Ui)
         if not layout:
-            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundColor)
+            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundMayaColor)
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
-        cmds.textFieldButtonGrp('%s_BsTarget' %Ui, l=u'基准', bl=u'选择', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: select())
+        cmds.textFieldButtonGrp('%s_BsTarget' %Ui, l=u'基准', bl=u'选择', adj=2, ed=0, cw3=[40, 200, 60], bc=lambda *args: _select())
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
             cmds.button(l='Run', w=255, c=lambda *args: doIt(cmds.textFieldButtonGrp('%s_BsTarget' %Ui, q=1, tx=1)))
                 )), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_BsTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
-        def select():
+        def _select():
             sl = cmds.ls(sl=1, typ='transform')
             if not sl:
                 return
@@ -225,17 +240,17 @@ class BlendShapeTool_BbBB():
         if cmds.window(Ui, q=1, ex=1):
             cmds.deleteUI(Ui)
         if not layout:
-            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundColor)
+            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85), bgc=QtStyle.backgroundMayaColor)
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
-        cmds.textFieldButtonGrp('%s_MeshTarget' %Ui, l=u'被复制模型', bl=u'选择', adj=2, ed=0, cw3=[60, 180, 60], bc=lambda *args: select(0))
-        cmds.textFieldButtonGrp('%s_BsNodeTarget' %Ui, l=u'Bs节点', bl=u'选择', adj=2, ed=0, cw3=[60, 180, 60], bc=lambda *args: select(1))
+        cmds.textFieldButtonGrp('%s_MeshTarget' %Ui, l=u'被复制模型', bl=u'选择', adj=2, ed=0, cw3=[60, 180, 60], bc=lambda *args: _select(0))
+        cmds.textFieldButtonGrp('%s_BsNodeTarget' %Ui, l=u'Bs节点', bl=u'选择', adj=2, ed=0, cw3=[60, 180, 60], bc=lambda *args: _select(1))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
             cmds.button(l='Run', w=255, c=lambda *args: doIt(cmds.textFieldButtonGrp('%s_MeshTarget' %Ui, q=1, tx=1), 
                                                              cmds.textFieldButtonGrp('%s_BsNodeTarget' %Ui, q=1, tx=1)))
                 )), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_MeshTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
         shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_BsNodeTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
-        def select(mode):
+        def _select(mode):
             if mode:
                 sl = cmds.ls(sl=1, typ='blendShape')
                 if not sl:
@@ -254,16 +269,97 @@ class BlendShapeTool_BbBB():
             modbbox = cmds.xform(mesh, q=1, bb=1)
             cmds.setAttr('%s.envelope' %bsNode, 1)
             saveGrp = cmds.group(n='ExtBs_Grp', em=1, w=1)
-            for index, value in enumerate(cmds.getAttr('%s.w' %bsNode, mi=1)):
+            index = 0
+            for value in cmds.getAttr('%s.w' %bsNode, mi=1):
                 try:
                     cmds.setAttr('%s.w[%s]' %(bsNode, value), 1)
                 except:
                     continue
+                index += 1
                 extName = cmds.duplicate(mesh, n=cmds.aliasAttr('%s.w[%s]' %(bsNode, value), q=1))[0]
                 cmds.parent(extName, saveGrp)
-                cmds.setAttr('%s.tx' %extName, (index + 1) * abs(modbbox[0] - modbbox[3]) / 2)
+                cmds.setAttr('%s.t' %extName, lock=0)
+                cmds.setAttr('%s.tx' %extName, lock=0)
+                cmds.setAttr('%s.tx' %extName, index * abs(modbbox[0] - modbbox[3]) / 2)
                 cmds.setAttr('%s.w[%s]' %(bsNode, value), 0)
 
+    @staticmethod
+    def connectBSToolUi(layout=0):
+        Ui = 'connectBSTool_Ui'
+        if cmds.window(Ui, q=1, ex=1):
+            cmds.deleteUI(Ui)
+        if not layout:
+            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85))
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
+        cmds.textFieldButtonGrp('%s_sourceBSTarget' %Ui,  l=u'控制BS', bl=u'选择', adj=2, ed=0, cw3=(40, 180, 60), bc=lambda *args: _select('%s_sourceBSTarget' %Ui))
+        cmds.textFieldButtonGrp('%s_connectBSTarget' %Ui, l=u'被控BS', bl=u'选择', adj=2, ed=0, cw3=(40, 180, 60), bc=lambda *args: _select('%s_connectBSTarget' %Ui))
+        cmds.radioButtonGrp('%s_modeRadio' %Ui, l=u"", sl=1, la3=(u"相同", u'匹配', u"前后缀"), nrb=3, cw4=(80, 60, 60, 60), 
+                                an1=u'属性名称完全相同', an2=u'一侧属性包含另一侧属性名称', an3=u'一侧属性有固定前缀或后缀')
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button(l='Run', w=255, c=lambda *args: doIt(
+                cmds.textFieldButtonGrp('%s_sourceBSTarget' %Ui, q=1, tx=1), 
+                cmds.textFieldButtonGrp('%s_connectBSTarget' %Ui, q=1, tx=1),
+                cmds.radioButtonGrp('%s_modeRadio' %Ui, q=1, sl=1)-1)
+            ))), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
+
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_sourceBSTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl('%s_connectBSTarget' %Ui)), QPushButton).setStyleSheet(QtStyle.QButtonStyle(height=26))
+        def _select(ui):
+            sl = cmds.ls(sl=1, typ='blendShape')
+            if not sl:
+                return
+            cmds.textFieldButtonGrp(ui, e=1, tx=sl[0])
+        
+        if not layout:
+            cmds.showWindow(Ui)
+
+        def doIt(source, connect, mode):
+            #()推导式不是Set 是生成器
+            sourceAttrSet = set([cmds.aliasAttr('%s.w[%s]' %(source, i), q=1) for i in cmds.getAttr('%s.w' %source, mi=1)])
+            if mode == 1:
+                for i in cmds.getAttr('%s.w' %connect, mi=1):
+                    attr = cmds.aliasAttr('%s.w[%s]' %(connect, i), q=1)
+                    if attr in sourceAttrSet:
+                        cmds.connectAttr('%s.%s' %(source, attr), '%s.%s' %(connect, attr), f=1)
+            elif mode == 2:
+                for i1 in cmds.getAttr('%s.w' %connect, mi=1):
+                    attr = cmds.aliasAttr('%s.w[%s]' %(connect, i1), q=1)
+                    for i2 in sourceAttrSet:
+                        if attr in i2 or i2 in attr:
+                            cmds.connectAttr('%s.%s' %(source, i2), '%s.%s' %(connect, attr), f=1)
+                            break
+            elif mode == 3:
+                connectAttrSet = set([cmds.aliasAttr('%s.w[%s]' %(connect, i), q=1) for i in cmds.getAttr('%s.w' %connect, mi=1)])
+                spresult = []
+                spresultstate = []
+                for i1 in connectAttrSet:
+                    for i2 in sourceAttrSet:
+                        if i1 in i2:
+                            spresult.append(i2.split(i1))
+                            spresultstate.append(1)
+                            break
+                        elif i2 in i1:
+                            spresult.append(i1.split(i2))
+                            spresultstate.append(2)
+                            break
+                    if len(spresult) == 2:
+                        break
+                if len(spresult) != 2 or spresult[0] != spresult[1] or spresultstate[0] != spresultstate[1]:
+                    om.MGlobal.displayError(u'没有找到规律')
+                    return
+                
+                spresult = spresult[0]
+                spresultstate = spresultstate[0]
+                if spresultstate == 1:
+                    for i1 in connectAttrSet:
+                        nowAttr = '%s%s%s' %(spresult[0], i1, spresult[1])
+                        if nowAttr in sourceAttrSet:
+                            cmds.connectAttr('%s.%s' %(source, nowAttr), '%s.%s' %(connect, i1), f=1)
+                else:
+                    for i2 in sourceAttrSet:
+                        nowAttr = '%s%s%s' %(spresult[0], i2, spresult[1])
+                        if nowAttr in connectAttrSet:
+                            cmds.connectAttr('%s.%s' %(source, i2), '%s.%s' %(connect, nowAttr), f=1)
 
 class ModelUtils_BbBB():
 
@@ -383,6 +479,11 @@ class ModelUtils_BbBB():
             cmds.loadPlugin('invertShape.mll', qt=1)
         except RuntimeError:
             om.MGlobal.displayWarning(u'这个Maya中缺少必要插件, 修型功能将无法使用!')
-        cmds.invertShape(orig, sel)
+        sllist = cmds.ls(sl=1)
+        if sllist and len(sllist) == 2:
+            #先源模型，再选修好型的 使用时源模型应该在提取修型的位置
+            cmds.invertShape(sllist[0], sllist[1])
+        else:
+            om.MGlobal.displayError(u"请选择两个模型：先选源模型，再选修好型的")
     
 #SymmetryTool_BbBB().ToolUi()

@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
 from maya import cmds, mel
+from maya import OpenMayaUI as OmUI
 from maya.api import OpenMaya as om
+from PySide2.QtWidgets import QPushButton
+import shiboken2
 import json
 import time
 import os
@@ -8,14 +11,14 @@ import os
 class MZ_CtrllTool():
 
     def ToolUi(self, parent=0):
-        Ver = 1.05
+        Ver = 1.06
         self.UiName = "MZ_CtrlTool"
         self.DataLoc = '%s/MyToolBoxDir/Data/CtrlData' %os.getenv('ALLUSERSPROFILE')   #文件路径下xxx文件夹 os.path.abspath("%s/../xxx/" %__file__)
         if cmds.window(self.UiName, q=1, ex=1):
             cmds.deleteUI(self.UiName)
         
         if not parent:
-            cmds.window(self.UiName, title="CtrlTool %s" %Ver, s=1, mb=1, tlb=1, bgc=[.2, .2, .2], widthHeight=(305, 430))
+            cmds.window(self.UiName, t="CtrlTool %s" %Ver, s=1, mb=1, tlb=1, bgc=[.2, .2, .2], wh=(305, 430))
             cmds.columnLayout(rs=3)
         else:
             cmds.columnLayout(rs=3, p=parent)
@@ -31,44 +34,33 @@ class MZ_CtrllTool():
             cmds.canvas(rgb=(index[0], index[1], index[2]), pc=lambda *args: self.ObjShapeColor(ii))
         cmds.canvas("defaultColorCanvas", hsv=(237.446808, 1, 0.376), ann="5", pc='cmds.select(cl=1)')
         '''
-        cmds.rowColumnLayout(nc=4)
-        cmds.checkBox('%s_NameCheck' %self.UiName, l=u'修改命名规则', h=25, onc=lambda *args: cmds.columnLayout(SetNamecL, e=1, vis=1), 
-                        ofc=lambda *args: cmds.columnLayout(SetNamecL, e=1, vis=0))
-        cmds.checkBox('%s_SdkGroupCB' %self.UiName, l=u'SDK组', h=25, onc=lambda *args: cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, e=1, en=1), 
-                        ofc=lambda *args: cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, e=1, en=0))
-        cmds.checkBox('%s_ParentCheck' %self.UiName, l=u'层级化控制器', h=25, ann=u'注意选择顺序 先选父级物体 顺序选择')
-        cmds.checkBox('%s_repaceShapeCheck' %self.UiName, l=u'置换形状', h=25, onc=lambda *args: _switch_Shape(1), ofc=lambda *args: _switch_Shape(0))
-        def _switch_Shape(value):
-            if value:
-                cmds.checkBox('%s_NameCheck' %self.UiName, e=1, en=0, v=0)
-                cmds.columnLayout(SetNamecL, e=1, vis=0)
-                cmds.checkBox('%s_SdkGroupCB' %self.UiName, e=1, en=0)
-                cmds.checkBox('%s_ParentCheck' %self.UiName, e=1, en=0)
-                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=0)
-            else:
-                cmds.checkBox('%s_NameCheck' %self.UiName, e=1, en=1)
-                cmds.checkBox('%s_SdkGroupCB' %self.UiName, e=1, en=1)
-                cmds.checkBox('%s_ParentCheck' %self.UiName, e=1, en=1)
-                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=1)
+        style = '''
+        QPushButton {
+            border: none;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        QPushButton:hover {
+            background-color: rgb(76, 76, 76);
+        }
+        QPushButton:pressed {
+            background-color: #1d1d1d;
+        }
+        '''
+        cmds.rowColumnLayout(nc=4, co=(1, 'right', 5))
+        shiboken2.wrapInstance(int(OmUI.MQtUtil.findControl(
+            cmds.button('%s_NameCheck' %self.UiName, l=u'命名规则', h=25, c=lambda *args: _nameRuleUi())
+            )), QPushButton).setStyleSheet(style)
+        cmds.checkBox('%s_liteCtrlCB' %self.UiName, l=u'简化控制', h=25, v=1)
+        cmds.checkBox('%s_parentCheck' %self.UiName, l=u'层级化控制器', h=25, ann=u'注意选择顺序 先选父级物体 顺序选择')
+        cmds.checkBox('%s_repaceShapeCheck' %self.UiName, l=u'替换形状', h=25, onc=lambda *args: _switch_Shape(1), ofc=lambda *args: _switch_Shape(0))
         cmds.setParent('..')
-
-        SetNamecL = cmds.columnLayout(rs=1, vis=0)
-        cmds.rowColumnLayout(nc=2, columnWidth=[(1, 110), (2, 120)])
-        cmds.checkBox('%s_MidNameCheck' %self.UiName, l=u'修改控制器名', onc=lambda *args: cmds.textField('%s_MidNameText' %self.UiName, e=1, en=1), 
-                        ofc=lambda *args: cmds.textField('%s_MidNameText' %self.UiName, e=1, en=0))
-        cmds.textField('%s_MidNameText' %self.UiName, en=0)
-        cmds.setParent('..')
-        cmds.rowColumnLayout(nc=2, columnWidth=[(1, 110), (2, 120)])
-        cmds.checkBox('%s_ctrlSuffixCheck' %self.UiName, l=u'修改控制器后缀', onc=lambda *args: cmds.textField('%s_ctrlSuffixText' %self.UiName, e=1, en=1), 
-                        ofc=lambda *args: cmds.textField('%s_ctrlSuffixText' %self.UiName, e=1, en=0))
-        cmds.textField('%s_ctrlSuffixText' %self.UiName, tx='_Ctrl', en=0)
-        cmds.setParent('..')
-        cmds.rowColumnLayout(nc=2, columnWidth=[(1, 110), (2, 120)])
-        cmds.checkBox('%s_grpSuffixCheck' %self.UiName, l=u'修改组后缀', onc=lambda *args: cmds.textField('%s_grpSuffixText' %self.UiName, e=1, en=1), 
-                        ofc=lambda *args: cmds.textField('%s_grpSuffixText' %self.UiName, e=1, en=0))
-        cmds.textField('%s_grpSuffixText' %self.UiName, tx='_Grp', en=0)
-        cmds.setParent('..')
-        cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, l=u'SDK组后缀', tx='_Sdk', cl2=('center', 'left'), cw2=(110, 120), en=0)
+        
+        nameUiCL = cmds.columnLayout(rs=1, vis=0)
+        cmds.textFieldGrp('%s_ctrlNameText' %self.UiName, l=u'控制器名', tx='', cl2=('center', 'left'), cw2=(110, 120))
+        cmds.textFieldGrp('%s_ctrlSuffixText' %self.UiName, l=u'控制器后缀', tx='_Ctrl', cl2=('center', 'left'), cw2=(110, 120))
+        cmds.textFieldGrp('%s_offsetSuffixText' %self.UiName, l=u'偏移组后缀', tx='_Offset', cl2=('center', 'left'), cw2=(110, 120))
+        cmds.textFieldGrp('%s_aniSuffixText' %self.UiName, l=u'动画组后缀', tx='_Ani', cl2=('center', 'left'), cw2=(110, 120))
         cmds.setParent('..')
 
         cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, l="", sl=1, labelArray4=[u"只对齐", u"约束控制", u"层级关系", u"属性连接"], nrb=4, cw5=[0, 60, 75, 75, 75],
@@ -76,15 +68,6 @@ class MZ_CtrllTool():
                             of2=lambda *args: cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, vis=0))
         cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, ncb=4, cw5=(65, 50, 40, 50, 50), cl5=('center', 'left', 'left', 'left', 'left'), v1=1, en2=0, en3=0, 
                             cc=lambda *args: _switch_Constrain(), l=u'', labelArray4=(u'父子', u'点', u'旋转', u'缩放'), vis=0)
-        def _switch_Constrain():
-            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v1=1):
-                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=0, en3=0, v2=0, v3=0)
-            else:
-                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=1, en3=1)
-            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v2=1) or cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v3=1):
-                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=0, v1=0)
-            else:
-                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=1)
 
         cmds.gridLayout(nc=8, cwh=(35, 35), w=298)
         self.outIcon()
@@ -97,26 +80,59 @@ class MZ_CtrllTool():
         self.listCtrlData()
         cmds.setParent('..')
 
-        cmds.intField('%s_saveScaleValue' %self.UiName, v=0, vis=0)
+        #cmds.intField('%s_saveScaleValue' %self.UiName, v=0, vis=0)
         cmds.rowColumnLayout(nc=3, columnWidth=[(1, 95), (2, 95), (3, 95)], cs=[(2, 2), (3, 2)], rs=(2, 3))
-        cmds.button(label=u"添加", h=25, bgc=[1, 1, .3], c=lambda *args: self.parentCurveShapeNode())
-        cmds.button(label=u"镜像", h=25, bgc=[1, 1, .3])
+        cmds.button(l=u"添加", h=25, bgc=[1, 1, .5], c=lambda *args: self.addCurveShapeNode())
+        cmds.button(l=u"替换", h=25, bgc=[1, 1, .5], c=lambda *args: self.replaceCurveShapeNode())
+        cmds.button(l=u"镜像", h=25, bgc=[1, 1, .5])
         cmds.popupMenu(button=1)
         cmds.menuItem(l=u'形状镜像', c=lambda *args: self.mirrorCtrl(1))
         cmds.menuItem(l=u'世界镜像', c=lambda *args: self.mirrorCtrl(0))
-        cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, min=-20, max=20, value=0, step=1, cc=lambda *args: _zeroValue(), 
-                            dc=lambda *args: self.curScale_Rot(cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, q=1, v=1)))
-        def _zeroValue():
-            cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, e=1, v=0)
-            cmds.intField('%s_saveScaleValue' %self.UiName, e=1, v=0)
-        
-        cmds.button(label=u"X轴45", h=25, bgc=[1, .35, .35], c=lambda *args: self.curScale_Rot("X45"))
-        cmds.button(label=u"Y轴45", h=25, bgc=[.35, 1, .35], c=lambda *args: self.curScale_Rot("Y45"))
-        cmds.button(label=u"Z轴45", h=25, bgc=[.35, .35, 1], c=lambda *args: self.curScale_Rot("Z45"))
-        cmds.button(label=u"添加前缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Pre'))
-        cmds.button(label=u"添加后缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Suf'))
-        cmds.button(label=u"名字替换", h=25, bgc=[.36, .36, .36], c=lambda *args: mel.eval("SearchAndReplaceNames"))
+        #cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, min=-20, max=20, value=0, step=1, cc=lambda *args: _zeroValue(), 
+        #                    dc=lambda *args: self.curScale_Rot(cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, q=1, v=1)))
+        cmds.button(l=u"X轴45", h=25, bgc=[1, .35, .35], c=lambda *args: self.curScale_Rot("X45"))
+        cmds.button(l=u"Y轴45", h=25, bgc=[.35, 1, .35], c=lambda *args: self.curScale_Rot("Y45"))
+        cmds.button(l=u"Z轴45", h=25, bgc=[.35, .35, 1], c=lambda *args: self.curScale_Rot("Z45"))
+        cmds.button(l=u"缩小", h=25, bgc=[1, 1, .5], c=lambda *args: self.curScale_Rot(0.9))
+        cmds.text(l='')
+        cmds.button(l=u"放大", h=25, bgc=[1, 1, .5], c=lambda *args: self.curScale_Rot(1.1))
+        cmds.button(l=u"添加前缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Pre'))
+        cmds.button(l=u"添加后缀", h=25, bgc=[.36, .36, .36], c=lambda *args: self.addNamefix('Suf'))
+        cmds.button(l=u"名字替换", h=25, bgc=[.36, .36, .36], c=lambda *args: mel.eval("SearchAndReplaceNames"))
         cmds.setParent('..')
+
+        def _switch_Shape(value):
+            if value:
+                cmds.checkBox('%s_liteCtrlCB' %self.UiName, e=1, en=0)
+                cmds.checkBox('%s_parentCheck' %self.UiName, e=1, en=0)
+                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=0)
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en=0)
+            else:
+                cmds.checkBox('%s_liteCtrlCB' %self.UiName, e=1, en=1)
+                cmds.checkBox('%s_parentCheck' %self.UiName, e=1, en=1)
+                cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, e=1, en=1)
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en=1)
+        self.nameUi = ''
+        def _nameRuleUi():
+            if cmds.window(self.nameUi, q=1, ex=1):
+                return
+            self.nameUi = cmds.window(t=u'命名规则', s=1, mb=1, tlb=1, bgc=[.2, .2, .2], p=self.UiName, 
+                                        cc=lambda *args: cmds.columnLayout(nameUiCL, e=1, vis=0, p=self.UiName))
+            cmds.columnLayout(nameUiCL, e=1, vis=1, p=self.nameUi)
+            cmds.showWindow(self.nameUi)
+        def _switch_Constrain():
+            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v1=1):
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=0, en3=0, v2=0, v3=0)
+            else:
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en2=1, en3=1)
+            if cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v2=1) or cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, v3=1):
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=0, v1=0)
+            else:
+                cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, e=1, en1=1)
+        #def _zeroValue():
+        #    cmds.intSliderGrp('%s_ScaleSlider' %self.UiName, e=1, v=0)
+        #    cmds.intField('%s_saveScaleValue' %self.UiName, e=1, v=0)
+
         if not parent:
             cmds.showWindow(self.UiName)
 
@@ -289,9 +305,9 @@ class MZ_CtrllTool():
         cmds.select(SelObj)
 
     def CreateCtrlCur(self, local, Input):
-        ToolTab_SDK_V = cmds.checkBox('%s_SdkGroupCB' %self.UiName, q=1, v=1)
-        ToolTab_Control_V = cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, q=1, sl=1)
-        ToolTab_repace_V = cmds.checkBox('%s_repaceShapeCheck' %self.UiName, q=1, v=1)
+        liteCtrl_Mode = cmds.checkBox('%s_liteCtrlCB' %self.UiName, q=1, v=1)
+        Control_Mode = cmds.radioButtonGrp('%s_ControlRadio' %self.UiName, q=1, sl=1)
+        repaceShape_Mode = cmds.checkBox('%s_repaceShapeCheck' %self.UiName, q=1, v=1)
         selectObj = cmds.ls(sl=1)
 
         if Input != 29:
@@ -302,17 +318,28 @@ class MZ_CtrllTool():
             else:
                 D_degree, D_points, D_knot = self.ReadJsonData(Input)
 
-        if cmds.checkBox('%s_NameCheck' %self.UiName, q=1, v=1):
-            ctrlName = cmds.textField('%s_MidNameText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_MidNameCheck' %self.UiName, q=1, v=1) else None
-            ctrlSuffix = cmds.textField('%s_ctrlSuffixText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_ctrlSuffixCheck' %self.UiName, q=1, v=1) else '_Ctrl'
-            grpSuffix = cmds.textField('%s_grpSuffixText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_grpSuffixCheck' %self.UiName, q=1, v=1) else '_Grp'
-            SdkGroup = cmds.textFieldGrp('%s_SdkGroupText' %self.UiName, q=1, tx=1) if cmds.checkBox('%s_SdkGroupCB' %self.UiName, q=1, v=1) else '_Sdk'
-        else:
-            ctrlName = None
-            ctrlSuffix = '_Ctrl'
-            grpSuffix = '_Grp'
-            SdkGroup = '_Sdk'
+        ctrlName = cmds.textFieldGrp('%s_ctrlNameText' %self.UiName, q=1, tx=1) if cmds.textFieldGrp('%s_ctrlNameText' %self.UiName, q=1, tx=1) else None
+        ctrlSuffix = cmds.textFieldGrp('%s_ctrlSuffixText' %self.UiName, q=1, tx=1) if cmds.textFieldGrp('%s_ctrlSuffixText' %self.UiName, q=1, tx=1) else '_Ctrl'
+        OffsetSuffix = cmds.textFieldGrp('%s_offsetSuffixText' %self.UiName, q=1, tx=1) if cmds.textFieldGrp('%s_offsetSuffixText' %self.UiName, q=1, tx=1) else '_Offset'
+        AniGroup = cmds.textFieldGrp('%s_aniSuffixText' %self.UiName, q=1, tx=1) if cmds.textFieldGrp('%s_aniSuffixText' %self.UiName, q=1, tx=1) else '_Ani'
         
+        def grpRelatives(ctrl):
+            #Ani组
+            grp = cmds.group(ctrl, n='%s%s' %(ctrl, AniGroup))
+            cmds.xform(grp, os=1, piv=[0, 0, 0])
+            if not liteCtrl_Mode:
+                #Drv组
+                grp = cmds.group(grp, n='%s%s' %(ctrl, '_Drv'))
+                cmds.xform(grp, os=1, piv=[0, 0, 0])
+                #Con组
+                grp = cmds.group(grp, n='%s%s' %(ctrl, '_Con'))
+                cmds.xform(grp, os=1, piv=[0, 0, 0])
+            #偏移组
+            grp = cmds.group(grp, n='%s%s' %(ctrl, OffsetSuffix))
+            cmds.xform(grp, os=1, piv=[0, 0, 0])
+            return grp
+
+
         if not selectObj:   #在原点生成
             if Input == 29:
                 cctrl = cmds.circle(nr=[0, 1, 0])[0]
@@ -324,20 +351,13 @@ class MZ_CtrllTool():
                     for i in range(len(D_degree)):
                         saveShape.append(cmds.curve(d=D_degree[i], p=D_points[i], k=D_knot[i]))
                     for i in range(len(saveShape)-1):
-                        self.parentCurveShapeNode(saveShape[0], saveShape[i+1])
+                        self.addCurveShapeNode(saveShape[0], saveShape[i+1])
                     cctrl = saveShape[0]
             cctrl = self.nameIteration(cctrl, '%s%s' %(ctrlName, ctrlSuffix))
             self.ObjShapeColor()
-            if ToolTab_SDK_V == 0:
-                cctrlGp = cmds.group(cctrl, n='%s%s' %(cctrl, grpSuffix))
-                cmds.xform(cctrlGp, os=1, piv=[0, 0, 0])
-            else:
-                cctrlSdk = cmds.group(cctrl, n='%s%s' %(cctrl, SdkGroup))
-                cmds.xform(cctrlSdk, os=1, piv=[0, 0, 0])
-                cctrlGp = cmds.group(cctrlSdk, n='%s%s' %(cctrl, grpSuffix))
-                cmds.xform(cctrlGp, os=1, piv=[0, 0, 0])
+            grpRelatives(cctrl)
             cmds.select(cl=1)
-        elif ToolTab_repace_V == 0:   #正常生成
+        elif repaceShape_Mode == 0:   #正常生成
             ctrllist = []
             for everyObj in selectObj:
                 nodeType = cmds.nodeType(everyObj)
@@ -349,21 +369,14 @@ class MZ_CtrllTool():
                         for i in range(len(D_degree)):
                             saveShape.append(cmds.curve(d=D_degree[i], p=D_points[i], k=D_knot[i]))
                         for i in range(len(saveShape)-1):
-                            self.parentCurveShapeNode(saveShape[0], saveShape[i+1])
+                            self.addCurveShapeNode(saveShape[0], saveShape[i+1])
                         cctrl = saveShape[0]
-                    cctrl = cmds.rename(cctrl, '%s%s' %(everyObj, ctrlSuffix)) if ctrlName == None \
+                    cctrl = cmds.rename(cctrl, '%s%s' %(everyObj, ctrlSuffix)) if not ctrlName\
                                 else self.nameIteration(cctrl, '%s%s' %(ctrlName, ctrlSuffix))
                     self.ObjShapeColor()
-                    if ToolTab_SDK_V == 0:
-                        cctrlGp = cmds.group(cctrl, n='%s%s' %(cctrl, grpSuffix))
-                        cmds.xform(cctrlGp, os=1, piv=[0, 0, 0])
-                    else:
-                        cctrlSdk = cmds.group(cctrl, n='%s%s' %(cctrl, SdkGroup))
-                        cmds.xform(cctrlSdk, os=1, piv=[0, 0, 0])
-                        cctrlGp = cmds.group(cctrlSdk, n='%s%s' %(cctrl, grpSuffix))
-                        cmds.xform(cctrlGp, os=1, piv=[0, 0, 0])
-                    cmds.delete(cmds.parentConstraint(everyObj, cctrlGp, weight=1))
-                    if ToolTab_Control_V == 2:
+                    cctrlGp = grpRelatives(cctrl)
+                    cmds.matchTransform(cctrlGp, everyObj, pos=1, rot=1)
+                    if Control_Mode == 2:
                         mode = cmds.checkBoxGrp('%s_ConstrainlCB' %self.UiName, q=1, va4=1)
                         if mode[0]:
                             cmds.parentConstraint(cctrl, everyObj, mo=1, weight=1)
@@ -373,9 +386,9 @@ class MZ_CtrllTool():
                             cmds.orientConstraint(cctrl, everyObj, mo=1, weight=1)
                         if mode[3]:
                             cmds.scaleConstraint(cctrl, everyObj, offset=(1, 1, 1), weight=1)
-                    elif ToolTab_Control_V == 3:
+                    elif Control_Mode == 3:
                         cmds.parent(everyObj, cctrl)
-                    elif ToolTab_Control_V == 4:
+                    elif Control_Mode == 4:
                         Tv = cmds.getAttr("%s.translate" %everyObj)
                         Rv = cmds.getAttr("%s.rotate" %everyObj)
                         Sv = cmds.getAttr("%s.scale" %everyObj)
@@ -385,54 +398,68 @@ class MZ_CtrllTool():
                             cmds.connectAttr("%s.s" %cctrl, "%s.s" %everyObj, f=1)
                         else:
                             cmds.select(selectObj)
-                            om.MGlobal.displayError(u"属性连接控制时 被控制的物体的位移旋转属性归零")
+                            om.MGlobal.displayError(u"属性连接控制时 %s的各属性应该默认" %everyObj)
                             return
-                if cmds.checkBox('%s_ParentCheck' %self.UiName, q=1, v=1):
+                if cmds.checkBox('%s_parentCheck' %self.UiName, q=1, v=1):
                     ctrllist.append(cctrl)
             for i in range(len(ctrllist)-1, 0, -1):
-                cmds.parent('%s%s' %(ctrllist[i], grpSuffix), ctrllist[i-1])
+                cmds.parent('%s%s' %(ctrllist[i], OffsetSuffix), ctrllist[i-1])
             cmds.select(selectObj)
         else:   #替换形状
             for o in selectObj:
-                sList = cmds.listRelatives(o, c=1, s=1)
-                if len(sList)>1:
-                    cmds.delete(sList[1:], s=1)
-                saveShape = []
                 if Input == 29:
-                    cctrl = cmds.circle(nr=[0, 1, 0])[0]
+                    self.replaceCurveShapeNode(o, cmds.circle(nr=[0, 1, 0])[0])
                 else:
                     for i in range(len(D_degree)):
-                        saveShape.append(cmds.curve(d=D_degree[i], p=D_points[i], k=D_knot[i]))
-                    cctrl = saveShape[0]
-                cmds.connectAttr('%s.worldSpace[0]' %cmds.listRelatives(cctrl, c=1, s=1)[0], '%s.create' %sList[0], f=1)
-                cmds.refresh()
-                cmds.delete(cctrl)
-                if len(saveShape) > 1:
-                    for i in range(len(saveShape)-1):
-                        self.parentCurveShapeNode(o, saveShape[i+1])
+                        newCurve = cmds.curve(d=D_degree[i], p=D_points[i], k=D_knot[i])
+                        if i == 0:
+                            self.replaceCurveShapeNode(o, newCurve)
+                        else:
+                            self.addCurveShapeNode(o, newCurve)
+                        cmds.delete(newCurve)
             cmds.select(selectObj)
 
-    def parentCurveShapeNode(self, PS=None, CS=None):
-        if not PS:
-            sel = cmds.ls(sl=1, type="transform")
+    def addCurveShapeNode(self, parent=None, shape=None):
+        if not parent:
+            sel = cmds.ls(sl=1)
             if len(sel) < 2:
-                om.MGlobal.displayError(u"先选要添加的形状，再选最终形状")
+                om.MGlobal.displayError(u"先选要添加到的物体，最后选被添加的形状")
                 return
         else:
-            sel = [CS, PS]
-        i = 0
-        while i < len(sel)-1:
-            Shape = cmds.listRelatives(sel[i], c=1, s=1, type="nurbsCurve")
-            for sh in Shape:
+            sel = (shape, parent)
+
+        for i in sel[:-1]:
+            pShape = cmds.listRelatives(i, c=1, s=1, type="nurbsCurve")
+            for sh in pShape:
                 cmds.parent(sh, sel[-1], add=1, s=1)
-            cmds.delete(sel[i])
-            i = i+1
-        allShapeNode = cmds.listRelatives(sel[-1], c=1, s=1, type="nurbsCurve")
-        j = 1
-        while j < len(allShapeNode):
-            cmds.rename(allShapeNode[j], "%s%sShape" %(sel[-1], j))
-            j = j+1
-        cmds.select(sel[-1])
+            #cmds.delete(i)
+        nShape = cmds.listRelatives(sel[-1], c=1, s=1, type="nurbsCurve")
+        for i in range(len(nShape)):
+            cmds.rename(nShape[i], "%sShape" %sel[-1])
+        cmds.select(parent)
+
+    def replaceCurveShapeNode(self, old=None, replace=None):
+        if not old:
+            sel = cmds.ls(sl=1)
+            if len(sel) < 2:
+                om.MGlobal.displayError(u"先选要被替换的物体，最后选替进去的形状")
+                return
+        else:
+            sel = (old, replace)
+
+        nShape = cmds.listRelatives(sel[-1], c=1, s=1, type="nurbsCurve")
+        nShapeNum = len(nShape)
+        for i in sel[:-1]:
+            oShape = cmds.listRelatives(i, c=1, s=1, type="nurbsCurve")
+            for num, s in enumerate(oShape):
+                if num < nShapeNum - 1 or not cmds.listConnections(s, t='objectSet'):
+                    cmds.delete(s, s=1)
+                else:
+                    cmds.connectAttr('%s.local' %nShape[num], '%s.create' %s, f=1)
+                    cmds.refresh()
+                    cmds.disconnectAttr('%s.local' %nShape[num], '%s.create' %s)
+            self.addCurveShapeNode(i, sel[-1])
+        cmds.select(old)
 
     def nameIteration(self, oldN, NewN):
         i = 1
@@ -451,8 +478,8 @@ class MZ_CtrllTool():
         sel = cmds.ls(sl=1, typ="transform")
         if len(sel) == 0:
             return
-        if type(Conditions) == int:
-            oldint = cmds.intField('%s_saveScaleValue' %self.UiName, q=1, v=1)
+        if type(Conditions) == float:
+            oldint = 1   #cmds.intField('%s_saveScaleValue' %self.UiName, q=1, v=1)
             for ob in sel:
                 piv = cmds.xform(ob, q=1, ws=1, rp=1)
                 for sh in cmds.listRelatives(ob, children=True, s=1, type="nurbsCurve"):
@@ -484,7 +511,7 @@ class MZ_CtrllTool():
         cmds.select(sel)
 
     def addNamefix(self, mode):
-        sllist = cmds.ls(sl=1, l=1, typ="transform")
+        sllist = cmds.ls(sl=1, typ="transform")
         if not sllist:
             return
         if mode == 'Pre':

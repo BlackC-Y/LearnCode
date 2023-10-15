@@ -1,0 +1,671 @@
+proc AdvSeamlessSwitchFKIK ()
+{
+int $foundIK;
+string $sel[]=`ls -sl`;
+string $name,$nameSpace,$fkIkCtrl,$side,$ik2fk;
+float $curFKIKBlend;
+string $tempString[],$tempString2[],$fkIkCtrls[];
+
+for ($i=0;$i<size($sel);$i++)
+    {
+    $foundIK=0;
+  if (`gmatch $sel[$i] "*FKIK*"`)
+      {
+      $fkIkCtrls[size($fkIkCtrls)]=$sel[$i];
+      $foundIK=1;
+      continue;
+      }
+  if (!$foundIK)
+      {
+      $tempString[0]=$sel[$i];
+      for ($y=0;$y<99;$y++)
+            {
+            $tempString=`listRelatives -p $tempString[0]`;
+            if ($tempString[0]=="") break;
+            $tempString2=`listConnections -s 1 -d 0 ($tempString[0]+".v")`;
+            if ($tempString2[0]=="") continue;
+            if (`objectType $tempString2[0]`!="condition") continue;
+            $tempString2=`listConnections -s 1 -d 0 ($tempString2[0]+".firstTerm")`;
+            if ($tempString2[0]=="") continue;
+            $fkIkCtrls[size($fkIkCtrls)]=$tempString2[0];
+            $foundIK=1;
+            break;
+            }
+        }
+  if (!$foundIK)
+        {
+        $tempString=`listRelatives -s $sel[$i]`;
+        if ($tempString[0]!="")
+            $tempString=`listConnections -s 1 -d 0 ($tempString[0]+".v")`;
+
+        if ($tempString[0]=="")
+            continue;
+        if (`objectType $tempString[0]`=="plusMinusAverage")//IKhybrid ctrl
+            $tempString=`listConnections -s 1 -d 0 -scn 1 ($tempString[0]+".input1D[0]")`;
+
+        if (`objectType $tempString[0]`=="condition")
+            {
+            $tempString2=`listConnections -s 1 -d 0 ($tempString[0]+".firstTerm")`;
+            if ($tempString2[0]!="")
+                {
+                $fkIkCtrls[size($fkIkCtrls)]=$tempString2[0];
+                $foundIK=1;
+                break;
+                }
+            }
+        }
+    }
+if (size($fkIkCtrls)==0)
+    return;//error "First select a control that is part of FK/IK setup";
+
+for ($i=0;$i<size($fkIkCtrls);$i++)
+    {
+        $nameSpace="";
+        $fkIkCtrl="";
+        $side="";
+        $name=$fkIkCtrls[$i];
+        tokenize $fkIkCtrls[$i] ":" $tempString;
+        if (size($tempString)>1)
+            {
+            for ($y=0;$y<size($tempString)-1;$y++)
+                $nameSpace+=$tempString[$y]+":";
+            $name=$tempString[size($tempString)-1];
+            }
+        tokenize $name "_" $tempString;
+        $fkIkCtrl=$tempString[0];
+        $side="_"+$tempString[1];
+        $curFKIKBlend=`getAttr ($fkIkCtrls[$i]+".SeamlessSwitch")`;
+        if ($curFKIKBlend == 0){
+            setAttr ($fkIkCtrls[$i]+".FKIKBlend") 10;
+            $ik2fk="IK2FK";
+        }
+        if ($curFKIKBlend == 1){
+            setAttr ($fkIkCtrls[$i]+".FKIKBlend") 0;
+            $ik2fk="FK2IK";
+        }
+
+    asSwitchFKIK $nameSpace `substitute "FKIK" $fkIkCtrl ""` $side $ik2fk;
+    }
+}
+
+
+global proc asSwitchFKIK (string $name, string $IK, string $side, string $W2K)
+{
+float $currentTime=`currentTime -q`;
+string $sel[]=`ls -sl`;
+//string $nameSpace=`asSelectorResolveNameSpace $name ""`;
+//backwards compatibility, 1st arg used to be $name (e.g  \"biped\")
+string $nameSpace=`asNameSpaceFromShortUIName $name`;
+string $controlCurve=$nameSpace+"FKIK"+$IK+$side;
+string $poleCurve=$nameSpace+"Pole"+$IK+$side;
+if (!`objExists $controlCurve`)
+    error ("Object:\""+$controlCurve+"\" does not exists !");
+string $startJoint=`getAttr ($controlCurve+".startJoint")`;
+string $middleJoint=`getAttr ($controlCurve+".middleJoint")`;
+string $endJoint=`getAttr ($controlCurve+".endJoint")`;
+string $chainJoints[],$tempString[],$tempString2[];
+string $toesJoint=`asGetToesJoint $nameSpace $endJoint $side`;
+//string $qToesJoints[]=`asGetQToesJoints $nameSpace $endJoint $side`;
+string $childLabel,$fkLegAim,$legAimRotCmd;
+float $legAimRot[];
+int $isSplineIK,$numIkCtrls;
+if (!`objExists ($nameSpace+"Pole"+$IK+$side)`)
+    $isSplineIK=1;
+string $requiredObj[]={($nameSpace+"Main"),($nameSpace+"FKX"+$startJoint+$side),($nameSpace+"IKX"+$startJoint+$side),($nameSpace+"IKX"+$middleJoint+$side)};
+if ($isSplineIK)
+    {
+    $chainJoints=`asgetChainJoints ($nameSpace+$startJoint) ($nameSpace+$endJoint)`;
+    for ($i=0;$i<size($chainJoints);$i++)
+        $chainJoints[$i]=`substitute $nameSpace $chainJoints[$i] ""`;
+    for ($i=1;$i<99;$i++)
+        {
+        if (!`objExists ($nameSpace+"IK"+$IK+$i+$side)`)
+            break;
+        $numIkCtrls=$i;
+        }
+    }
+else
+    $requiredObj=`stringArrayCatenate $requiredObj {($nameSpace+"Pole"+$IK+$side),($nameSpace+"FKX"+$endJoint+$side)}`;
+for ($obj in $requiredObj)
+    if (!`objExists $obj`)
+        error ("Object:\""+$obj+"\" does not exists !");
+int $Blend;
+int $BlendInverse=10;
+int $onOff;
+if ($W2K=="FK2IK")
+    {
+    $Blend=10;
+    $BlendInverse=0;
+    $onOff=1;
+    }
+
+if ($W2K=="FK2IK" && `getAttr ($controlCurve+".FKIKBlend")`>0)
+    {
+    warning ("Could not switch FK2IK, because \"FKIKBlend\" is not \"0\"\n");
+    return;
+    }
+if ($W2K=="IK2FK" && `getAttr ($controlCurve+".FKIKBlend")`<10)
+    {
+    warning ("Could not switch IK2FK, because \"FKIKBlend\" is not \"10\"\n");
+    return;
+    }
+
+//LegAim
+if (`attributeExists legAim ($nameSpace+"IK"+$IK+$side)`)
+    {
+    $tempString=`listConnections -s 0 -d 1 ($nameSpace+"IK"+$IK+"LegAimReverse"+$side)`;
+    $fkLegAim=`substitute ($nameSpace+"LegAim") $tempString[0] ""`;
+    $fkLegAim="FK"+`substitute ($side+"_orientConstraint1") $fkLegAim ""`;
+    $legAimRot=`xform -q -ws -ro ($nameSpace+$fkLegAim+$side)`;
+    $legAimRotCmd="xform -ws -ro "+$legAimRot[0]+" "+$legAimRot[1]+" "+$legAimRot[2]+" "+$nameSpace+$fkLegAim+$side;
+    }
+
+int $autoKey=`autoKeyframe -q -st`;
+
+currentTime (`currentTime -q` -1);
+setAttr ($controlCurve+".FKIKBlend") $BlendInverse;
+
+
+for ($a=0;$a<2;$a++)
+    {
+    if (!$autoKey && $a==0)
+        continue;
+    if ($autoKey)
+        {
+        if (!$isSplineIK)
+            {
+            setKeyframe ($controlCurve+".FKIKBlend");
+    //		setKeyframe ($poleCurve+".follow");	
+
+            setKeyframe ($nameSpace+"FK"+$startJoint+$side+".rotate");
+            setKeyframe ($nameSpace+"FK"+$startJoint+$side+".scale");
+            setKeyframe ($nameSpace+"FK"+$middleJoint+$side+".translate");
+            setKeyframe ($nameSpace+"FK"+$middleJoint+$side+".rotate");
+            setKeyframe ($nameSpace+"FK"+$middleJoint+$side+".scale");
+            setKeyframe ($nameSpace+"FK"+$endJoint+$side+".translate");
+            setKeyframe ($nameSpace+"FK"+$endJoint+$side+".rotate");
+            setKeyframe ($nameSpace+"FK"+$endJoint+$side+".scale");
+            if (`objExists ($nameSpace+$toesJoint)` && `objExists ($nameSpace+"FKToes"+$side)`)
+                setKeyframe ($nameSpace+"FKToes"+$side+".rotate");
+            setKeyframe ($nameSpace+"IK"+$IK+$side+".translate");
+            setKeyframe ($nameSpace+"IK"+$IK+$side+".rotate");
+            setKeyframe ($nameSpace+"IK"+$IK+$side+".scale");
+            setKeyframe ($nameSpace+"Pole"+$IK+$side+".translate");
+            $tempString=`listAttr -ud ($nameSpace+"IK"+$IK+$side)`;
+            for ($i=0;$i<size($tempString);$i++)
+                setKeyframe ($nameSpace+"IK"+$IK+$side+"."+$tempString[$i]);
+//			if (`objExists ($nameSpace+$toesJoint)` && `objExists ($nameSpace+"IKToes"+$side)`)
+//				setKeyframe ($nameSpace+"IKToes"+$side+".rotate");
+            //also key all child-controls (ik heel/toes/toesEnd/qtoes
+            $tempString=`listRelatives -ad -type transform ($nameSpace+"IK"+$IK+$side)`;
+            for ($i=0;$i<size($tempString);$i++)
+                if (`sets -im ($nameSpace+"ControlSet") $tempString[$i]`)
+                    {
+                    setKeyframe ($tempString[$i]+".t");
+                    setKeyframe ($tempString[$i]+".r");
+                    //and it`s equivalent FK (qToes)
+                    $tempString2[0]=`substitute "Roll" $tempString[$i] "FK"`;
+                    if (`objExists $tempString2[0]`)
+                        {
+                        setKeyframe ($tempString2[0]+".t");
+                        setKeyframe ($tempString2[0]+".r");
+                        }
+                    }
+            }
+        if ($isSplineIK)
+            {
+            setKeyframe ($controlCurve+".FKIKBlend");
+            for ($i=0;$i<size($chainJoints);$i++)
+                if (`objExists ($nameSpace+"FK"+$chainJoints[$i]+$side)`)
+                    {
+                    setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+$side+".t");
+                    setKeyframe ($nameSpace+"FK"+$chainJoints[$i]+$side+".r");
+                    }
+            for ($i=1;$i<$numIkCtrls+1;$i++)
+                if (`objExists ($nameSpace+"IK"+$IK+$i+$side)`)
+                    {
+                    setKeyframe ($nameSpace+"IK"+$IK+$i+$side+".t");
+                    setKeyframe ($nameSpace+"IK"+$IK+$i+$side+".r");
+                    }
+            }
+        if ($legAimRotCmd!="")
+            setKeyframe ($nameSpace+$fkLegAim+$side+".r");			
+        }
+
+    currentTime (`currentTime -q` +1);
+    asAlignFKIK $name $IK $side $W2K;
+    setAttr ($controlCurve+".FKIKBlend") $Blend;
+    if ($legAimRotCmd!="") eval ($legAimRotCmd);
+    }
+
+currentTime $currentTime;
+//select ($nameSpace+"ControlSet");
+//delete -staticChannels -unitlessAnimationCurves false -hierarchy none -controlPoints 0 -shape 1;
+//removed, since this sometimes deletes non-static channels e..g IKLeg_L animation
+select $sel;
+}
+
+
+global proc asAlignFKIK (string $name, string $IK, string $side, string $W2K)
+{
+global int $asBakeFKIK;
+//int $bakingMoCap=`optionVar -q asBakingMoCap`;
+int $isSplineIK,$numIkCtrls,$cvNr,$ikNr;
+float $IKCurveLenght,$stiff,$middleJointLenght,$endJointLenght,$joFac,$maxJo,$shiftDist,$samplerDist;
+float $shiftPolarity=1;
+float $b=1;
+if ($side=="_L") $b=-1;
+float $pos[],$rot[],$posA[],$posB[],$tempFloat[],$alignIkToFloat[],$jo[];
+string $sel[]=`ls -sl`;
+string $nameSpace=`asNameSpaceFromShortUIName $name`;
+if (!`objExists ($nameSpace+"Pole"+$IK+$side)`)
+    $isSplineIK=1;
+string $controlCurve=$nameSpace+"FKIK"+$IK+$side;
+if (!`objExists $controlCurve`)
+    error ("Object:\""+$controlCurve+"\" does not exists !");
+string $startJoint=`getAttr ($controlCurve+".startJoint")`;
+string $middleJoint=`getAttr ($controlCurve+".middleJoint")`;
+string $endJoint=`getAttr ($controlCurve+".endJoint")`;
+string $startMiddleEnd[]={$startJoint,$middleJoint,$endJoint};
+string $toesJoint=`asGetToesJoint $nameSpace $endJoint $side`;
+string $qToesJoints[]=`asGetQToesJoints $nameSpace $endJoint $side`;
+string $curveCmd,$roo,$childLabel,$toesAim;
+string $priAxis="X";
+string $shiftAxis="Y";
+string $tempLoc1[],$tempLoc2[],$tempConstraint[],$tempConstraintAttrs[],$chainJoints[],$tempString[],$tempLocShift1[],$tempLocShift2[];
+string $requiredObj[]={($nameSpace+"Main"),($nameSpace+"FKX"+$startJoint+$side),($nameSpace+"IKX"+$startJoint+$side),($nameSpace+"IKX"+$middleJoint+$side)};
+if ($isSplineIK)
+    {
+    $chainJoints=`asgetChainJoints ($nameSpace+$startJoint+$side) ($nameSpace+$endJoint+$side)`;
+    for ($i=0;$i<size($chainJoints);$i++)
+        $chainJoints[$i]=`substitute $nameSpace $chainJoints[$i] ""`;
+    for ($i=1;$i<99;$i++)
+        {
+        if (!`objExists ($nameSpace+"IK"+$IK+$i+$side)`)
+            break;
+        $numIkCtrls=$i;
+        }
+    }
+else
+    $requiredObj=`stringArrayCatenate $requiredObj {($nameSpace+"Pole"+$IK+$side),($nameSpace+"FKX"+$endJoint+$side)}`;
+for ($obj in $requiredObj)
+    if (!`objExists $obj`)
+        error ("Object:\""+$obj+"\" does not exists !");
+float $charsize=`getAttr ($nameSpace+"Main.height")`;
+int $autoKey=`autoKeyframe -q -st`;
+if ($autoKey)
+    autoKeyframe -st 0;
+if ($asBakeFKIK)
+    autoKeyframe -st 1;
+
+string $deleteObjs[]={"IK2FKTempCurve","IK2FKTempXform1","IK2FKTempXform2","IK2FKTempCurveInfo"};
+for ($i=0;$i<size($deleteObjs);$i++)
+    if (`objExists $deleteObjs[$i]`)
+        delete $deleteObjs[$i];
+
+if ($W2K=="FK2IK" && !$isSplineIK)
+    {
+    //Default values for RollHeel, RollToes, RollToesEnd, and UD attrs such as roll,etc
+    $tempString=`listAttr -ud ($nameSpace+"IK"+$IK+$side)`;
+    for ($i=0;$i<size($tempString);$i++)
+        {
+        if (`getAttr -type ($nameSpace+"IK"+$IK+$side+"."+$tempString[$i])`=="string")
+            continue;//skip any custom added string attributes
+        if (!`getAttr -settable ($nameSpace+"IK"+$IK+$side+"."+$tempString[$i])`)
+            continue;//skip any non settable attributes
+        $tempFloat=`attributeQuery -listDefault -n ($nameSpace+"IK"+$IK+$side) $tempString[$i]`;
+        setAttr ($nameSpace+"IK"+$IK+$side+"."+$tempString[$i]) $tempFloat[0];
+        }
+    $tempString=`listRelatives -ad -type transform ($nameSpace+"IK"+$IK+$side)`;
+    for ($i=0;$i<size($tempString);$i++)
+        if (`sets -im ($nameSpace+"ControlSet") $tempString[$i]`)
+            {
+            if (!`getAttr -l ($tempString[$i]+".tx")`)
+                setAttr ($tempString[$i]+".t") -type float3 0 0 0;
+            if (!`getAttr -l ($tempString[$i]+".rx")`)
+                setAttr ($tempString[$i]+".r") -type float3 0 0 0;
+            }
+    //zero out leg-aim & toes-aim, for easier alignment
+    if (`attributeExists toesAim ($nameSpace+"IK"+$IK+$side)`) setAttr ($nameSpace+"IK"+$IK+$side+".toesAim") 0;
+    if (`attributeExists legAim ($nameSpace+"IK"+$IK+$side)`) setAttr ($nameSpace+"IK"+$IK+$side+".legAim") 0;
+
+    $tempFloat=`xform -q -ws -t ($nameSpace+"FK"+$endJoint+$side)`;
+    if (size($qToesJoints))
+        $tempFloat=`xform -q -ws -t ($nameSpace+"FK"+$qToesJoints[0]+$side)`;
+    xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+$side);
+
+    $roo=`xform -q -roo ($nameSpace+"IK"+$IK+$side)`;
+    xform -p 1 -roo $roo ($nameSpace+"AlignIKTo"+$endJoint+$side);
+    $tempFloat=`xform -q -ws -ro ($nameSpace+"AlignIKTo"+$endJoint+$side)`;
+    xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+$side);
+
+    for ($i=0;$i<size($qToesJoints);$i++)
+        {
+        if ($i==0)
+            {
+            $tempFloat=`xform -q -ws -ro ($nameSpace+"AlignIKTo"+$qToesJoints[$i]+$side)`;
+            xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$qToesJoints[$i]+$side);
+            }
+        $tempFloat=`xform -q -ws -t ($nameSpace+"FK"+$qToesJoints[$i]+$side)`;
+        xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"Roll"+$qToesJoints[$i]+$side);
+        }
+
+    //Pole
+    $tempLoc1=`spaceLocator`;
+    $tempConstraint=`pointConstraint ($nameSpace+"FKX"+$startJoint+$side) ($nameSpace+"FKX"+$endJoint+$side) $tempLoc1[0]`;
+    $tempConstraintAttrs=`listAttr -ud $tempConstraint`;
+
+    $middleJointLenght=`getAttr ($nameSpace+"FKOffset"+$middleJoint+$side+".tx")`;
+    $endJointLenght=`getAttr ($nameSpace+"FKOffset"+$endJoint+$side+".tx")`;
+    setAttr ($tempLoc1[0]+"_pointConstraint1."+$tempConstraintAttrs[0]) `abs($endJointLenght)`;
+    setAttr ($tempLoc1[0]+"_pointConstraint1."+$tempConstraintAttrs[1]) `abs($middleJointLenght)`;
+    delete $tempConstraint[0];
+    $tempConstraint=`aimConstraint -aimVector 1 0 0 ($nameSpace+"FKX"+$middleJoint+$side) $tempLoc1[0]`;
+    $tempLoc2=`spaceLocator`;
+    parent $tempLoc2[0] $tempLoc1[0];
+    setAttr ($tempLoc2[0]+".t") -type float3 0 0 0;
+    $posA=`xform -q -ws -t $tempLoc2[0]`;
+    $posB=`xform -q -ws -t ($nameSpace+$middleJoint+$side)`;
+    $samplerDist=`mag<<$posA[0]-$posB[0],$posA[1]-$posB[1],$posA[2]-$posB[2]>>`;
+    setAttr -type float3 ($tempLoc2[0]+".translate") (($charsize/3.333)+$samplerDist) 0 0;
+    $tempFloat=`xform -q -ws -t $tempLoc2[0]`;
+    xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"Pole"+$IK+$side);
+    delete $tempLoc1;
+
+    if (`objExists ($nameSpace+$toesJoint)` && `objExists ($nameSpace+"AlignIKToToes"+$side)`)
+        {
+        if (`attributeExists "roll" ($nameSpace+"IK"+$IK+$side)`)
+            setAttr ($nameSpace+"IK"+$IK+$side+".roll") 0;
+        $rot=`xform -q -ws -ro ($nameSpace+"AlignIKToToes"+$side)`;
+        xform -ws -ro $rot[0] $rot[1] $rot[2] ($nameSpace+"IKToes"+$side);
+        }
+    $tempFloat=`getAttr ($nameSpace+$endJoint+$side+".s")`;
+    setAttr ($nameSpace+"IK"+$IK+$side+".s") -type float3 $tempFloat[0] $tempFloat[1] $tempFloat[2];
+
+    setAttr ($nameSpace+"IK"+$IK+$side+".stretchy") 10;
+    setAttr ($nameSpace+"IK"+$IK+$side+".volume") 10;
+    //position
+    $tempFloat=`xform -q -ws -t ($nameSpace+"FKX"+$endJoint+$side)`;
+    if (size($qToesJoints))
+        $tempFloat=`xform -q -ws -t ($nameSpace+"FK"+$qToesJoints[0]+$side)`;
+    xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+$side);
+
+    if (`objExists ($nameSpace+"IKX"+$middleJoint+$side+"_IKLenght"+$side)` && `objExists ("IKX"+$middleJoint+$side+"_IKmessureDiv"+$side)`)
+        {//Lenght1 & Lenght2
+        $pos=`xform -q -ws -t ($nameSpace+"FK"+$startJoint+$side)`;
+        $posA=`xform -q -ws -t ($nameSpace+"FK"+$middleJoint+$side)`;
+        $posB=`xform -q -ws -t ($nameSpace+"FK"+$endJoint+$side)`;
+        $tempFloat[0]=`mag<<$pos[0]-$posA[0],$pos[1]-$posA[1],$pos[2]-$posA[2]>>`;
+        $tempFloat[1]=`mag<<$posA[0]-$posB[0],$posA[1]-$posB[1],$posA[2]-$posB[2]>>`;		
+        setAttr ($nameSpace+"IK"+$IK+$side+".Lenght1") (($tempFloat[0]/(`getAttr ($nameSpace+"IKX"+$middleJoint+$side+"_IKLenght"+$side+".input2X")`*$b))/`getAttr ("IKX"+$middleJoint+$side+"_IKmessureDiv"+$side+".input1X")`);
+        setAttr ($nameSpace+"IK"+$IK+$side+".Lenght2") (($tempFloat[1]/(`getAttr ($nameSpace+"IKX"+$endJoint+$side+"_IKLenght"+$side+".input2X")`*$b))/`getAttr ("IKX"+$middleJoint+$side+"_IKmessureDiv"+$side+".input1X")`);
+        //allow for scaled character
+        if (`objExists ($nameSpace+"MainScaleMultiplyDivide")`)
+            {
+            setAttr ($nameSpace+"IK"+$IK+$side+".Lenght1") (`getAttr ($nameSpace+"IK"+$IK+$side+".Lenght1")`/`getAttr ($nameSpace+"MainScaleMultiplyDivide.outputX")`);
+            setAttr ($nameSpace+"IK"+$IK+$side+".Lenght2") (`getAttr ($nameSpace+"IK"+$IK+$side+".Lenght2")`/`getAttr ($nameSpace+"MainScaleMultiplyDivide.outputX")`);
+            }
+        }
+    }
+if ($W2K=="FK2IK" && $isSplineIK)
+    {
+    //first do Start and End IkCtrls
+    $tempFloat=`xform -q -ws -t ($nameSpace+"AlignIKTo"+$chainJoints[0])`;
+    xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+"1"+$side);
+    $roo=`xform -q -roo ($nameSpace+"IK"+$IK+"1"+$side)`;
+    xform -p 1 -roo $roo ($nameSpace+"AlignIKTo"+$chainJoints[0]);
+    $tempFloat=`xform -q -ws -ro ($nameSpace+"AlignIKTo"+$chainJoints[0])`;
+    xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+"1"+$side);
+
+    $tempFloat=`xform -q -ws -t ($nameSpace+"AlignIKTo"+$chainJoints[size($chainJoints)-1])`;
+    xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+$numIkCtrls+$side);
+    $roo=`xform -q -roo ($nameSpace+"IK"+$IK+$numIkCtrls+$side)`;
+    xform -p 1 -roo $roo ($nameSpace+"AlignIKTo"+$chainJoints[size($chainJoints)-1]);
+    $tempFloat=`xform -q -ws -ro ($nameSpace+"AlignIKTo"+$chainJoints[size($chainJoints)-1])`;
+    xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"IK"+$IK+$numIkCtrls+$side);
+
+    $curveCmd="curve -n FK2IKCurve -d 1";
+    for ($i=0;$i<size($chainJoints);$i++)
+        {
+        $pos=`xform -q -ws-t ($nameSpace+$chainJoints[$i])`;
+        $curveCmd+=" -p "+$pos[0]+" "+$pos[1]+" "+$pos[2];
+        }
+    eval ($curveCmd);
+    rebuildCurve -ch 0 -rpo 1 -rt 0 -end 1 -kr 0 -kcp 0 -kep 1 -kt 0 -s 0 -d 3 -tol 0.01 FK2IKCurve;
+    if (`objExists tempPointOnCurveInfo`) delete tempPointOnCurveInfo;
+    createNode -n tempPointOnCurveInfo pointOnCurveInfo;
+    setAttr tempPointOnCurveInfo.turnOnPercentage 1;
+    connectAttr -f FK2IKCurve.worldSpace[0] tempPointOnCurveInfo.inputCurve;
+
+    //then do `inbeween` IkCtrls
+    for ($i=2;$i<$numIkCtrls;$i++)
+        {
+        setAttr tempPointOnCurveInfo.parameter (($i-1.0)/($numIkCtrls-1.0));
+        $pos=`getAttr tempPointOnCurveInfo.position`;
+        xform -ws -t $pos[0] $pos[1] $pos[2] ($nameSpace+"IK"+$IK+$i+$side);
+        }
+    delete FK2IKCurve;
+/*
+    //removed, since FK ctrls can be moved (stretched) causing very non-unifor distribution of FK-joints,
+    //and trasnferring this non-unifor distribution to the IK is probably not what the user wants
+    //then do  IKcvCtrls
+    for ($i=1;$i<size($chainJoints)-1;$i++)
+        {
+        $pos=`xform -q -ws -t ($nameSpace+"FKX"+$chainJoints[$i])`;
+        xform -ws -t $pos[0] $pos[1] $pos[2] ($nameSpace+"IKcv"+$IK+$i+$side);
+        }
+*/
+    print "// Switching from FK to Curve-Based-IK, Target might not fully Align.\n";
+    }
+if ($W2K=="IK2FK" && !$isSplineIK)
+    {
+    for ($x=0;$x<size($startMiddleEnd);$x++)
+        {
+        xform -os -t 0 0 0 ($nameSpace+"FK"+$startMiddleEnd[$x]+$side);
+        asFKIKOrientAlign $nameSpace ("IKX"+$startMiddleEnd[$x]+$side) ("FK"+$startMiddleEnd[$x]+$side);
+        }
+    if (`objExists ($nameSpace+$toesJoint)` && `objExists ($nameSpace+"IKXToes"+$side)`)
+        {
+//		$tempFloat=`xform -q -ws -ro ($nameSpace+"IKXToes"+$side)`;
+        xform -os -t 0 0 0 ($nameSpace+"FKToes"+$side);
+        asFKIKOrientAlign $nameSpace ("IKXToes"+$side) ("FKToes"+$side);
+
+//		xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FKToes"+$side);
+        }
+    $tempFloat=`getAttr ($nameSpace+$endJoint+$side+".s")`;
+    setAttr ($nameSpace+"FK"+$endJoint+$side+".s") -type float3 $tempFloat[0] $tempFloat[1] $tempFloat[2];
+    //stretchy IK
+//	if (`getAttr ($nameSpace+"IK"+$IK+$side+".stretchy")`>0.01)
+        {
+        //volume
+        $tempFloat=`getAttr ($nameSpace+$startJoint+$side+".s")`;
+        setAttr ($nameSpace+"FK"+$startJoint+$side+".s") -type float3 $tempFloat[0] $tempFloat[1] $tempFloat[2];
+        $tempFloat=`getAttr ($nameSpace+$middleJoint+$side+".s")`;
+        setAttr ($nameSpace+"FK"+$middleJoint+$side+".s") -type float3 $tempFloat[0] $tempFloat[1] $tempFloat[2];
+        //position
+        $tempFloat=`xform -q -ws -t ($nameSpace+"IKX"+$middleJoint+$side)`;
+        xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FK"+$middleJoint+$side);
+        $tempFloat=`xform -q -ws -t ($nameSpace+"IKX"+$endJoint+$side)`;
+        xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FK"+$endJoint+$side);
+        }
+    //toesAim
+    if (`attributeExists toesAim ($nameSpace+"IK"+$IK+$side)`)
+        {
+        $tempString=`listConnections -s 0 -d 1 ($nameSpace+"IK"+$IK+"RollToesAimReverse"+$side+".outputX")`;
+        $toesAim=`substitute ($nameSpace+"RollToesAim") $tempString[0] ""`;
+        $toesAim=`substitute ($side+"_aimConstraint1") $toesAim ""`;
+        if (`getAttr ($nameSpace+"IK"+$IK+$side+".toesAim")`>0)
+            {
+//			$tempFloat=`xform -q -ws -ro ($nameSpace+"IKX"+$toesAim+$side)`;
+//			xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FK"+$toesAim+$side);
+            asFKIKOrientAlign $nameSpace ("IKX"+$toesAim+$side) ("FK"+$toesAim+$side);
+//			print ("// "+$nameSpace+"IK"+$IK+$side+".toesAim is On, The FKIK will not correctly Align, for better results, turn Off the \"toesAim\" attribute.\n");
+            }
+        }
+    //qToes
+//	for ($i=0;$i<size($qToesJoints);$i++)
+    for ($i=size($qToesJoints)-1;$i>-1;$i--)
+        {
+        $tempFloat=`xform -q -ws -t ($nameSpace+"IKX"+$qToesJoints[$i]+$side)`;
+        xform -ws -t $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FK"+$qToesJoints[$i]+$side);
+//		$tempFloat=`xform -q -ws -ro ($nameSpace+"IKX"+$qToesJoints[$i]+$side)`;
+//		xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+"FK"+$qToesJoints[$i]+$side);
+        asFKIKOrientAlign $nameSpace ("IKX"+$qToesJoints[$i]+$side) ("FK"+$qToesJoints[$i]+$side);
+        }
+    }
+if ($W2K=="IK2FK" && $isSplineIK)
+    {
+    for ($i=0;$i<size($chainJoints);$i++)
+        {
+        if (!`objExists ($nameSpace+"IKX"+$chainJoints[$i])` || !`objExists ($nameSpace+"FK"+$chainJoints[$i])`)
+            continue;
+        if (!`sets -im ($nameSpace+"ControlSet") ($nameSpace+"FK"+$chainJoints[$i])`)
+            continue;
+        // RootX_M.legLock warning
+        if ($chainJoints[$i]=="Root")
+            if (`attributeExists legLock RootX_M`)
+                if (`getAttr RootX_M.legLock`!=10)
+                    print ("// Switching from IK to FK for the Spine, Set RootX_M.legLock to 10, for more accurate switching.\n");
+        $pos=`xform -q -ws -t ($nameSpace+"IKX"+$chainJoints[$i])`;
+        $rot=`xform -q -ws -ro ($nameSpace+"IKX"+$chainJoints[$i])`;
+        //inbetween, to use last inbetweener`s rot
+//		for ($numParts=0;$numParts<99;$numParts++)
+//			if (!`objExists ($chainJoints[$i]+"Part"+($numParts+1)+$side)`)
+//				break;
+//		if ($numParts>0)
+//			$rot=`xform -q -ws -roo $roo -ro ($nameSpace+$chainJoints[$i]+"Part"+$numParts+$side)`;
+        //Root Override, FKRoot_M can not `swing along` a Tail like IKSpine1_M can, so maybe RootX_M should be part of the switch ?
+        xform -ws -t $pos[0] $pos[1] $pos[2] -ro $rot[0] $rot[1] $rot[2] ($nameSpace+"FK"+$chainJoints[$i]);
+        }
+    }
+
+if ($autoKey)
+    autoKeyframe -st 1;
+if (!$autoKey && $asBakeFKIK)
+    autoKeyframe -st 0;
+select $sel;
+}
+
+
+
+global proc string asNameSpaceFromShortUIName (string $shortUIName)
+{
+//e.g asKey "biped" vs asExportFbxBrowser "asSelectorbiped", some functions do not use the "asSelector" prefix
+string $nameSpace;
+if (`optionMenu -q -ex ("asSelector"+$shortUIName+"OptionMenu")`)
+    {
+    $nameSpace=`optionMenu -q -v ("asSelector"+$shortUIName+"OptionMenu")`;
+    if ($nameSpace==":")
+        $nameSpace="";
+    }
+else
+    $nameSpace=$shortUIName;//this proc could be called from the standalone asAutoSwitchFKIK function, then $name is $nameSpace
+
+return $nameSpace;
+}
+
+
+global proc string asGetToesJoint (string $nameSpace,string $endJoint,string $side)
+{
+string $toesJoint,$childLabel;
+string $tempString[];
+
+if (!`objExists ($nameSpace+$endJoint)`)
+    return $toesJoint;
+$tempString=`listRelatives -f -type joint -ad ($nameSpace+$endJoint)`;
+for ($i=0;$i<size($tempString);$i++)
+    {
+    if (`getAttr ($tempString[$i]+".drawLabel")`)
+        {
+        $childLabel=`getAttr ($tempString[$i]+".otherType")`;
+        if (`gmatch $childLabel "*Toes*"` && !`gmatch $childLabel "*QToes*"` && !`gmatch $childLabel "*ToesEnd*"`)
+            {
+            $tempString2[0]=`substitute $nameSpace $tempString[$i] ""`;
+            if (`objExists ($nameSpace+"FK"+$tempString2[0]+$side)`)
+                $toesJoint=$tempString2[0];
+            }
+        }
+    }
+
+return $toesJoint;
+}
+
+
+global proc string[] asGetQToesJoints (string $nameSpace,string $endJoint,string $side)
+{
+    string $childLabel;
+    string $qToesJoints[],$tempString[],$tempString2[],$tempString3[],$tempString4[];
+
+    if (!`objExists ($nameSpace+$endJoint)`)
+        return $qToesJoints;
+
+    $tempString=`listRelatives -f -type joint -ad ($nameSpace+$endJoint)`;
+    for ($y=0;$y<size($tempString);$y++)
+    {
+        if (`getAttr ($tempString[$y]+".drawLabel")`)
+        {
+            $childLabel=`getAttr ($tempString[$y]+".otherType")`;
+            if (`gmatch $childLabel "*QToes*"`)
+            {
+                $tempString2[0]=`substitute $nameSpace $tempString[$y] ""`;
+                if (`objExists ($nameSpace+"FK"+$tempString2[0]+$side)`)
+                {
+                    $tempString3=`ls -l ($nameSpace+$tempString2[0])`;
+                    tokenize $tempString3[0] "|" $tempString4;
+                    for ($z=size($tempString4)-1;$z>-1;$z--)
+                    {
+                        if ($tempString4[$z]==($nameSpace+$endJoint))
+                            break;
+                        $qToesJoints[size($qToesJoints)]=`substitute $nameSpace $tempString4[$z] ""`;
+                    }
+                }
+            }
+        }
+    }
+return $qToesJoints;
+}
+
+
+global proc string[] asgetChainJoints (string $startJoint, string $endJoint)
+{
+int $startJointIsParentNr;
+string $chainJoints[];
+string $tempString[]=`ls -l $endJoint`;
+tokenize $tempString[0] "|" $tempString;
+for ($i=size($tempString)-1;$i>-1;$i--)
+    {
+    $startJointIsParentNr=$i;
+    if ($tempString[$i]==$startJoint)
+        {
+        break;
+        }
+    }
+for ($i=$startJointIsParentNr;$i<size($tempString);$i++)
+    $chainJoints[size($chainJoints)]=$tempString[$i];
+return $chainJoints;
+}
+
+
+global proc asFKIKOrientAlign (string $nameSpace, string $from, string $to)
+{
+int $mirTrans;
+if (`attributeExists mirTrans ($nameSpace+"FitSkeleton")`)
+    $mirTrans=`getAttr ($nameSpace+"FitSkeleton.mirTrans")`;
+float $tempFloat[];
+string $tempString[];
+
+$tempFloat=`xform -q -ws -ro ($nameSpace+$from)`;
+if ($mirTrans && `gmatch $to "*_L"`)
+    {
+    createNode -n tempMirTransformOrient1 -p ($nameSpace+$from) transform;
+    createNode -n tempMirTransformOrient2 -p tempMirTransformOrient1 transform;
+    setAttr tempMirTransformOrient1.rotateOrder `getAttr ($nameSpace+$from+".rotateOrder")`;
+    setAttr tempMirTransformOrient2.rotateOrder `getAttr ($nameSpace+$from+".rotateOrder")`;
+    setAttr tempMirTransformOrient1.s -type float3 -1 -1 -1;
+    $tempString=`listRelatives -p ($nameSpace+$to)`;
+    parent tempMirTransformOrient2 $tempString[0];
+    $tempFloat=`xform -q -ws -ro tempMirTransformOrient2`;
+    delete tempMirTransformOrient1 tempMirTransformOrient2;
+    }
+xform -ws -ro $tempFloat[0] $tempFloat[1] $tempFloat[2] ($nameSpace+$to);
+}

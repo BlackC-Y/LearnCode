@@ -6,6 +6,18 @@
 
 ## [ModelTool `|检查模型对称 镜像工具|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ModelTool.py)
 
+#### 2023-10-16  Verision: `1.0x`
+<details>
+<summary>详情</summary>
+<pre>
+1.Fix:存储选择模型的时机
+2.reBS:可以从Bs窗口选择目标了
+3.Fix:ExBS:属性锁定问题
+4.connectBS:添加Bs属性连工具
+5.添加模型反算的命令工具
+</pre>
+</details>
+
 #### 2023-03-26  Verision: `0.1`
 <details>
 <summary>详情</summary>
@@ -24,6 +36,18 @@
 
 
 ## [ngSk2Weight `|基于NG2的自动分权重 Relax|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/ngSk2Weight.py)
+
+#### 202.-10-16  Verision: `0.8x`
+<details>
+<summary>详情</summary>
+<pre>
+1.默认不Smooth权重
+2.复制粘贴点权重功能重构 细分选项
+3.支持从Maya权重中提取成ng权重
+4.模型不支持热度贴图时换用体素权重
+5.添加默认权重精度限制
+</pre>
+</details>
 
 #### 2023-03-25  Verision: `0.7x`
 <details>
@@ -83,6 +107,11 @@
 3.优化保存形状功能，规划新规则
 4.添加更多控制选项
 5.镜像添加多个模式
+<p align="left">
+  ▽  2023-10-16  Ver_1.06
+1.优化控制器组层级
+2.增加控制器替换功能 整合进流程
+3.Fix:增加前后缀时不应该使用长名称
 </pre>
 </details>
 
@@ -187,6 +216,11 @@
 <p align="left">
   ▽  2023-04-11  Ver_1.07
 1.删除无用代码，整合功能
+<p align="left">
+  ▽  2023-10-16  Ver_1.08
+1.Fix:存取权重改为点id模式
+2.拷权重:选两个模型简易运行
+3.拷权重:优化拷点的流程和精准度
 </pre>
 </details>
 
@@ -342,6 +376,17 @@
 
 ## [DataSaveUi `|临时储存物体或位置|`](https://github.com/BlackC-Y/LearnCode/blob/LearnFlow/Maya_Script/DataSaveUi.py)
 
+#### 2023-10-16  Verision: `1.4x`
+<details>
+<summary>详情</summary>
+<pre>
+1.复制数据到剪切板实现跨Maya传输
+2.可以存储BS和材质信息
+3.可以存储信息到文件内属性
+4.优化结构
+</pre>
+</details>
+
 #### 2020-11-30  Verision: `1.2x`
 <details>
 <summary>详情</summary>
@@ -410,6 +455,9 @@ New Tool
 2.增加传输属性功能, 方便应用已有修型
 3.完善对多模型修型的支持
 4.增加无控制器时的修型支持
+<p align="left">
+  ▽  2023-10-16  Ver_0.87
+1.不再锁定辅助节点
 </pre>
 </details>
 

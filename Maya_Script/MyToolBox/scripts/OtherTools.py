@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from maya import cmds, mel
 from maya.api import OpenMaya as om
+import os
 import re
 
 
@@ -263,34 +264,63 @@ class otherTools():
             if connectInfo:
                 print('connectAttr -r "%s" "%s";' %(connectInfo[1], connectInfo[0]))
 
-class FixError():
+    @staticmethod
+    def removeUnknownPlugin():
+        for i in cmds.unknownPlugin(q=1, l=1):
+            cmds.unknownPlugin(i, r=1)
 
-    def ToolUi(self):
-        self.UiName = 'FixError_ToolUi'
-        if cmds.window(self.UiName, q=1, ex=1):
-            cmds.deleteUI(self.UiName)
-        cmds.window(self.UiName, t='FixError', rtf=1, mb=1, tlb=1, wh=(300, 85))
+    @staticmethod
+    def FixError_ToolUi():
+        UiName = 'FixError_ToolUi'
+        if cmds.window(UiName, q=1, ex=1):
+            cmds.deleteUI(UiName)
+        cmds.window(UiName, t='FixError', rtf=1, mb=1, tlb=1, wh=(300, 85))
         cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=2)
         cmds.text(l=u'鼠标放在按钮上 查看使用说明', h=40, fn='fixedWidthFont')
         cmds.scrollLayout(hst=16, vsb=16)
         cmds.columnLayout(cat=('both', 2), rs=2, cw=290)
-        cmds.button(l=u'大纲look爆红', c=lambda *args: self.FixRed_look(), 
+        cmds.button(l=u'大纲look爆红', c=lambda *args: FixRed_look(), 
                     ann=u'解决在大纲选择物体时Maya爆红"look"的问题')
-        cmds.button(l=u'开关文件爆红', c=lambda *args: self.FixRed_uiConfigScriptNode(), 
+        cmds.button(l=u'开关文件爆红', c=lambda *args: FixRed_uiConfigScriptNode(), 
                     ann=u'解决在打开文件或新建文件时爆红的问题\n请重开maya, 在打开问题文件时取消勾选右上角的"Execute script nodes"\n打开文件后运行此工具, 然后保存')
-        cmds.showWindow(self.UiName)
+        cmds.button(l=u'创建模型不显示，修改材质报错', c=lambda *args: FixUnpublishLock(), 
+                    ann=u'解锁文件中Unpublish的节点')
+        cmds.showWindow(UiName)
     
-    def FixRed_look(self):
-        mel.eval('outlinerEditor -e -sec "" outlinerPanel1')
+        def FixRed_look():
+            mel.eval('outlinerEditor -e -sec "" outlinerPanel1')
 
-    def FixRed_uiConfigScriptNode(self):
-        if cmds.ls('uiConfigurationScriptNode', typ='script'):
-            cmds.delete('uiConfigurationScriptNode')
+        def FixRed_uiConfigScriptNode():
+            if cmds.ls('uiConfigurationScriptNode', typ='script'):
+                cmds.delete('uiConfigurationScriptNode')
 
+        def FixUnpublishLock():
+            allObject = cmds.ls()
+            allState = cmds.lockNode(allObject, q=1, lockUnpublished=1)
+            if allState.count(True):
+                [cmds.lockNode(allObject[i], lu=0, l=0) for i, v in enumerate(allState) if v]
+            else:
+                cmds.warning(u"没发现节点锁定情况")
 
-class cRivet():
+    @staticmethod
+    def cRivet(mode):
 
-    def __init__(self, mode):
+        def cLoc(mode, uV = .5, vV = .5):
+            locName = 'rivet%s' %(len(cmds.ls('rivet*', typ='locator')) + 1)
+            locN = cmds.spaceLocator(n=locName)[0]
+            cmds.group(locN, n='%s_grp' %locN)
+            if mode:
+                cmds.addAttr(locN, ln='U', at='double', dv=0)
+                cmds.addAttr(locN, ln='V', at='double', dv=0)
+            else:
+                cmds.addAttr(locN, ln='U', at='double', min=0, max=1, dv=0)
+                cmds.addAttr(locN, ln='V', at='double', min=0, max=1, dv=0)
+            cmds.setAttr('%s.U' %locN, e=1, keyable=1)
+            cmds.setAttr('%s.U' %locN, uV)
+            cmds.setAttr('%s.V' %locN, e=1, keyable=1)
+            cmds.setAttr('%s.V' %locN, vV)
+            return locN, '%s_grp' %locN
+        
         slmesh = cmds.ls(sl=1, o=1, typ='mesh')
         slsurface = cmds.ls(sl=1, o=1, typ='nurbsSurface')
         if slmesh:
@@ -309,7 +339,7 @@ class cRivet():
             cmds.connectAttr('%s.oc' %nCFME1, '%s.ic[0]' %nLoft, f=1)
             cmds.connectAttr('%s.oc' %nCFME2, '%s.ic[1]' %nLoft, f=1)
             if mode == 'follicle':
-                locN, locgrpN = self.cLoc(0)
+                locN, locgrpN = cLoc(0)
                 nFollicle = cmds.createNode('follicle', p=locgrpN, n='%s_FollicleShape' %locN)
                 cmds.setAttr('%s.visibility' %nFollicle, 0)
                 cmds.setAttr('%s.sim' %nFollicle, 0)
@@ -317,7 +347,7 @@ class cRivet():
                 cmds.connectAttr('%s.V' %locN, '%s.pv' %nFollicle, f=1)
                 cmds.connectAttr('%s.os' %nLoft, '%s.is' %nFollicle, f=1)
             else:
-                locN, locgrpN = self.cLoc(0)
+                locN, locgrpN = cLoc(0)
                 nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
                 cmds.setAttr('%s.top' %nPOSI, 1)
                 cmds.connectAttr('%s.U' %locN, '%s.u' %nPOSI, f=1)
@@ -330,7 +360,7 @@ class cRivet():
                 return
             pointUV = re.findall(r'[[](.*?)[]]', onepoint[0])
             if mode == 'follicle':
-                locN, locgrpN = self.cLoc(0, 1.0 / (cmds.getAttr('%s.mxu' %slsurface[0]) / float(pointUV[0])), 
+                locN, locgrpN = cLoc(0, 1.0 / (cmds.getAttr('%s.mxu' %slsurface[0]) / float(pointUV[0])), 
                                                 1.0 / (cmds.getAttr('%s.mxv' %slsurface[0]) / float(pointUV[1])))
                 nFollicle = cmds.createNode('follicle', p=locgrpN, n='%s_FollicleShape' %locN)
                 cmds.setAttr('%s.visibility' %nFollicle, 0)
@@ -339,7 +369,7 @@ class cRivet():
                 cmds.connectAttr('%s.V' %locN, '%s.pv' %nFollicle, f=1)
                 cmds.connectAttr('%s.ws' %slsurface[0], '.is' %nFollicle, f=1)
             else:
-                locN, locgrpN = self.cLoc(1, float(pointUV[0]), float(pointUV[1]))
+                locN, locgrpN = cLoc(1, float(pointUV[0]), float(pointUV[1]))
                 nPOSI = cmds.createNode('pointOnSurfaceInfo', n='rivetPOSI01')
                 cmds.setAttr('%s.top' %nPOSI, 0)
                 cmds.connectAttr('%s.U' %locN, '%s.u' %nPOSI, f=1)
@@ -382,20 +412,196 @@ class cRivet():
             cmds.connectAttr('%s.p' %nPOSI, '%s.t' %locgrpN, f=1)
             cmds.connectAttr('%s.cr' %nAimC, '%s.r' %locgrpN, f=1)
 
-    def cLoc(self, mode, uV = .5, vV = .5):
-        locName = 'rivet%s' %(len(cmds.ls('rivet*', typ='locator')) + 1)
-        locN = cmds.spaceLocator(n=locName)[0]
-        cmds.group(locN, n='%s_grp' %locN)
-        if mode:
-            cmds.addAttr(locN, ln='U', at='double', dv=0)
-            cmds.addAttr(locN, ln='V', at='double', dv=0)
-        else:
-            cmds.addAttr(locN, ln='U', at='double', min=0, max=1, dv=0)
-            cmds.addAttr(locN, ln='V', at='double', min=0, max=1, dv=0)
-        cmds.setAttr('%s.U' %locN, e=1, keyable=1)
-        cmds.setAttr('%s.U' %locN, uV)
-        cmds.setAttr('%s.V' %locN, e=1, keyable=1)
-        cmds.setAttr('%s.V' %locN, vV)
-        return locN, '%s_grp' %locN
+    @staticmethod
+    def AdvskinClusterLargeFix():
+        for i in cmds.ls(sl=1, typ='joint'):
+            mulMatrix = cmds.createNode('multMatrix')
+            cmds.connectAttr('%s.worldMatrix[0]' %i, '%s.matrixIn[0]' %mulMatrix, f=1)
+            cmds.connectAttr('DeformationSystem.worldInverseMatrix[0]', '%s.matrixIn[1]' %mulMatrix, f=1)
+            skinC = cmds.listConnections('%s.worldMatrix[0]' %i, type='skinCluster', p=1)
+            if skinC:
+                for s in skinC:
+                    cmds.connectAttr('%s.matrixSum' %mulMatrix, s, f=1)
+        cmds.parentConstraint('Main', 'DeformationSystem', mo=1)
+        cmds.connectAttr('DeformationSystem.t', 'Geometry.t', f=1)
+        cmds.connectAttr('DeformationSystem.r', 'Geometry.r', f=1)
+        cmds.connectAttr('DeformationSystem.s', 'Geometry.s', f=1)
 
-#cRivet('follicle')
+    @staticmethod
+    def IkFkSeamlessSwitch_ToolUi(layout=0):
+        Ui = 'IkFkSeamlessSwitch_Ui'
+        if cmds.window(Ui, q=1, ex=1):
+            cmds.deleteUI(Ui)
+        if not layout:
+            cmds.window(Ui, t=Ui, rtf=1, mb=1, tlb=1, wh=(300, 85))
+        cmds.columnLayout(cat=('both', 2), rs=2, cw=300, adj=1)
+        cmds.button(l=u'默认Adv创建 (选择Adv的IKFK切换控制器)(可重建)', w=255, c=lambda *args: doAdv())
+        cmds.separator(height=5, style='in')
+        cmds.textFieldButtonGrp('%s_IFSwitchAttr' %Ui, l=u'IKFK切换属性', bl=u'选择', adj=2, ed=0, cw3=[100, 200, 60], bc=lambda *args: _select('_IFSwitchAttr'))
+        cmds.textFieldButtonGrp('%s_IkPole' %Ui, l=u'Ik和极向量控制器', bl=u'选择', adj=2, ed=0, cw3=[100, 200, 60], bc=lambda *args: _select('_IkPole'))
+        cmds.textFieldButtonGrp('%s_3FkCtrl' %Ui, l=u'顺序Fk控制器', bl=u'选择', adj=2, ed=0, cw3=[100, 200, 60], bc=lambda *args: _select('_3FkCtrl'))
+        cmds.textFieldButtonGrp('%s_3SkinJoint' %Ui, l=u'顺序蒙皮骨骼', bl=u'选择', adj=2, ed=0, cw3=[100, 200, 60], bc=lambda *args: _select('_3SkinJoint'))
+        cmds.button(l=u'创建', w=255, c=lambda *args: doIt(dataList))
+
+        dataList = [[], [], [], []]
+        def _select(ui):
+            sllist = cmds.ls(sl=1)
+            if not sllist:
+                om.MGlobal.displayError(u'什么都没选哇')
+                return
+            if ui == '_IFSwitchAttr':
+                slAttr = cmds.channelBox('mainChannelBox', q=1, sma=1)
+                if not slAttr:
+                    om.MGlobal.displayError(u'要选切换属性哦')
+                    return
+                dataList[0] = [sllist[0], slAttr[0]]
+                cmds.textFieldButtonGrp('%s%s' %(Ui, ui), e=1, tx='%s.%s' %(sllist[0], slAttr[0]))
+                return
+            elif ui == '_IkPole':
+                if len(sllist) != 2:
+                    om.MGlobal.displayError(u'要选2个控制器哦')
+                    return
+                dataList[1] = sllist
+            elif ui == '_3FkCtrl':
+                if len(sllist) != 3:
+                    om.MGlobal.displayError(u'要选3个控制器哦')
+                    return
+                dataList[2] = sllist
+            elif ui == '_3SkinJoint':
+                if len(sllist) != 3:
+                    om.MGlobal.displayError(u'要选3个骨骼哦')
+                    return
+                dataList[3] = sllist
+            cmds.textFieldButtonGrp('%s%s' %(Ui, ui), e=1, tx=' | '.join(sllist))
+        if not layout:
+            cmds.showWindow(Ui)
+
+        def doAdv():
+            sllist = cmds.ls(sl=1)
+            if len(sllist) != 1 or len(cmds.listAttr(sllist[0], st=['FKIKBlend', 'startJoint', 'middleJoint', 'endJoint'])) != 4:
+                om.MGlobal.displayError(u'请选择Adv的IKFK切换控制器')
+                return
+            cmds.addAttr(sllist[0], ln="SeamlessSwitch", at='enum', en='FK:IK:')
+            cmds.setAttr("%s.SeamlessSwitch" %sllist[0], e=1, cb=1)
+            cmds.addAttr(sllist[0], ln="refresh", at='bool')
+            cmds.setAttr("%s.refresh" %sllist[0], e=1, cb=1)
+            if cmds.ls('AdvIKFKSeamlessSwitch', typ='script'):
+                #Script = cmds.scriptNode('AdvIKFKSeamlessSwitch', q=1, beforeScript=1)
+                #Script += "\nscriptJob -attributeChange {IFSwitch}.SeamlessSwitch AdvSeamlessSwitchFKIK -kws;".format(IFSwitch = sllist[0])
+                #cmds.scriptNode('AdvIKFKSeamlessSwitch', e=1, beforeScript=Script)
+                #cmds.scriptNode('AdvIKFKSeamlessSwitch', eb=1)
+                Script = cmds.expression('AdvIKFKSeamlessSwitch_Exp', q=1, s=1)
+                Script += "\n{IFSwitch}.refresh = {IFSwitch}.SeamlessSwitch;".format(IFSwitch = sllist[0])
+                cmds.expression('AdvIKFKSeamlessSwitch_Exp', e=1, s=Script)
+            else:
+                fileDir = '%s/AdvSwitchMel' %os.path.dirname(__file__)
+                with open(fileDir, 'r') as f:
+                    Script = f.read()
+                #Script += "\nscriptJob -attributeChange {IFSwitch}.SeamlessSwitch AdvSeamlessSwitchFKIK -kws;".format(IFSwitch = sllist[0])
+                cmds.scriptNode(beforeScript=Script, n='AdvIKFKSeamlessSwitch', sourceType='mel', scriptType=1)
+                cmds.scriptNode('AdvIKFKSeamlessSwitch', eb=1)
+                cmds.expression(n='AdvIKFKSeamlessSwitch_Exp', s='AdvSeamlessSwitchFKIK;\n{IFSwitch}.refresh = {IFSwitch}.SeamlessSwitch;'.format(IFSwitch = sllist[0]), o='', ae=0, uc='none')
+
+        def doIt(data):
+            IKFKSwitch = data[0]   #切换控制器、切换属性
+            IKPoleCtrl = data[1]   #IK 极向量 控制器
+            FkCtrl = data[2]
+            SkinJoint = data[3]
+
+            cmds.addAttr(IKFKSwitch[0], ln="SeamlessSwitch", at='enum', en='FK:IK:')
+            cmds.setAttr("%s.SeamlessSwitch" %IKFKSwitch[0], e=1, cb=1)
+            cmds.addAttr(IKFKSwitch[0], ln="refresh", at='bool')
+            cmds.setAttr("%s.refresh" %IKFKSwitch[0], e=1, cb=1)
+
+            _IKFKCtrlLoc = cmds.spaceLocator(p=(0, 0, 0), n="%sloc" %IKFKSwitch[0])[0]
+            cmds.parent(_IKFKCtrlLoc, IKFKSwitch[0])
+            cmds.setAttr('%s.t' %_IKFKCtrlLoc, 0, 0, 0)
+            cmds.setAttr('%s.v' %_IKFKCtrlLoc, 0)
+            cmds.addAttr(_IKFKCtrlLoc, ln='%sState' %IKFKSwitch[0], at='bool')
+
+            cmds.addAttr(IKFKSwitch[0], ln='IkCtrl', at='bool')
+            cmds.addAttr(IKPoleCtrl[0], ln='IkCtrl', at='bool')
+            cmds.connectAttr('%s.IkCtrl' %IKFKSwitch[0], '%s.IkCtrl' %IKPoleCtrl[0], f=1)
+            cmds.addAttr(IKFKSwitch[0], ln='IkPole', at='bool')
+            cmds.addAttr(IKPoleCtrl[1], ln='IkPole', at='bool')
+            cmds.connectAttr('%s.IkPole' %IKFKSwitch[0], '%s.IkPole' %IKPoleCtrl[1], f=1)
+            cmds.addAttr(IKFKSwitch[0], ln='Fk1st', at='bool')
+            cmds.addAttr(FkCtrl[0], ln='FK1st', at='bool')
+            cmds.connectAttr('%s.Fk1st' %IKFKSwitch[0], '%s.FK1st' %FkCtrl[0], f=1)
+            cmds.addAttr(IKFKSwitch[0], ln='Fk2nd', at='bool')
+            cmds.addAttr(FkCtrl[1], ln='FK2nd', at='bool')
+            cmds.connectAttr('%s.Fk2nd' %IKFKSwitch[0], '%s.FK2nd' %FkCtrl[1], f=1)
+            cmds.addAttr(IKFKSwitch[0], ln='Fk3rd', at='bool')
+            cmds.addAttr(FkCtrl[2], ln='Fk3rd', at='bool')
+            cmds.connectAttr('%s.Fk3rd' %IKFKSwitch[0], '%s.Fk3rd' %FkCtrl[2], f=1)
+            
+            _IkFkSwitchLoc = cmds.spaceLocator(p=(0, 0, 0), n="%s_IkFkSwitchLoc" %IKPoleCtrl[1])[0]
+            _IkFkSwitchLocGrp = cmds.group(_IkFkSwitchLoc, n="%s_IkFkSwitchLocGrp" %IKPoleCtrl[1])
+            cmds.setAttr('%s.v' %_IkFkSwitchLocGrp, 0)
+            cmds.matchTransform(_IkFkSwitchLocGrp, FkCtrl[1], pos=1, rot=1)
+            cmds.parent(_IkFkSwitchLocGrp, FkCtrl[1])
+
+            for ctrl, parentC in zip(IKPoleCtrl + FkCtrl, [SkinJoint[-1], _IkFkSwitchLoc] + SkinJoint):
+                AimXform = cmds.rename(cmds.duplicate(ctrl, po=1, rr=1), '%sAimXform' %ctrl)
+                cmds.addAttr(ctrl, ln='aimXformObj', at='bool')
+                cmds.addAttr(AimXform, ln='aimXformObj', at='bool')
+                cmds.connectAttr('%s.aimXformObj' %ctrl, '%s.aimXformObj' %AimXform, f=1)
+                cmds.setAttr('%s.t' %AimXform, 0, 0, 0)
+                cmds.setAttr('%s.rx' %AimXform, l=0)
+                cmds.setAttr('%s.ry' %AimXform, l=0)
+                cmds.setAttr('%s.rz' %AimXform, l=0)
+                #cmds.setAttr('%s.v' %AimXform, 0)
+                cmds.parentConstraint(parentC, AimXform, mo=1, w=1)
+
+            if cmds.ls('IKFKSeamlessSwitch', typ='script'):
+                #Script = cmds.scriptNode('IKFKSeamlessSwitch', q=1, beforeScript=1)
+                #Script += "\ncmds.scriptJob(attributeChange=['{IFSwitch}.SeamlessSwitch', 'SeamlessSwitchIKFKClass.Proc()'], kws=1)".format(IFSwitch = IKFKSwitch[0])
+                #cmds.scriptNode('IKFKSeamlessSwitch', e=1, beforeScript=Script)
+                #cmds.scriptNode('IKFKSeamlessSwitch', eb=1)
+                Script = cmds.expression('AdvIKFKSeamlessSwitch_Exp', q=1, s=1)
+                Script += "\n{IFSwitch}.refresh = {IFSwitch}.SeamlessSwitch;".format(IFSwitch = IKFKSwitch[0])
+                cmds.expression('AdvIKFKSeamlessSwitch_Exp', e=1, s=Script)
+            else:
+                Script ="""from maya import cmds
+class SeamlessSwitchIKFKClass():
+    @staticmethod
+    def FkToIk():
+        sl = cmds.ls(sl=1, typ='transform')[0]
+        IkCtrl = cmds.listConnections('%s.IkCtrl' %sl, s=0, d=1)
+        IkPole = cmds.listConnections('%s.IkPole' %sl, s=0, d=1)
+        IkCtrlXformObj = cmds.listConnections('%s.aimXformObj' %IkCtrl[0], s=1, d=1)
+        IkPoleXformObj = cmds.listConnections('%s.aimXformObj' %IkPole[0], s=1, d=1)
+        IkCtrlPos = cmds.xform(IkCtrlXformObj[0], q=1, a=1, ws=1, t=1)
+        IkCtrlRot = cmds.getAttr('%s.r' %IkCtrlXformObj[0])[0]
+        cmds.setAttr('%s.r' %IkCtrl[0], IkCtrlRot[0], IkCtrlRot[1], IkCtrlRot[2], typ='float3')
+        cmds.xform(IkCtrl[0], a=1, ws=1, t=IkCtrlPos)
+        cmds.xform(IkPole[0], a=1, ws=1, t=cmds.xform(IkPoleXformObj, q=1, a=1, ws=1, t=1))
+        cmds.setAttr('%s.{SwitchAttr}' %sl, 10)
+    @staticmethod
+    def IkToFk():
+        sl = cmds.ls(sl=1, typ='transform')[0]
+        Fk1st = cmds.listConnections('%s.Fk1st' %sl, s=0, d=1)
+        Fk2nd = cmds.listConnections('%s.Fk2nd' %sl, s=0, d=1)
+        Fk3rd = cmds.listConnections('%s.Fk3rd' %sl, s=0, d=1)
+        Fk1stXformObj = cmds.listConnections('%s.aimXformObj' %Fk1st[0], s=1, d=1)
+        Fk2ndXformObj = cmds.listConnections('%s.aimXformObj' %Fk2nd[0], s=1, d=1)
+        Fk3rdXformObj = cmds.listConnections('%s.aimXformObj' %Fk3rd[0], s=1, d=1)
+        Rot = cmds.getAttr('%s.r' %Fk1stXformObj[0])[0]
+        cmds.setAttr('%s.r' %Fk1st[0], Rot[0], Rot[1], Rot[2], typ='float3')
+        Rot = cmds.getAttr('%s.r' %Fk2ndXformObj[0])[0]
+        cmds.setAttr('%s.r' %Fk2nd[0], Rot[0], Rot[1], Rot[2], typ='float3')
+        Rot = cmds.getAttr('%s.r' %Fk3rdXformObj[0])[0]
+        cmds.setAttr('%s.r' %Fk3rd[0], Rot[0], Rot[1], Rot[2], typ='float3')
+        cmds.setAttr('%s.{SwitchAttr}' %sl, 0)
+    @staticmethod
+    def Proc():
+        if cmds.getAttr('%s.SeamlessSwitch' %cmds.ls(sl=1)[0]):
+            SeamlessSwitchIKFKClass.FkToIk()
+        else:
+            SeamlessSwitchIKFKClass.IkToFk()
+    """.format(SwitchAttr = IKFKSwitch[1])
+                #Script += "\ncmds.scriptJob(attributeChange=['{IFSwitch}.SeamlessSwitch', 'SeamlessSwitchIKFKClass.Proc()'], kws=1)".format(IFSwitch = IKFKSwitch[0])
+                cmds.scriptNode(beforeScript=Script, n='IKFKSeamlessSwitch', sourceType='python', scriptType=1)
+                cmds.scriptNode('IKFKSeamlessSwitch', eb=1)
+                cmds.expression(n='AdvIKFKSeamlessSwitch_Exp', s='python("SeamlessSwitchIKFKClass.Proc()");\n{IFSwitch}.refresh = {IFSwitch}.SeamlessSwitch;'.format(IFSwitch = IKFKSwitch[0]), o='', ae=0, uc='none')
+
